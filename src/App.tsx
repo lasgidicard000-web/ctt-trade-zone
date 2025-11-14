@@ -13,6 +13,7 @@ import Chat from "./pages/Chat";
 import TradingSimulator from "./pages/TradingSimulator";
 import Leaderboard from "./pages/Leaderboard";
 import TransactionHistory from "./pages/TransactionHistory";
+import AdminWithdrawals from "./pages/AdminWithdrawals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/simulator" element={<TradingSimulator />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/transactions" element={<TransactionHistory />} />
+          <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

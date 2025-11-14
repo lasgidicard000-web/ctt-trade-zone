@@ -355,7 +355,7 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="prices" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="prices">Coin Prices</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
@@ -472,7 +472,12 @@ const Admin = () => {
           <TabsContent value="withdrawals">
             <Card>
               <CardHeader>
-                <CardTitle>Withdrawal Requests</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Withdrawal Requests</span>
+                  <Button onClick={() => navigate("/admin/withdrawals")}>
+                    View Full Management Page
+                  </Button>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>
