@@ -10,6 +10,7 @@ import type { User, Session } from "@supabase/supabase-js";
 import PriceAlerts from "@/components/PriceAlerts";
 import AlertNotifications from "@/components/AlertNotifications";
 import { RewardsSection } from "@/components/RewardsSection";
+import { WalletAddresses } from "@/components/WalletAddresses";
 import { useRealtimePrices } from "@/hooks/useRealtimePrices";
 import { useTransactionNotifications } from "@/hooks/useTransactionNotifications";
 import {
@@ -652,6 +653,8 @@ const Wallet = () => {
         {user && <div className="mb-6"><PriceAlerts user={user} coins={coinPrices} /></div>}
 
         {user && <div className="mb-6"><RewardsSection user={user} onRewardClaimed={fetchData} /></div>}
+
+        {user && <div className="mb-6"><WalletAddresses coins={coinPrices} userId={user.id} /></div>}
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {getCoinData().map((coin) => {
