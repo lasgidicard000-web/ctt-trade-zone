@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import PerformanceChart from "@/components/PerformanceChart";
 import { 
   ArrowLeft, 
   TrendingUp, 
@@ -41,6 +42,13 @@ interface VirtualTransaction {
   created_at: string;
 }
 
+interface PortfolioSnapshot {
+  id: string;
+  total_value: number;
+  balances: Record<string, number>;
+  created_at: string;
+}
+
 const TradingSimulator = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -49,6 +57,7 @@ const TradingSimulator = () => {
   const [coinPrices, setCoinPrices] = useState<CoinPrice[]>([]);
   const [virtualBalances, setVirtualBalances] = useState<VirtualBalance[]>([]);
   const [transactions, setTransactions] = useState<VirtualTransaction[]>([]);
+  const [snapshots, setSnapshots] = useState<PortfolioSnapshot[]>([]);
   const [selectedCoin, setSelectedCoin] = useState<CoinPrice | null>(null);
   const [tradeAmount, setTradeAmount] = useState("");
 
@@ -80,6 +89,7 @@ const TradingSimulator = () => {
       fetchCoinPrices(),
       fetchVirtualBalances(),
       fetchTransactions(),
+      fetchSnapshots(),
       initializeVirtualWallet()
     ]);
   };
@@ -144,6 +154,44 @@ const TradingSimulator = () => {
     if (!error) {
       setTransactions(data || []);
     }
+  };
+
+  const fetchSnapshots = async () => {
+    const { data, error } = await supabase
+      .from("portfolio_snapshots")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (!error && data) {
+      const typedSnapshots: PortfolioSnapshot[] = data.map(snapshot => ({
+        id: snapshot.id,
+        total_value: snapshot.total_value,
+        balances: snapshot.balances as Record<string, number>,
+        created_at: snapshot.created_at
+      }));
+      setSnapshots(typedSnapshots);
+    }
+  };
+
+  const createSnapshot = async () => {
+    if (!user?.id) return;
+
+    const totalValue = getTotalPortfolioValue();
+    const balancesObj = virtualBalances.reduce((acc, balance) => {
+      acc[balance.coin_symbol] = balance.balance;
+      return acc;
+    }, {} as Record<string, number>);
+
+    await supabase
+      .from("portfolio_snapshots")
+      .insert([{
+        user_id: user.id,
+        total_value: totalValue,
+        balances: balancesObj
+      }]);
+
+    fetchSnapshots();
   };
 
   const getBalance = (symbol: string): number => {
@@ -218,7 +266,8 @@ const TradingSimulator = () => {
       });
 
       setTradeAmount("");
-      initializeData();
+      await initializeData();
+      await createSnapshot();
     } catch (error) {
       toast({
         title: "Transaction Failed",
@@ -296,7 +345,8 @@ const TradingSimulator = () => {
       });
 
       setTradeAmount("");
-      initializeData();
+      await initializeData();
+      await createSnapshot();
     } catch (error) {
       toast({
         title: "Transaction Failed",
@@ -379,6 +429,10 @@ const TradingSimulator = () => {
             </div>
             <p className="text-3xl font-bold">{transactions.length}</p>
           </Card>
+        </div>
+
+        <div className="mb-6">
+          <PerformanceChart snapshots={snapshots} />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
