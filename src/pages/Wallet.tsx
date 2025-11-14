@@ -49,7 +49,10 @@ const Wallet = () => {
   const [addFundsDialogOpen, setAddFundsDialogOpen] = useState(false);
   const [depositAmount, setDepositAmount] = useState('');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'stripe' | 'bank'>('paypal');
+  const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'stripe' | 'bank' | 'crypto'>('paypal');
+  const [selectedCrypto, setSelectedCrypto] = useState<'BTC' | 'ETH' | 'USDT'>('BTC');
+  const [cryptoPaymentInfo, setCryptoPaymentInfo] = useState<any>(null);
+  const [isCheckingPayment, setIsCheckingPayment] = useState(false);
   const [bankTransferInfo, setBankTransferInfo] = useState<any>(null);
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
@@ -316,7 +319,28 @@ const Wallet = () => {
     setIsProcessingPayment(true);
 
     try {
-      if (paymentMethod === 'paypal') {
+      if (paymentMethod === 'crypto') {
+        const { data, error } = await supabase.functions.invoke(
+          'nowpayments-deposit',
+          {
+            body: {
+              action: 'create-payment',
+              amount,
+              cryptoCurrency: selectedCrypto.toLowerCase(),
+            },
+          }
+        );
+
+        if (error) throw error;
+
+        setCryptoPaymentInfo(data);
+        setIsProcessingPayment(false);
+        
+        toast({
+          title: "Crypto payment created",
+          description: "Please send the exact amount to the address shown",
+        });
+      } else if (paymentMethod === 'paypal') {
         // Create PayPal order
         const { data: createData, error: createError } = await supabase.functions.invoke(
           'paypal-deposit',
@@ -413,6 +437,57 @@ const Wallet = () => {
         description: "Failed to process payment",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleCheckCryptoPayment = async () => {
+    if (!cryptoPaymentInfo?.paymentId) return;
+
+    setIsCheckingPayment(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'nowpayments-deposit',
+        {
+          body: {
+            action: 'check-status',
+            paymentId: cryptoPaymentInfo.paymentId,
+          },
+        }
+      );
+
+      if (error) throw error;
+
+      if (data.paymentStatus === 'finished' || data.paymentStatus === 'confirmed') {
+        toast({
+          title: "Payment confirmed!",
+          description: "Your wallet has been credited",
+        });
+        
+        setAddFundsDialogOpen(false);
+        setCryptoPaymentInfo(null);
+        setDepositAmount('');
+        fetchData();
+      } else if (data.paymentStatus === 'failed' || data.paymentStatus === 'expired') {
+        toast({
+          title: "Payment " + data.paymentStatus,
+          description: "Please try again with a new payment",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Payment status: " + data.paymentStatus,
+          description: "Waiting for confirmation...",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to check payment status",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCheckingPayment(false);
     }
   };
 
@@ -715,6 +790,7 @@ const Wallet = () => {
           setAddFundsDialogOpen(open);
           if (!open) {
             setBankTransferInfo(null);
+            setCryptoPaymentInfo(null);
             setDepositAmount('');
           }
         }}>
@@ -726,7 +802,7 @@ const Wallet = () => {
               </DialogDescription>
             </DialogHeader>
             
-            {!bankTransferInfo ? (
+            {!bankTransferInfo && !cryptoPaymentInfo ? (
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="depositAmount">Amount (USD)</Label>
@@ -743,7 +819,15 @@ const Wallet = () => {
 
                 <div className="space-y-2">
                   <Label>Payment Method</Label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant={paymentMethod === 'crypto' ? 'default' : 'outline'}
+                      onClick={() => setPaymentMethod('crypto')}
+                      className="flex flex-col items-center gap-1 h-auto py-3"
+                    >
+                      <Coins className="h-5 w-5" />
+                      <span className="text-xs">Crypto</span>
+                    </Button>
                     <Button
                       variant={paymentMethod === 'paypal' ? 'default' : 'outline'}
                       onClick={() => setPaymentMethod('paypal')}
@@ -771,17 +855,110 @@ const Wallet = () => {
                   </div>
                 </div>
 
+                {paymentMethod === 'crypto' && (
+                  <div className="space-y-2">
+                    <Label>Select Cryptocurrency</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button
+                        variant={selectedCrypto === 'BTC' ? 'default' : 'outline'}
+                        onClick={() => setSelectedCrypto('BTC')}
+                        className="flex flex-col items-center gap-1 h-auto py-3"
+                      >
+                        <span className="text-lg">₿</span>
+                        <span className="text-xs">Bitcoin</span>
+                      </Button>
+                      <Button
+                        variant={selectedCrypto === 'ETH' ? 'default' : 'outline'}
+                        onClick={() => setSelectedCrypto('ETH')}
+                        className="flex flex-col items-center gap-1 h-auto py-3"
+                      >
+                        <span className="text-lg">Ξ</span>
+                        <span className="text-xs">Ethereum</span>
+                      </Button>
+                      <Button
+                        variant={selectedCrypto === 'USDT' ? 'default' : 'outline'}
+                        onClick={() => setSelectedCrypto('USDT')}
+                        className="flex flex-col items-center gap-1 h-auto py-3"
+                      >
+                        <span className="text-lg">₮</span>
+                        <span className="text-xs">USDT</span>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 <Button 
                   onClick={handleAddFunds} 
                   className="w-full"
                   disabled={isProcessingPayment || !depositAmount}
                 >
                   {isProcessingPayment ? "Processing..." : 
+                    paymentMethod === 'crypto' ? `Pay with ${selectedCrypto}` :
                     paymentMethod === 'paypal' ? "Pay with PayPal" :
                     paymentMethod === 'stripe' ? "Pay with Card" :
                     "Get Bank Instructions"
                   }
                 </Button>
+              </div>
+            ) : cryptoPaymentInfo ? (
+              <div className="space-y-4 py-4">
+                <div className="rounded-lg bg-muted p-4 space-y-3">
+                  <h4 className="font-semibold text-sm">Crypto Payment Instructions</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Amount to Send:</span>
+                      <span className="font-mono font-semibold">{cryptoPaymentInfo.payAmount} {cryptoPaymentInfo.payCurrency?.toUpperCase()}</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-muted-foreground">Payment Address:</span>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 rounded bg-background p-2 text-xs break-all">
+                          {cryptoPaymentInfo.payAddress}
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            navigator.clipboard.writeText(cryptoPaymentInfo.payAddress);
+                            toast({ title: "Copied to clipboard" });
+                          }}
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Status:</span>
+                      <span className="font-medium capitalize">{cryptoPaymentInfo.paymentStatus}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-primary/5 border border-primary/20 p-3">
+                  <p className="text-xs text-muted-foreground">
+                    <strong>Important:</strong> Send the exact amount to the address above. 
+                    The payment will be automatically confirmed once received on the blockchain.
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleCheckCryptoPayment}
+                    disabled={isCheckingPayment}
+                    className="flex-1"
+                  >
+                    {isCheckingPayment ? "Checking..." : "Check Payment Status"}
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setCryptoPaymentInfo(null);
+                      setDepositAmount('');
+                    }}
+                    variant="outline"
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="space-y-4 py-4">
