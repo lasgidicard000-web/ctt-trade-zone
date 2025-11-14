@@ -49,6 +49,8 @@ const Wallet = () => {
   const [addFundsDialogOpen, setAddFundsDialogOpen] = useState(false);
   const [depositAmount, setDepositAmount] = useState('');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'stripe' | 'bank'>('paypal');
+  const [bankTransferInfo, setBankTransferInfo] = useState<any>(null);
   const paypalButtonsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -79,6 +81,54 @@ const Wallet = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Handle Stripe payment completion
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+    const paymentStatus = urlParams.get('payment');
+
+    if (sessionId && paymentStatus === 'success') {
+      // Verify and process Stripe payment
+      const verifyStripePayment = async () => {
+        try {
+          const { data, error } = await supabase.functions.invoke(
+            'stripe-deposit',
+            {
+              body: { action: 'verify-session', sessionId },
+            }
+          );
+
+          if (error) throw error;
+
+          if (data.success) {
+            toast({
+              title: "Funds added!",
+              description: `Successfully added $${data.amount} USDT to your wallet`,
+            });
+            fetchData();
+          }
+        } catch (error) {
+          toast({
+            title: "Payment verification failed",
+            description: "Could not verify your payment",
+            variant: "destructive",
+          });
+        }
+        // Clean URL
+        window.history.replaceState({}, '', '/wallet');
+      };
+
+      verifyStripePayment();
+    } else if (paymentStatus === 'cancelled') {
+      toast({
+        title: "Payment cancelled",
+        description: "Your payment was cancelled",
+        variant: "destructive",
+      });
+      window.history.replaceState({}, '', '/wallet');
+    }
+  }, [toast]);
 
   const fetchData = async () => {
     // Check if user is admin
@@ -262,63 +312,96 @@ const Wallet = () => {
     setIsProcessingPayment(true);
 
     try {
-      // Create PayPal order
-      const { data: createData, error: createError } = await supabase.functions.invoke(
-        'paypal-deposit',
-        {
-          body: { action: 'create-order', amount },
-        }
-      );
-
-      if (createError) throw createError;
-
-      const orderId = createData.orderId;
-
-      // Open PayPal payment window
-      const paypalWindow = window.open(
-        `https://www.paypal.com/checkoutnow?token=${orderId}`,
-        'PayPal',
-        'width=500,height=600'
-      );
-
-      // Poll for payment completion
-      const checkPayment = setInterval(async () => {
-        if (paypalWindow?.closed) {
-          clearInterval(checkPayment);
-          
-          // Capture the order
-          const { data: captureData, error: captureError } = await supabase.functions.invoke(
-            'paypal-deposit',
-            {
-              body: { action: 'capture-order', orderId },
-            }
-          );
-
-          setIsProcessingPayment(false);
-
-          if (captureError) {
-            toast({
-              title: "Payment failed",
-              description: "Could not process your payment",
-              variant: "destructive",
-            });
-          } else if (captureData.success) {
-            toast({
-              title: "Funds added!",
-              description: `Successfully added $${captureData.amount} USDT to your wallet`,
-            });
-            setAddFundsDialogOpen(false);
-            setDepositAmount('');
-            fetchData();
+      if (paymentMethod === 'paypal') {
+        // Create PayPal order
+        const { data: createData, error: createError } = await supabase.functions.invoke(
+          'paypal-deposit',
+          {
+            body: { action: 'create-order', amount },
           }
-        }
-      }, 1000);
+        );
 
-      // Timeout after 5 minutes
-      setTimeout(() => {
-        clearInterval(checkPayment);
+        if (createError) throw createError;
+
+        const orderId = createData.orderId;
+
+        // Open PayPal payment window
+        const paypalWindow = window.open(
+          `https://www.paypal.com/checkoutnow?token=${orderId}`,
+          'PayPal',
+          'width=500,height=600'
+        );
+
+        // Poll for payment completion
+        const checkPayment = setInterval(async () => {
+          if (paypalWindow?.closed) {
+            clearInterval(checkPayment);
+            
+            // Capture the order
+            const { data: captureData, error: captureError } = await supabase.functions.invoke(
+              'paypal-deposit',
+              {
+                body: { action: 'capture-order', orderId },
+              }
+            );
+
+            setIsProcessingPayment(false);
+
+            if (captureError) {
+              toast({
+                title: "Payment failed",
+                description: "Could not process your payment",
+                variant: "destructive",
+              });
+            } else if (captureData.success) {
+              toast({
+                title: "Funds added!",
+                description: `Successfully added $${captureData.amount} USDT to your wallet`,
+              });
+              setAddFundsDialogOpen(false);
+              setDepositAmount('');
+              fetchData();
+            }
+          }
+        }, 1000);
+
+        // Timeout after 5 minutes
+        setTimeout(() => {
+          clearInterval(checkPayment);
+          setIsProcessingPayment(false);
+        }, 300000);
+      } else if (paymentMethod === 'stripe') {
+        // Create Stripe checkout session
+        const { data: sessionData, error: sessionError } = await supabase.functions.invoke(
+          'stripe-deposit',
+          {
+            body: { action: 'create-session', amount },
+          }
+        );
+
+        if (sessionError) throw sessionError;
+
+        // Redirect to Stripe checkout
+        window.location.href = sessionData.url;
+      } else if (paymentMethod === 'bank') {
+        // Initiate bank transfer
+        const { data: transferData, error: transferError } = await supabase.functions.invoke(
+          'bank-transfer',
+          {
+            body: { action: 'initiate-transfer', amount },
+          }
+        );
+
+        if (transferError) throw transferError;
+
+        setBankTransferInfo(transferData);
         setIsProcessingPayment(false);
-      }, 300000);
+        
+        toast({
+          title: "Bank transfer initiated",
+          description: "Please follow the instructions to complete your transfer",
+        });
+      }
     } catch (error) {
       setIsProcessingPayment(false);
       toast({
@@ -546,35 +629,129 @@ const Wallet = () => {
           </DialogContent>
         </Dialog>
 
-        <Dialog open={addFundsDialogOpen} onOpenChange={setAddFundsDialogOpen}>
-          <DialogContent>
+        <Dialog open={addFundsDialogOpen} onOpenChange={(open) => {
+          setAddFundsDialogOpen(open);
+          if (!open) {
+            setBankTransferInfo(null);
+            setDepositAmount('');
+          }
+        }}>
+          <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Add Funds via PayPal</DialogTitle>
+              <DialogTitle>Add Funds to Wallet</DialogTitle>
               <DialogDescription>
-                Deposit funds to your USDT wallet balance using PayPal
+                Choose your preferred payment method to deposit USDT
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="depositAmount">Amount (USD)</Label>
-                <Input
-                  id="depositAmount"
-                  type="number"
-                  placeholder="Enter amount"
-                  value={depositAmount}
-                  onChange={(e) => setDepositAmount(e.target.value)}
-                  min="1"
-                  step="0.01"
-                />
+            
+            {!bankTransferInfo ? (
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="depositAmount">Amount (USD)</Label>
+                  <Input
+                    id="depositAmount"
+                    type="number"
+                    placeholder="Enter amount"
+                    value={depositAmount}
+                    onChange={(e) => setDepositAmount(e.target.value)}
+                    min="1"
+                    step="0.01"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Payment Method</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      variant={paymentMethod === 'paypal' ? 'default' : 'outline'}
+                      onClick={() => setPaymentMethod('paypal')}
+                      className="flex flex-col items-center gap-1 h-auto py-3"
+                    >
+                      <WalletIcon className="h-5 w-5" />
+                      <span className="text-xs">PayPal</span>
+                    </Button>
+                    <Button
+                      variant={paymentMethod === 'stripe' ? 'default' : 'outline'}
+                      onClick={() => setPaymentMethod('stripe')}
+                      className="flex flex-col items-center gap-1 h-auto py-3"
+                    >
+                      <Shield className="h-5 w-5" />
+                      <span className="text-xs">Card</span>
+                    </Button>
+                    <Button
+                      variant={paymentMethod === 'bank' ? 'default' : 'outline'}
+                      onClick={() => setPaymentMethod('bank')}
+                      className="flex flex-col items-center gap-1 h-auto py-3"
+                    >
+                      <Coins className="h-5 w-5" />
+                      <span className="text-xs">Bank</span>
+                    </Button>
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={handleAddFunds} 
+                  className="w-full"
+                  disabled={isProcessingPayment || !depositAmount}
+                >
+                  {isProcessingPayment ? "Processing..." : 
+                    paymentMethod === 'paypal' ? "Pay with PayPal" :
+                    paymentMethod === 'stripe' ? "Pay with Card" :
+                    "Get Bank Instructions"
+                  }
+                </Button>
               </div>
-              <Button 
-                onClick={handleAddFunds} 
-                className="w-full"
-                disabled={isProcessingPayment || !depositAmount}
-              >
-                {isProcessingPayment ? "Processing..." : "Pay with PayPal"}
-              </Button>
-            </div>
+            ) : (
+              <div className="space-y-4 py-4">
+                <div className="rounded-lg bg-muted p-4 space-y-3">
+                  <h4 className="font-semibold text-sm">Bank Transfer Instructions</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Account Name:</span>
+                      <span className="font-medium">{bankTransferInfo.instructions.accountName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Account Number:</span>
+                      <span className="font-medium">{bankTransferInfo.instructions.accountNumber}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Routing Number:</span>
+                      <span className="font-medium">{bankTransferInfo.instructions.routingNumber}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Bank Name:</span>
+                      <span className="font-medium">{bankTransferInfo.instructions.bankName}</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-border">
+                      <span className="text-muted-foreground">Amount:</span>
+                      <span className="font-bold text-primary">${bankTransferInfo.instructions.amount}</span>
+                    </div>
+                    <div className="pt-2 border-t border-border">
+                      <p className="text-muted-foreground mb-1">Reference Code:</p>
+                      <code className="block bg-background px-3 py-2 rounded text-xs font-mono">
+                        {bankTransferInfo.reference}
+                      </code>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        ⚠️ Include this reference code in your transfer notes
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-center text-muted-foreground">
+                  Funds will be credited within 2-3 business days after confirmation
+                </p>
+                <Button 
+                  onClick={() => {
+                    setBankTransferInfo(null);
+                    setAddFundsDialogOpen(false);
+                  }}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Close
+                </Button>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
