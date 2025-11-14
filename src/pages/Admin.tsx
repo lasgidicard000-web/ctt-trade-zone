@@ -72,7 +72,7 @@ const Admin = () => {
 
   const checkAdminStatus = async (userId: string) => {
     const { data, error } = await supabase
-      .from("user_roles")
+      .from("user_roles" as any)
       .select("role")
       .eq("user_id", userId)
       .eq("role", "admin")
