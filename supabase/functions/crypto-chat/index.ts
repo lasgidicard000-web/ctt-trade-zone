@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,6 +14,71 @@ serve(async (req) => {
 
   try {
     const { messages } = await req.json();
+    
+    // Get user from authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'No authorization header' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Fetch user's portfolio data
+    const { data: walletBalances } = await supabaseClient
+      .from('wallet_balances')
+      .select('coin_symbol, balance')
+      .eq('user_id', user.id);
+
+    const { data: coinPrices } = await supabaseClient
+      .from('coin_prices')
+      .select('symbol, name, price, change_24h');
+
+    // Build portfolio context
+    let portfolioContext = '';
+    if (walletBalances && walletBalances.length > 0 && coinPrices) {
+      const portfolioData = walletBalances.map(balance => {
+        const coin = coinPrices.find(c => c.symbol === balance.coin_symbol);
+        if (coin) {
+          const value = Number(balance.balance) * Number(coin.price);
+          return {
+            symbol: balance.coin_symbol,
+            name: coin.name,
+            balance: balance.balance,
+            price: coin.price,
+            change24h: coin.change_24h,
+            value: value.toFixed(2)
+          };
+        }
+        return null;
+      }).filter((coin): coin is NonNullable<typeof coin> => coin !== null);
+
+      const totalValue = portfolioData.reduce((sum, coin) => sum + Number(coin.value), 0);
+
+      portfolioContext = `\n\nCURRENT USER PORTFOLIO:
+Total Portfolio Value: $${totalValue.toFixed(2)}
+
+Holdings:
+${portfolioData.map(coin => 
+  `- ${coin.name} (${coin.symbol}): ${coin.balance} coins @ $${coin.price} = $${coin.value} (24h change: ${coin.change24h}%)`
+).join('\n')}
+
+Use this portfolio data to provide personalized advice and analysis when relevant.`;
+    }
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -32,26 +98,14 @@ serve(async (req) => {
         messages: [
           { 
             role: "system", 
-            content: `You are CryptoAdvisor, an expert cryptocurrency and portfolio management assistant. You help users understand cryptocurrency markets, make informed investment decisions, and manage their digital asset portfolios.
+            content: `You are CryptoAdvisor, an AI assistant specialized in cryptocurrency and portfolio management. You provide helpful, accurate information about:
+- Cryptocurrency basics and concepts
+- Portfolio management strategies
+- Market trends and analysis
+- Risk management
+- Trading strategies
 
-Your expertise includes:
-- Explaining cryptocurrency concepts and terminology in simple terms
-- Analyzing market trends and price movements
-- Providing portfolio diversification strategies
-- Discussing risk management and investment strategies
-- Explaining blockchain technology and DeFi concepts
-- Comparing different cryptocurrencies and their use cases
-
-Guidelines:
-- Be helpful, professional, and educational
-- Never provide financial advice or guarantee returns
-- Always remind users to do their own research (DYOR)
-- Use clear, concise language
-- Provide balanced perspectives on cryptocurrencies
-- Emphasize risk management and responsible investing
-- Stay up-to-date with current crypto market trends
-
-When discussing specific coins, focus on their technology, use cases, and market position rather than price predictions.`
+Always be helpful, concise, and provide actionable advice. If you're unsure about something, admit it rather than speculating.${portfolioContext}`
           },
           ...messages,
         ],
