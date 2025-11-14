@@ -11,6 +11,7 @@ import PriceAlerts from "@/components/PriceAlerts";
 import AlertNotifications from "@/components/AlertNotifications";
 import { RewardsSection } from "@/components/RewardsSection";
 import { useRealtimePrices } from "@/hooks/useRealtimePrices";
+import { useTransactionNotifications } from "@/hooks/useTransactionNotifications";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,9 @@ const Wallet = () => {
   const [loading, setLoading] = useState(true);
   const { prices: coinPrices, priceChanges, loading: pricesLoading } = useRealtimePrices();
   const [walletBalances, setWalletBalances] = useState<WalletBalance[]>([]);
+  
+  // Enable real-time transaction notifications
+  useTransactionNotifications(user);
   const [isAdmin, setIsAdmin] = useState(false);
   const [tradeDialogOpen, setTradeDialogOpen] = useState(false);
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
