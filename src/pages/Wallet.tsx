@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Wallet as WalletIcon, TrendingUp, TrendingDown, LogOut, Shield, MessageCircle } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import type { User, Session } from "@supabase/supabase-js";
 import PriceAlerts from "@/components/PriceAlerts";
@@ -148,6 +149,7 @@ const Wallet = () => {
           <h1 className="mb-2 text-4xl font-bold">Wallet Dashboard</h1>
           <p className="text-muted-foreground">View all available cryptocurrencies and your portfolio</p>
           <div className="mt-4 flex gap-2 justify-center flex-wrap">
+            <ThemeToggle />
             <Button onClick={() => navigate("/chat")} variant="default" size="sm">
               <MessageCircle className="mr-2 h-4 w-4" />
               AI Advisor
