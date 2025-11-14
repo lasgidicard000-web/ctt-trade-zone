@@ -15,7 +15,7 @@ serve(async (req) => {
   try {
     const { messages } = await req.json();
     
-    // Get user from authorization header
+    // Get JWT from authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'No authorization header' }), {
@@ -24,14 +24,16 @@ serve(async (req) => {
       });
     }
 
+    const jwt = authHeader.replace('Bearer ', '');
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(jwt);
     if (userError || !user) {
+      console.error('Auth error:', userError);
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
