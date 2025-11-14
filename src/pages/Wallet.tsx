@@ -3,11 +3,11 @@ import { Wallet as WalletIcon, TrendingUp, TrendingDown } from "lucide-react";
 
 const Wallet = () => {
   const coins = [
-    { symbol: "BTC", name: "Bitcoin", price: 43250.00, change: 2.4, balance: 0 },
-    { symbol: "ETH", name: "Ethereum", price: 2280.50, change: -1.2, balance: 0 },
+    { symbol: "BTC", name: "Bitcoin", price: 102916.67, change: 2.4, balance: 0 },
+    { symbol: "ETH", name: "Ethereum", price: 3498.58, change: -1.2, balance: 0 },
     { symbol: "USDT", name: "Tether", price: 1.00, change: 0.0, balance: 0 },
-    { symbol: "BNB", name: "Binance Coin", price: 310.25, change: 3.8, balance: 0 },
-    { symbol: "CCT", name: "Custom Coin Token", price: 1.20, change: 5.2, balance: 0 },
+    { symbol: "BNB", name: "Binance Coin", price: 1004.07, change: 3.8, balance: 0 },
+    { symbol: "CCT", name: "Custom Coin Token", price: 12350.00, change: 5.2, balance: 0 },
   ];
 
   const totalPortfolioValue = coins.reduce((acc, coin) => acc + (coin.price * coin.balance), 0);
