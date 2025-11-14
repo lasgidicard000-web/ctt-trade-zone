@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.check-price-alerts]
 verify_jwt = false
+
+[functions.nowpayments-deposit]
+verify_jwt = true
