@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Gift, Wallet } from "lucide-react";
+import { Gift, Wallet, Upload } from "lucide-react";
 
 const Redeem = () => {
   const [giftCardCode, setGiftCardCode] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
   const [selectedCrypto, setSelectedCrypto] = useState("");
+  const [screenshot, setScreenshot] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleRedeem = async (e: React.FormEvent) => {
@@ -55,6 +56,25 @@ const Redeem = () => {
                 onChange={(e) => setGiftCardCode(e.target.value)}
                 className="bg-background"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="screenshot">Upload Screenshot (Optional)</Label>
+              <div className="relative">
+                <Input
+                  id="screenshot"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setScreenshot(e.target.files?.[0] || null)}
+                  className="bg-background"
+                />
+                {screenshot && (
+                  <p className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
+                    <Upload className="h-4 w-4" />
+                    {screenshot.name}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">
