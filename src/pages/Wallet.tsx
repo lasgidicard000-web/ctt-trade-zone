@@ -62,7 +62,7 @@ const Wallet = () => {
     // Check if user is admin
     if (user?.id) {
       const { data: roleData } = await supabase
-        .from("user_roles")
+        .from("user_roles" as any)
         .select("role")
         .eq("user_id", user.id)
         .eq("role", "admin")
