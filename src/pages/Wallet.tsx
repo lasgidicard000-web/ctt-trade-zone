@@ -51,6 +51,10 @@ const Wallet = () => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'stripe' | 'bank'>('paypal');
   const [bankTransferInfo, setBankTransferInfo] = useState<any>(null);
+  const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [walletAddress, setWalletAddress] = useState('');
+  const [withdrawalFee, setWithdrawalFee] = useState(0);
   const paypalButtonsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -412,6 +416,73 @@ const Wallet = () => {
     }
   };
 
+  // Calculate withdrawal fee when amount changes
+  useEffect(() => {
+    const amount = parseFloat(withdrawAmount);
+    if (amount && amount > 0) {
+      const fee = Math.max(amount * 0.01, 1); // 1% or $1 minimum
+      setWithdrawalFee(fee);
+    } else {
+      setWithdrawalFee(0);
+    }
+  }, [withdrawAmount]);
+
+  const handleWithdrawal = async () => {
+    const amount = parseFloat(withdrawAmount);
+    if (!amount || amount < 10) {
+      toast({
+        title: "Invalid amount",
+        description: "Minimum withdrawal amount is $10",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!walletAddress) {
+      toast({
+        title: "Wallet address required",
+        description: "Please enter a valid wallet address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessingPayment(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'process-withdrawal',
+        {
+          body: {
+            action: 'request-withdrawal',
+            amount,
+            walletAddress,
+          },
+        }
+      );
+
+      if (error) throw error;
+
+      toast({
+        title: "Withdrawal requested!",
+        description: data.message,
+      });
+
+      setWithdrawDialogOpen(false);
+      setWithdrawAmount('');
+      setWalletAddress('');
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Withdrawal failed",
+        description: error.message || "Failed to process withdrawal",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -472,15 +543,26 @@ const Wallet = () => {
                 maximumFractionDigits: 2,
               })}
             </p>
-            <Button 
-              onClick={() => setAddFundsDialogOpen(true)} 
-              variant="default" 
-              size="sm"
-              className="mt-4"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add Funds
-            </Button>
+            <div className="flex gap-2 justify-center">
+              <Button 
+                onClick={() => setAddFundsDialogOpen(true)} 
+                variant="default" 
+                size="sm"
+                className="mt-4"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Funds
+              </Button>
+              <Button 
+                onClick={() => setWithdrawDialogOpen(true)} 
+                variant="outline" 
+                size="sm"
+                className="mt-4"
+              >
+                <WalletIcon className="mr-2 h-4 w-4" />
+                Withdraw
+              </Button>
+            </div>
           </div>
         </Card>
 
@@ -752,6 +834,108 @@ const Wallet = () => {
                 </Button>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={withdrawDialogOpen} onOpenChange={(open) => {
+          setWithdrawDialogOpen(open);
+          if (!open) {
+            setWithdrawAmount('');
+            setWalletAddress('');
+          }
+        }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Withdraw USDT</DialogTitle>
+              <DialogDescription>
+                Withdraw your USDT to an external wallet address
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="rounded-lg bg-muted p-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Available Balance:</span>
+                  <span className="font-semibold">
+                    ${(walletBalances.find(b => b.coin_symbol === 'USDT')?.balance || 0).toLocaleString()} USDT
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Withdrawal Fee:</span>
+                  <span className="font-medium">1% (min $1)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Minimum Amount:</span>
+                  <span className="font-medium">$10</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="withdrawAmount">Withdrawal Amount (USDT)</Label>
+                <Input
+                  id="withdrawAmount"
+                  type="number"
+                  placeholder="Enter amount"
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                  min="10"
+                  step="0.01"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="walletAddress">Wallet Address</Label>
+                <Input
+                  id="walletAddress"
+                  type="text"
+                  placeholder="Enter USDT wallet address (ERC-20, TRC-20, or BTC)"
+                  value={walletAddress}
+                  onChange={(e) => setWalletAddress(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Supported formats: ERC-20 (0x...), TRC-20 (T...), or BTC address
+                </p>
+              </div>
+
+              {withdrawAmount && parseFloat(withdrawAmount) >= 10 && (
+                <div className="rounded-lg bg-muted p-3 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Withdrawal Amount:</span>
+                    <span className="font-medium">${parseFloat(withdrawAmount).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Fee:</span>
+                    <span className="font-medium">${withdrawalFee.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between border-t border-border pt-2">
+                    <span className="text-muted-foreground font-semibold">Total Deducted:</span>
+                    <span className="font-bold text-destructive">
+                      ${(parseFloat(withdrawAmount) + withdrawalFee).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 space-y-1">
+                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">
+                  ⚠️ Important Notice
+                </p>
+                <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Processing time: 1-3 business days</li>
+                  <li>Ensure wallet address is correct - transactions cannot be reversed</li>
+                  <li>Network fees may apply on the blockchain</li>
+                  <li>Only withdraw to addresses you control</li>
+                </ul>
+              </div>
+
+              <Button 
+                onClick={handleWithdrawal} 
+                className="w-full"
+                disabled={isProcessingPayment || !withdrawAmount || !walletAddress || parseFloat(withdrawAmount) < 10}
+              >
+                {isProcessingPayment ? "Processing..." : "Request Withdrawal"}
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
