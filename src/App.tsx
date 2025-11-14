@@ -9,6 +9,7 @@ import Admin from "./pages/Admin";
 import Redeem from "./pages/Redeem";
 import Trade from "./pages/Trade";
 import Wallet from "./pages/Wallet";
+import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/redeem" element={<Redeem />} />
           <Route path="/trade" element={<Trade />} />
           <Route path="/wallet" element={<Wallet />} />
+          <Route path="/chat" element={<Chat />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
