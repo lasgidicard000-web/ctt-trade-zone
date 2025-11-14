@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { User, Session } from "@supabase/supabase-js";
 import PriceAlerts from "@/components/PriceAlerts";
 import AlertNotifications from "@/components/AlertNotifications";
+import { RewardsSection } from "@/components/RewardsSection";
 import {
   Dialog,
   DialogContent,
@@ -406,6 +407,8 @@ const Wallet = () => {
         </Card>
 
         {user && <div className="mb-6"><PriceAlerts user={user} coins={coinPrices} /></div>}
+
+        {user && <div className="mb-6"><RewardsSection user={user} onRewardClaimed={fetchData} /></div>}
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {getCoinData().map((coin) => (
