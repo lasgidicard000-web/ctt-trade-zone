@@ -65,25 +65,40 @@ export const RewardsSection = ({ user, onRewardClaimed }: RewardsSectionProps) =
   }, [user]);
 
   const fetchReferralStats = async () => {
-    const { data: referrals } = await supabase
-      .from("referrals")
-      .select("*")
+    const { data } = await supabase
+      .from("referrals" as any)
+      .select("id, referee_id, reward_claimed")
       .eq("referrer_id", user.id);
 
-    if (referrals) {
-      setReferralsCount(referrals.length);
-      setUnclaimedReferrals(referrals.filter((r: Referral) => !r.reward_claimed).length);
+    if (data) {
+      setReferralsCount(data.length);
+      setUnclaimedReferrals(data.filter((r: any) => !r.reward_claimed).length);
     }
   };
 
   const fetchMilestones = async () => {
     const { data } = await supabase
-      .from("user_milestones")
-      .select("*, milestones(*)")
+      .from("user_milestones" as any)
+      .select(`
+        id,
+        milestone_id,
+        current_progress,
+        completed,
+        reward_claimed,
+        milestones (
+          id,
+          name,
+          description,
+          milestone_type,
+          target_value,
+          reward_amount,
+          icon
+        )
+      `)
       .eq("user_id", user.id);
 
     if (data) {
-      setUserMilestones(data);
+      setUserMilestones(data as any);
     }
   };
 
