@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wallet as WalletIcon, TrendingUp, TrendingDown, LogOut, Shield, MessageCircle, Gamepad2, ShoppingCart, Coins, Plus, Trophy } from "lucide-react";
+import { Wallet as WalletIcon, TrendingUp, TrendingDown, LogOut, Shield, MessageCircle, Gamepad2, ShoppingCart, Coins, Plus, Trophy, Radio } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import type { User, Session } from "@supabase/supabase-js";
 import PriceAlerts from "@/components/PriceAlerts";
 import AlertNotifications from "@/components/AlertNotifications";
 import { RewardsSection } from "@/components/RewardsSection";
+import { useRealtimePrices } from "@/hooks/useRealtimePrices";
 import {
   Dialog,
   DialogContent,
@@ -38,7 +39,7 @@ const Wallet = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [coinPrices, setCoinPrices] = useState<CoinPrice[]>([]);
+  const { prices: coinPrices, priceChanges, loading: pricesLoading } = useRealtimePrices();
   const [walletBalances, setWalletBalances] = useState<WalletBalance[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [tradeDialogOpen, setTradeDialogOpen] = useState(false);
@@ -90,22 +91,6 @@ const Wallet = () => {
         .maybeSingle();
       
       setIsAdmin(!!roleData);
-    }
-
-    // Fetch coin prices
-    const { data: prices, error: pricesError } = await supabase
-      .from("coin_prices")
-      .select("symbol, name, price, change_24h")
-      .order("symbol");
-
-    if (pricesError) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch coin prices",
-        variant: "destructive",
-      });
-    } else {
-      setCoinPrices(prices || []);
     }
 
     // Fetch user wallet balances
@@ -361,7 +346,13 @@ const Wallet = () => {
             <WalletIcon className="h-12 w-12 text-primary" />
           </div>
           <h1 className="mb-2 text-4xl font-bold">Wallet Dashboard</h1>
-          <p className="text-muted-foreground">View all available cryptocurrencies and your portfolio</p>
+          <p className="text-muted-foreground flex items-center justify-center gap-2">
+            View all available cryptocurrencies and your portfolio
+            <span className="flex items-center gap-1 rounded-full bg-accent/20 px-2 py-1 text-xs text-accent">
+              <Radio className="h-3 w-3 animate-pulse" />
+              Live
+            </span>
+          </p>
           <div className="mt-4 flex gap-2 justify-center flex-wrap">
             <ThemeToggle />
             <Button onClick={() => navigate("/simulator")} variant="default" size="sm">
@@ -415,42 +406,58 @@ const Wallet = () => {
         {user && <div className="mb-6"><RewardsSection user={user} onRewardClaimed={fetchData} /></div>}
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {getCoinData().map((coin) => (
-            <Card
-              key={coin.symbol}
-              className="border-border bg-card p-6 transition-all hover:border-primary/50"
-            >
-              <div className="mb-4 flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">{coin.symbol}</h3>
-                  <p className="text-sm text-muted-foreground">{coin.name}</p>
+          {getCoinData().map((coin) => {
+            const priceChange = priceChanges.get(coin.symbol);
+            const isUpdating = priceChange && Date.now() - priceChange.timestamp < 2000;
+            
+            return (
+              <Card
+                key={coin.symbol}
+                className={`border-border bg-card p-6 transition-all hover:border-primary/50 ${
+                  isUpdating 
+                    ? priceChange.direction === 'up' 
+                      ? 'ring-2 ring-accent/50 animate-pulse' 
+                      : 'ring-2 ring-destructive/50 animate-pulse'
+                    : ''
+                }`}
+              >
+                <div className="mb-4 flex items-start justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold">{coin.symbol}</h3>
+                    <p className="text-sm text-muted-foreground">{coin.name}</p>
+                  </div>
+                  <div
+                    className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs ${
+                      coin.change_24h > 0
+                        ? "bg-accent/10 text-accent"
+                        : coin.change_24h < 0
+                        ? "bg-destructive/10 text-destructive"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {coin.change_24h > 0 ? (
+                      <TrendingUp className="h-3 w-3" />
+                    ) : coin.change_24h < 0 ? (
+                      <TrendingDown className="h-3 w-3" />
+                    ) : null}
+                    {coin.change_24h > 0 ? "+" : ""}
+                    {coin.change_24h}%
+                  </div>
                 </div>
-                <div
-                  className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs ${
-                    coin.change_24h > 0
-                      ? "bg-accent/10 text-accent"
-                      : coin.change_24h < 0
-                      ? "bg-destructive/10 text-destructive"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {coin.change_24h > 0 ? (
-                    <TrendingUp className="h-3 w-3" />
-                  ) : coin.change_24h < 0 ? (
-                    <TrendingDown className="h-3 w-3" />
-                  ) : null}
-                  {coin.change_24h > 0 ? "+" : ""}
-                  {coin.change_24h}%
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Price</span>
-                  <span className="font-medium">
-                    ${coin.price.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Price</span>
+                    <span className={`font-medium transition-colors ${
+                      isUpdating 
+                        ? priceChange.direction === 'up'
+                          ? 'text-accent'
+                          : 'text-destructive'
+                        : ''
+                    }`}>
+                      ${coin.price.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Balance</span>
                   <span className="font-medium">
@@ -489,7 +496,8 @@ const Wallet = () => {
                 </div>
               </div>
             </Card>
-          ))}
+          );
+          })}
         </div>
 
         <Card className="mt-6 border-border bg-card/50 p-4">
