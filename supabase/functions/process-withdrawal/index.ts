@@ -200,6 +200,122 @@ serve(async (req) => {
       );
     }
 
+    // Admin actions
+    if (action === 'approve-withdrawal') {
+      const { withdrawalId, transactionHash } = await req.json();
+      
+      console.log('Admin approving withdrawal:', withdrawalId);
+
+      // Check if user is admin
+      const { data: roleData } = await supabaseClient
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (!roleData) {
+        throw new Error('Unauthorized - Admin access required');
+      }
+
+      // Update withdrawal status
+      const { error: updateError } = await supabaseClient
+        .from('withdrawals')
+        .update({
+          status: 'completed',
+          transaction_hash: transactionHash,
+          processed_at: new Date().toISOString(),
+          notes: `Approved by admin ${user.email}`,
+        })
+        .eq('id', withdrawalId);
+
+      if (updateError) throw updateError;
+
+      // Update transaction status
+      await supabaseClient
+        .from('transactions')
+        .update({ status: 'completed' })
+        .eq('user_id', user.id)
+        .eq('type', 'withdrawal');
+
+      console.log('Withdrawal approved successfully');
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Withdrawal approved and processed',
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'reject-withdrawal') {
+      const { withdrawalId, reason } = await req.json();
+      
+      console.log('Admin rejecting withdrawal:', withdrawalId);
+
+      // Check if user is admin
+      const { data: roleData } = await supabaseClient
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (!roleData) {
+        throw new Error('Unauthorized - Admin access required');
+      }
+
+      // Get withdrawal details for refund
+      const { data: withdrawal, error: fetchError } = await supabaseClient
+        .from('withdrawals')
+        .select('*')
+        .eq('id', withdrawalId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Refund to user wallet
+      const { data: balance } = await supabaseClient
+        .from('wallet_balances')
+        .select('balance')
+        .eq('user_id', withdrawal.user_id)
+        .eq('coin_symbol', 'USDT')
+        .maybeSingle();
+
+      const currentBalance = balance?.balance || 0;
+      const refundAmount = parseFloat(withdrawal.amount.toString()) + parseFloat(withdrawal.fee.toString());
+      const newBalance = parseFloat(currentBalance.toString()) + refundAmount;
+
+      await supabaseClient
+        .from('wallet_balances')
+        .upsert({
+          user_id: withdrawal.user_id,
+          coin_symbol: 'USDT',
+          balance: newBalance,
+        }, { onConflict: 'user_id,coin_symbol' });
+
+      // Update withdrawal status
+      await supabaseClient
+        .from('withdrawals')
+        .update({
+          status: 'rejected',
+          notes: `Rejected by admin: ${reason}`,
+          processed_at: new Date().toISOString(),
+        })
+        .eq('id', withdrawalId);
+
+      console.log('Withdrawal rejected and refunded');
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Withdrawal rejected and funds refunded',
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     throw new Error('Invalid action');
   } catch (error: any) {
     console.error('Error:', error);
