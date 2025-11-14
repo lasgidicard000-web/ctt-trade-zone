@@ -37,24 +37,7 @@ Deno.serve(async (req) => {
     console.log('NOWPayments request:', { action, amount, cryptoCurrency, paymentId, userId: user.id });
 
     if (action === 'create-payment') {
-      // Step 1: Get minimum payment amount
-      const minAmountResponse = await fetch(
-        `${NOWPAYMENTS_API_URL}/min-amount?currency_from=${cryptoCurrency}&currency_to=usd`,
-        {
-          headers: {
-            'x-api-key': nowpaymentsApiKey,
-          },
-        }
-      );
-
-      if (!minAmountResponse.ok) {
-        throw new Error('Failed to get minimum amount');
-      }
-
-      const minAmountData = await minAmountResponse.json();
-      console.log('Min amount data:', minAmountData);
-
-      // Step 2: Get estimated price
+      // Get estimated price
       const estimateResponse = await fetch(
         `${NOWPAYMENTS_API_URL}/estimate?amount=${amount}&currency_from=usd&currency_to=${cryptoCurrency}`,
         {
@@ -65,13 +48,15 @@ Deno.serve(async (req) => {
       );
 
       if (!estimateResponse.ok) {
+        const errorText = await estimateResponse.text();
+        console.error('Estimate failed:', errorText);
         throw new Error('Failed to get price estimate');
       }
 
       const estimateData = await estimateResponse.json();
       console.log('Estimate data:', estimateData);
 
-      // Step 3: Create payment
+      // Create payment
       const paymentResponse = await fetch(`${NOWPAYMENTS_API_URL}/payment`, {
         method: 'POST',
         headers: {
@@ -85,8 +70,6 @@ Deno.serve(async (req) => {
           order_id: `${user.id}_${Date.now()}`,
           order_description: `Crypto deposit - ${amount} USD`,
           ipn_callback_url: `${supabaseUrl}/functions/v1/nowpayments-webhook`,
-          success_url: `${Deno.env.get('FRONTEND_URL') || 'http://localhost:8080'}/wallet?payment=success`,
-          cancel_url: `${Deno.env.get('FRONTEND_URL') || 'http://localhost:8080'}/wallet?payment=cancelled`,
         }),
       });
 
