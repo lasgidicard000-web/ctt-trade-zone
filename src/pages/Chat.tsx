@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, Send, Bot, User as UserIcon, Loader2, Plus, MessageSquare, Trash2 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@supabase/supabase-js";
 import {
@@ -391,6 +392,18 @@ const Chat = () => {
   return (
     <div className="min-h-screen bg-background flex">
       <div className="w-64 border-r border-border bg-card p-4 flex flex-col">
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            onClick={() => navigate("/wallet")}
+            variant="ghost"
+            size="sm"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
+          <ThemeToggle />
+        </div>
+        
         <Button
           onClick={createNewConversation}
           className="mb-4 w-full"
