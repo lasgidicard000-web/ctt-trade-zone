@@ -13,10 +13,10 @@ const Trade = () => {
   const [loading, setLoading] = useState(false);
 
   const exchangeRates = {
-    btc: 0.000023,
-    eth: 0.00035,
-    usdt: 1.2,
-    bnb: 0.002,
+    btc: 0.12,
+    eth: 3.53,
+    usdt: 12350,
+    bnb: 12.30,
   };
 
   const calculateReceiveAmount = () => {
@@ -117,10 +117,10 @@ const Trade = () => {
             <div>
               <h3 className="mb-1 font-semibold">Current Exchange Rates</h3>
               <ul className="space-y-1 text-sm text-muted-foreground">
-                <li>1 CCT = {exchangeRates.btc} BTC</li>
-                <li>1 CCT = {exchangeRates.eth} ETH</li>
-                <li>1 CCT = {exchangeRates.usdt} USDT</li>
-                <li>1 CCT = {exchangeRates.bnb} BNB</li>
+                <li>1 CCT = {exchangeRates.btc.toFixed(2)} BTC</li>
+                <li>1 CCT = {exchangeRates.eth.toFixed(2)} ETH</li>
+                <li>1 CCT = {exchangeRates.usdt.toLocaleString()} USDT</li>
+                <li>1 CCT = {exchangeRates.bnb.toFixed(2)} BNB</li>
               </ul>
             </div>
           </div>
