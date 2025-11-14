@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wallet as WalletIcon, TrendingUp, TrendingDown, LogOut, Shield, MessageCircle, Gamepad2, ShoppingCart, Coins } from "lucide-react";
+import { Wallet as WalletIcon, TrendingUp, TrendingDown, LogOut, Shield, MessageCircle, Gamepad2, ShoppingCart, Coins, Plus } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import type { User, Session } from "@supabase/supabase-js";
@@ -44,6 +44,10 @@ const Wallet = () => {
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [selectedCoin, setSelectedCoin] = useState<string>('');
   const [tradeAmount, setTradeAmount] = useState('');
+  const [addFundsDialogOpen, setAddFundsDialogOpen] = useState(false);
+  const [depositAmount, setDepositAmount] = useState('');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const paypalButtonsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Set up auth state listener
@@ -258,6 +262,87 @@ const Wallet = () => {
     }
   };
 
+  const handleAddFunds = async () => {
+    const amount = parseFloat(depositAmount);
+    if (!amount || amount <= 0) {
+      toast({
+        title: "Invalid amount",
+        description: "Please enter a valid amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessingPayment(true);
+
+    try {
+      // Create PayPal order
+      const { data: createData, error: createError } = await supabase.functions.invoke(
+        'paypal-deposit',
+        {
+          body: { action: 'create-order', amount },
+        }
+      );
+
+      if (createError) throw createError;
+
+      const orderId = createData.orderId;
+
+      // Open PayPal payment window
+      const paypalWindow = window.open(
+        `https://www.paypal.com/checkoutnow?token=${orderId}`,
+        'PayPal',
+        'width=500,height=600'
+      );
+
+      // Poll for payment completion
+      const checkPayment = setInterval(async () => {
+        if (paypalWindow?.closed) {
+          clearInterval(checkPayment);
+          
+          // Capture the order
+          const { data: captureData, error: captureError } = await supabase.functions.invoke(
+            'paypal-deposit',
+            {
+              body: { action: 'capture-order', orderId },
+            }
+          );
+
+          setIsProcessingPayment(false);
+
+          if (captureError) {
+            toast({
+              title: "Payment failed",
+              description: "Could not process your payment",
+              variant: "destructive",
+            });
+          } else if (captureData.success) {
+            toast({
+              title: "Funds added!",
+              description: `Successfully added $${captureData.amount} USDT to your wallet`,
+            });
+            setAddFundsDialogOpen(false);
+            setDepositAmount('');
+            fetchData();
+          }
+        }
+      }, 1000);
+
+      // Timeout after 5 minutes
+      setTimeout(() => {
+        clearInterval(checkPayment);
+        setIsProcessingPayment(false);
+      }, 300000);
+    } catch (error) {
+      setIsProcessingPayment(false);
+      toast({
+        title: "Error",
+        description: "Failed to process payment",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -308,6 +393,15 @@ const Wallet = () => {
                 maximumFractionDigits: 2,
               })}
             </p>
+            <Button 
+              onClick={() => setAddFundsDialogOpen(true)} 
+              variant="default" 
+              size="sm"
+              className="mt-4"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Funds
+            </Button>
           </div>
         </Card>
 
@@ -432,6 +526,38 @@ const Wallet = () => {
               )}
               <Button onClick={handleTrade} className="w-full">
                 {tradeType === 'buy' ? 'Buy' : 'Sell'} {selectedCoin}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={addFundsDialogOpen} onOpenChange={setAddFundsDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Funds via PayPal</DialogTitle>
+              <DialogDescription>
+                Deposit funds to your USDT wallet balance using PayPal
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="depositAmount">Amount (USD)</Label>
+                <Input
+                  id="depositAmount"
+                  type="number"
+                  placeholder="Enter amount"
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(e.target.value)}
+                  min="1"
+                  step="0.01"
+                />
+              </div>
+              <Button 
+                onClick={handleAddFunds} 
+                className="w-full"
+                disabled={isProcessingPayment || !depositAmount}
+              >
+                {isProcessingPayment ? "Processing..." : "Pay with PayPal"}
               </Button>
             </div>
           </DialogContent>
