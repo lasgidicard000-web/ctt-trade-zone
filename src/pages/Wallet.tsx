@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Wallet as WalletIcon, TrendingUp, TrendingDown, LogOut, Shield, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { User, Session } from "@supabase/supabase-js";
+import PriceAlerts from "@/components/PriceAlerts";
+import AlertNotifications from "@/components/AlertNotifications";
 
 interface CoinPrice {
   symbol: string;
@@ -137,6 +139,7 @@ const Wallet = () => {
 
   return (
     <div className="min-h-screen bg-background p-4">
+      {user && <AlertNotifications user={user} />}
       <div className="container mx-auto max-w-6xl py-12">
         <div className="mb-8 text-center">
           <div className="mb-4 inline-flex rounded-full bg-primary/10 p-4">
@@ -173,6 +176,8 @@ const Wallet = () => {
             </p>
           </div>
         </Card>
+
+        {user && <div className="mb-6"><PriceAlerts user={user} coins={coinPrices} /></div>}
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {getCoinData().map((coin) => (
