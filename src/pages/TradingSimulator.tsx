@@ -97,7 +97,7 @@ const TradingSimulator = () => {
   const initializeVirtualWallet = async () => {
     // Check if user has any virtual balances
     const { data: existingBalances } = await supabase
-      .from("virtual_wallet_balances")
+      .from("virtual_wallet_balances" as any)
       .select("*")
       .limit(1);
 
@@ -105,7 +105,7 @@ const TradingSimulator = () => {
     if (!existingBalances || existingBalances.length === 0) {
       if (!user?.id) return;
       await supabase
-        .from("virtual_wallet_balances")
+        .from("virtual_wallet_balances" as any)
         .insert([{ user_id: user.id, coin_symbol: "USDT", balance: 10000 }]);
       
       toast({
@@ -136,41 +136,41 @@ const TradingSimulator = () => {
 
   const fetchVirtualBalances = async () => {
     const { data, error } = await supabase
-      .from("virtual_wallet_balances")
+      .from("virtual_wallet_balances" as any)
       .select("coin_symbol, balance");
 
     if (!error) {
-      setVirtualBalances(data || []);
+      setVirtualBalances((data as any) || []);
     }
   };
 
   const fetchTransactions = async () => {
     const { data, error } = await supabase
-      .from("virtual_transactions")
+      .from("virtual_transactions" as any)
       .select("*")
       .order("created_at", { ascending: false })
       .limit(20);
 
     if (!error) {
-      setTransactions(data || []);
+      setTransactions((data as any) || []);
     }
   };
 
   const fetchSnapshots = async () => {
     const { data, error } = await supabase
-      .from("portfolio_snapshots")
+      .from("portfolio_snapshots" as any)
       .select("*")
       .order("created_at", { ascending: false })
       .limit(100);
 
     if (!error && data) {
-      const typedSnapshots: PortfolioSnapshot[] = data.map(snapshot => ({
+      const formattedData = (data as any[]).map((snapshot: any) => ({
         id: snapshot.id,
-        total_value: snapshot.total_value,
+        total_value: parseFloat(snapshot.total_value),
         balances: snapshot.balances as Record<string, number>,
         created_at: snapshot.created_at
       }));
-      setSnapshots(typedSnapshots);
+      setSnapshots(formattedData);
     }
   };
 
@@ -184,7 +184,7 @@ const TradingSimulator = () => {
     }, {} as Record<string, number>);
 
     await supabase
-      .from("portfolio_snapshots")
+      .from("portfolio_snapshots" as any)
       .insert([{
         user_id: user.id,
         total_value: totalValue,
@@ -227,7 +227,7 @@ const TradingSimulator = () => {
       
       // Deduct USDT
       const { error: usdtError } = await supabase
-        .from("virtual_wallet_balances")
+        .from("virtual_wallet_balances" as any)
         .upsert([{
           user_id: user.id,
           coin_symbol: "USDT",
@@ -239,7 +239,7 @@ const TradingSimulator = () => {
       // Add purchased coin
       const currentCoinBalance = getBalance(selectedCoin.symbol);
       const { error: coinError } = await supabase
-        .from("virtual_wallet_balances")
+        .from("virtual_wallet_balances" as any)
         .upsert([{
           user_id: user.id,
           coin_symbol: selectedCoin.symbol,
@@ -250,7 +250,7 @@ const TradingSimulator = () => {
 
       // Record transaction
       await supabase
-        .from("virtual_transactions")
+        .from("virtual_transactions" as any)
         .insert([{
           user_id: user.id,
           type: "buy",
@@ -307,7 +307,7 @@ const TradingSimulator = () => {
       // Add USDT
       const usdtBalance = getBalance("USDT");
       const { error: usdtError } = await supabase
-        .from("virtual_wallet_balances")
+        .from("virtual_wallet_balances" as any)
         .upsert([{
           user_id: user.id,
           coin_symbol: "USDT",
@@ -318,7 +318,7 @@ const TradingSimulator = () => {
 
       // Deduct sold coin
       const { error: coinError } = await supabase
-        .from("virtual_wallet_balances")
+        .from("virtual_wallet_balances" as any)
         .upsert([{
           user_id: user.id,
           coin_symbol: selectedCoin.symbol,
@@ -329,7 +329,7 @@ const TradingSimulator = () => {
 
       // Record transaction
       await supabase
-        .from("virtual_transactions")
+        .from("virtual_transactions" as any)
         .insert([{
           user_id: user.id,
           type: "sell",

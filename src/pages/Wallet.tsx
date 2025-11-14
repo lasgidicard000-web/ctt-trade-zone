@@ -3,12 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wallet as WalletIcon, TrendingUp, TrendingDown, LogOut, Shield, MessageCircle, Gamepad2 } from "lucide-react";
+import { Wallet as WalletIcon, TrendingUp, TrendingDown, LogOut, Shield, MessageCircle, Gamepad2, ShoppingCart, Coins } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import type { User, Session } from "@supabase/supabase-js";
 import PriceAlerts from "@/components/PriceAlerts";
 import AlertNotifications from "@/components/AlertNotifications";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface CoinPrice {
   symbol: string;
@@ -31,6 +40,10 @@ const Wallet = () => {
   const [coinPrices, setCoinPrices] = useState<CoinPrice[]>([]);
   const [walletBalances, setWalletBalances] = useState<WalletBalance[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [tradeDialogOpen, setTradeDialogOpen] = useState(false);
+  const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
+  const [selectedCoin, setSelectedCoin] = useState<string>('');
+  const [tradeAmount, setTradeAmount] = useState('');
 
   useEffect(() => {
     // Set up auth state listener
@@ -129,6 +142,121 @@ const Wallet = () => {
     (acc, coin) => acc + coin.price * coin.balance,
     0
   );
+
+  const openTradeDialog = (type: 'buy' | 'sell', coinSymbol: string) => {
+    setTradeType(type);
+    setSelectedCoin(coinSymbol);
+    setTradeAmount('');
+    setTradeDialogOpen(true);
+  };
+
+  const handleTrade = async () => {
+    if (!user || !selectedCoin || !tradeAmount || parseFloat(tradeAmount) <= 0) {
+      toast({
+        title: "Invalid input",
+        description: "Please enter a valid amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const amount = parseFloat(tradeAmount);
+    const coin = getCoinData().find(c => c.symbol === selectedCoin);
+    
+    if (!coin) return;
+
+    const total = amount * coin.price;
+
+    try {
+      if (tradeType === 'buy') {
+        // Check USDT balance
+        const usdtBalance = walletBalances.find(b => b.coin_symbol === 'USDT')?.balance || 0;
+        
+        if (total > usdtBalance) {
+          toast({
+            title: "Insufficient funds",
+            description: "Not enough USDT to complete this purchase",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Update USDT balance (decrease)
+        await supabase
+          .from("wallet_balances")
+          .upsert({
+            user_id: user.id,
+            coin_symbol: 'USDT',
+            balance: usdtBalance - total,
+          }, { onConflict: 'user_id,coin_symbol' });
+
+        // Update coin balance (increase)
+        const currentBalance = coin.balance;
+        await supabase
+          .from("wallet_balances")
+          .upsert({
+            user_id: user.id,
+            coin_symbol: selectedCoin,
+            balance: currentBalance + amount,
+          }, { onConflict: 'user_id,coin_symbol' });
+
+      } else {
+        // Sell
+        if (amount > coin.balance) {
+          toast({
+            title: "Insufficient balance",
+            description: `Not enough ${selectedCoin} to sell`,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Update coin balance (decrease)
+        await supabase
+          .from("wallet_balances")
+          .upsert({
+            user_id: user.id,
+            coin_symbol: selectedCoin,
+            balance: coin.balance - amount,
+          }, { onConflict: 'user_id,coin_symbol' });
+
+        // Update USDT balance (increase)
+        const usdtBalance = walletBalances.find(b => b.coin_symbol === 'USDT')?.balance || 0;
+        await supabase
+          .from("wallet_balances")
+          .upsert({
+            user_id: user.id,
+            coin_symbol: 'USDT',
+            balance: usdtBalance + total,
+          }, { onConflict: 'user_id,coin_symbol' });
+      }
+
+      // Record transaction
+      await supabase
+        .from("transactions")
+        .insert({
+          user_id: user.id,
+          type: tradeType,
+          from_symbol: tradeType === 'buy' ? 'USDT' : selectedCoin,
+          to_symbol: tradeType === 'buy' ? selectedCoin : 'USDT',
+          amount: tradeType === 'buy' ? amount : total,
+        });
+
+      toast({
+        title: "Trade successful",
+        description: `${tradeType === 'buy' ? 'Bought' : 'Sold'} ${amount} ${selectedCoin}`,
+      });
+
+      setTradeDialogOpen(false);
+      fetchData();
+    } catch (error) {
+      toast({
+        title: "Trade failed",
+        description: "An error occurred during the trade",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -238,6 +366,26 @@ const Wallet = () => {
                     })}
                   </span>
                 </div>
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="flex-1"
+                    onClick={() => openTradeDialog('buy', coin.symbol)}
+                  >
+                    <ShoppingCart className="mr-1 h-4 w-4" />
+                    Buy
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => openTradeDialog('sell', coin.symbol)}
+                  >
+                    <Coins className="mr-1 h-4 w-4" />
+                    Sell
+                  </Button>
+                </div>
               </div>
             </Card>
           ))}
@@ -248,6 +396,46 @@ const Wallet = () => {
             Prices update in real-time from the database. Admin can manage coins and pricing through the backend.
           </p>
         </Card>
+
+        <Dialog open={tradeDialogOpen} onOpenChange={setTradeDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{tradeType === 'buy' ? 'Buy' : 'Sell'} {selectedCoin}</DialogTitle>
+              <DialogDescription>
+                Enter the amount of {selectedCoin} you want to {tradeType}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="amount">Amount ({selectedCoin})</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder="0.00"
+                  value={tradeAmount}
+                  onChange={(e) => setTradeAmount(e.target.value)}
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              {selectedCoin && tradeAmount && (
+                <div className="rounded-md bg-muted p-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">
+                      {tradeType === 'buy' ? 'Total Cost' : 'You will receive'}:
+                    </span>
+                    <span className="font-medium">
+                      {(parseFloat(tradeAmount) * (getCoinData().find(c => c.symbol === selectedCoin)?.price || 0)).toFixed(2)} USDT
+                    </span>
+                  </div>
+                </div>
+              )}
+              <Button onClick={handleTrade} className="w-full">
+                {tradeType === 'buy' ? 'Buy' : 'Sell'} {selectedCoin}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
