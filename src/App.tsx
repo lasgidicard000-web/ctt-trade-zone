@@ -11,6 +11,7 @@ import Trade from "./pages/Trade";
 import Wallet from "./pages/Wallet";
 import Chat from "./pages/Chat";
 import TradingSimulator from "./pages/TradingSimulator";
+import Leaderboard from "./pages/Leaderboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/wallet" element={<Wallet />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/simulator" element={<TradingSimulator />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

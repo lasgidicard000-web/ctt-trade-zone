@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wallet as WalletIcon, TrendingUp, TrendingDown, LogOut, Shield, MessageCircle, Gamepad2, ShoppingCart, Coins, Plus } from "lucide-react";
+import { Wallet as WalletIcon, TrendingUp, TrendingDown, LogOut, Shield, MessageCircle, Gamepad2, ShoppingCart, Coins, Plus, Trophy } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import type { User, Session } from "@supabase/supabase-js";
@@ -367,6 +367,10 @@ const Wallet = () => {
             <Button onClick={() => navigate("/simulator")} variant="default" size="sm">
               <Gamepad2 className="mr-2 h-4 w-4" />
               Trading Simulator
+            </Button>
+            <Button onClick={() => navigate("/leaderboard")} variant="default" size="sm">
+              <Trophy className="mr-2 h-4 w-4" />
+              Leaderboard
             </Button>
             <Button onClick={() => navigate("/chat")} variant="default" size="sm">
               <MessageCircle className="mr-2 h-4 w-4" />
