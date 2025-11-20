@@ -231,6 +231,48 @@ export type Database = {
         }
         Relationships: []
       }
+      deposit_history: {
+        Row: {
+          amount: number
+          coin_symbol: string
+          confirmation_status: string
+          confirmations: number | null
+          confirmed_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          transaction_hash: string | null
+          user_id: string
+          wallet_address: string
+        }
+        Insert: {
+          amount: number
+          coin_symbol: string
+          confirmation_status?: string
+          confirmations?: number | null
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          transaction_hash?: string | null
+          user_id: string
+          wallet_address: string
+        }
+        Update: {
+          amount?: number
+          coin_symbol?: string
+          confirmation_status?: string
+          confirmations?: number | null
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          transaction_hash?: string | null
+          user_id?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       milestones: {
         Row: {
           created_at: string
