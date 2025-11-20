@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import PerformanceChart from "@/components/PerformanceChart";
+import { CCTPriceChart } from "@/components/CCTPriceChart";
 import { 
   ArrowLeft, 
   TrendingUp, 
@@ -514,7 +515,7 @@ const TradingSimulator = () => {
               </Card>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2 mb-6">
               <div className="space-y-2">
                 <Label htmlFor="cct-amount">Amount (CCT)</Label>
                 <Input
@@ -562,6 +563,8 @@ const TradingSimulator = () => {
                 </Button>
               </div>
             </div>
+
+            <CCTPriceChart currentPrice={coinPrices.find((c) => c.symbol === "CCT")?.price || 0} />
           </Card>
         )}
 
