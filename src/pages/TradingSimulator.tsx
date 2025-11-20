@@ -84,6 +84,39 @@ const TradingSimulator = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Real-time price updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('coin-prices-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'coin_prices'
+        },
+        (payload) => {
+          setCoinPrices((current) => 
+            current.map((coin) => 
+              coin.symbol === payload.new.symbol 
+                ? { 
+                    symbol: payload.new.symbol,
+                    name: payload.new.name,
+                    price: parseFloat(payload.new.price),
+                    change_24h: parseFloat(payload.new.change_24h || 0)
+                  }
+                : coin
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const initializeData = async () => {
     await Promise.all([
       fetchCoinPrices(),
@@ -434,6 +467,103 @@ const TradingSimulator = () => {
         <div className="mb-6">
           <PerformanceChart snapshots={snapshots} />
         </div>
+
+        {/* Featured CCT/USDT Trading Pair */}
+        {coinPrices.find((c) => c.symbol === "CCT") && (
+          <Card className="p-6 mb-6 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  Caltex Token (CCT/USDT)
+                  <span className="text-sm font-normal text-primary">Featured Pair</span>
+                </h2>
+                <p className="text-sm text-muted-foreground">Trade the native Caltex token</p>
+              </div>
+            </div>
+            
+            <div className="grid gap-4 md:grid-cols-3 mb-4">
+              <Card className="p-4 bg-background/50">
+                <p className="text-xs text-muted-foreground mb-1">Current Price</p>
+                <p className="text-2xl font-bold">
+                  ${coinPrices.find((c) => c.symbol === "CCT")?.price.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                </p>
+              </Card>
+              
+              <Card className="p-4 bg-background/50">
+                <p className="text-xs text-muted-foreground mb-1">24h Change</p>
+                <div className={`text-2xl font-bold flex items-center gap-1 ${
+                  (coinPrices.find((c) => c.symbol === "CCT")?.change_24h || 0) > 0 
+                    ? "text-accent" 
+                    : "text-destructive"
+                }`}>
+                  {(coinPrices.find((c) => c.symbol === "CCT")?.change_24h || 0) > 0 ? (
+                    <TrendingUp className="h-5 w-5" />
+                  ) : (
+                    <TrendingDown className="h-5 w-5" />
+                  )}
+                  {(coinPrices.find((c) => c.symbol === "CCT")?.change_24h || 0) > 0 ? "+" : ""}
+                  {coinPrices.find((c) => c.symbol === "CCT")?.change_24h}%
+                </div>
+              </Card>
+              
+              <Card className="p-4 bg-background/50">
+                <p className="text-xs text-muted-foreground mb-1">Your Balance</p>
+                <p className="text-2xl font-bold">
+                  {getBalance("CCT").toFixed(4)} CCT
+                </p>
+              </Card>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="cct-amount">Amount (CCT)</Label>
+                <Input
+                  id="cct-amount"
+                  type="number"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  onChange={(e) => {
+                    const cctCoin = coinPrices.find((c) => c.symbol === "CCT");
+                    if (cctCoin) {
+                      setSelectedCoin(cctCoin);
+                      setTradeAmount(e.target.value);
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex items-end gap-2">
+                <Button
+                  onClick={() => {
+                    const cctCoin = coinPrices.find((c) => c.symbol === "CCT");
+                    if (cctCoin && tradeAmount) {
+                      setSelectedCoin(cctCoin);
+                      handleBuy();
+                    }
+                  }}
+                  className="flex-1 bg-accent hover:bg-accent/90"
+                  disabled={!tradeAmount}
+                >
+                  Buy CCT
+                </Button>
+                <Button
+                  onClick={() => {
+                    const cctCoin = coinPrices.find((c) => c.symbol === "CCT");
+                    if (cctCoin && tradeAmount) {
+                      setSelectedCoin(cctCoin);
+                      handleSell();
+                    }
+                  }}
+                  variant="outline"
+                  className="flex-1"
+                  disabled={!tradeAmount}
+                >
+                  Sell CCT
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
