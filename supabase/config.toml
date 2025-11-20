@@ -8,6 +8,3 @@ verify_jwt = false
 
 [functions.nowpayments-deposit]
 verify_jwt = true
-
-[functions.stripe-deposit]
-verify_jwt = true
