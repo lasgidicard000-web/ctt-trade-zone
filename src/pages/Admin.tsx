@@ -1,4 +1,5 @@
 import AdminUserManagement from "@/components/AdminUserManagement";
+import AdminDepositManagement from "@/components/AdminDepositManagement";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -356,9 +357,10 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="prices" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="prices">Coin Prices</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
+            <TabsTrigger value="deposits">Deposits</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
           </TabsList>
@@ -566,6 +568,21 @@ const Admin = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="deposits">
+            <AdminDepositManagement />
+          </TabsContent>
+
+          <TabsContent value="users" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>User Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AdminUserManagement />
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
 
         {/* Approve Dialog */}
@@ -685,17 +702,6 @@ const Admin = () => {
           </DialogContent>
         </Dialog>
 
-        {/* User Management Tab */}
-        <TabsContent value="users" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AdminUserManagement />
-            </CardContent>
-          </Card>
-        </TabsContent>
       </div>
     </div>
   );
