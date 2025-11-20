@@ -117,6 +117,45 @@ export type Database = {
           },
         ]
       }
+      coin_price_history: {
+        Row: {
+          close: number
+          coin_symbol: string
+          created_at: string
+          high: number
+          id: string
+          low: number
+          open: number
+          price: number
+          timestamp: string
+          volume: number
+        }
+        Insert: {
+          close: number
+          coin_symbol: string
+          created_at?: string
+          high: number
+          id?: string
+          low: number
+          open: number
+          price: number
+          timestamp?: string
+          volume?: number
+        }
+        Update: {
+          close?: number
+          coin_symbol?: string
+          created_at?: string
+          high?: number
+          id?: string
+          low?: number
+          open?: number
+          price?: number
+          timestamp?: string
+          volume?: number
+        }
+        Relationships: []
+      }
       coin_prices: {
         Row: {
           change_24h: number | null
