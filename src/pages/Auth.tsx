@@ -142,7 +142,7 @@ const Auth = () => {
           <div className="mb-4 inline-flex rounded-full bg-primary/10 p-3 mx-auto">
             <Wallet className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">CCT Wallet</CardTitle>
+          <CardTitle className="text-2xl">Caltex Wallet</CardTitle>
           <CardDescription>Sign in to manage your cryptocurrency</CardDescription>
         </CardHeader>
         <CardContent>

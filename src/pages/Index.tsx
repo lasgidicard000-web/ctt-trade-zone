@@ -20,7 +20,7 @@ const Index = () => {
               </span>
             </h1>
             <p className="mb-8 text-xl text-muted-foreground">
-              Redeem gift cards, trade CCT tokens, and manage your crypto portfolio—all in one powerful platform
+              Redeem gift cards, trade Caltex tokens, and manage your crypto portfolio—all in one powerful platform
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90" asChild>
@@ -59,9 +59,9 @@ const Index = () => {
               <div className="mb-4 inline-flex rounded-lg bg-accent/10 p-3">
                 <ArrowLeftRight className="h-6 w-6 text-accent" />
               </div>
-              <h3 className="mb-2 text-xl font-semibold">CCT Trading</h3>
+              <h3 className="mb-2 text-xl font-semibold">Caltex Trading</h3>
               <p className="text-muted-foreground">
-                Trade your CCT tokens for other cryptocurrencies. Access competitive rates and instant execution.
+                Trade your Caltex tokens for other cryptocurrencies. Access competitive rates and instant execution.
               </p>
             </Card>
           </Link>
