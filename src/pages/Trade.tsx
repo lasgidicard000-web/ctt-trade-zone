@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { ArrowLeftRight, TrendingUp } from "lucide-react";
 
 const Trade = () => {
-  const [cctAmount, setCctAmount] = useState("");
+  const [caltexAmount, setCaltexAmount] = useState("");
   const [targetCrypto, setTargetCrypto] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,24 +20,24 @@ const Trade = () => {
   };
 
   const calculateReceiveAmount = () => {
-    if (!cctAmount || !targetCrypto) return "0.00";
+    if (!caltexAmount || !targetCrypto) return "0.00";
     const rate = exchangeRates[targetCrypto as keyof typeof exchangeRates] || 0;
-    return (parseFloat(cctAmount) * rate).toFixed(8);
+    return (parseFloat(caltexAmount) * rate).toFixed(8);
   };
 
   const handleTrade = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!cctAmount || !targetCrypto) {
+    if (!caltexAmount || !targetCrypto) {
       toast.error("Please fill in all fields");
       return;
     }
-
+    
     setLoading(true);
     
     setTimeout(() => {
       toast.success("Trade executed successfully!");
-      setCctAmount("");
+      setCaltexAmount("");
       setTargetCrypto("");
       setLoading(false);
     }, 2000);
@@ -50,21 +50,21 @@ const Trade = () => {
           <div className="mb-4 inline-flex rounded-full bg-accent/10 p-4">
             <ArrowLeftRight className="h-12 w-12 text-accent" />
           </div>
-          <h1 className="mb-2 text-4xl font-bold">Trade CCT</h1>
-          <p className="text-muted-foreground">Exchange your CCT tokens for other cryptocurrencies</p>
+          <h1 className="mb-2 text-4xl font-bold">Trade Caltex</h1>
+          <p className="text-muted-foreground">Exchange your Caltex tokens for other cryptocurrencies</p>
         </div>
 
         <Card className="border-border bg-card p-6">
           <form onSubmit={handleTrade} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="cct-amount">CCT Amount</Label>
+              <Label htmlFor="caltex-amount">Caltex Amount</Label>
               <Input
-                id="cct-amount"
+                id="caltex-amount"
                 type="number"
                 step="0.01"
-                placeholder="Enter CCT amount"
-                value={cctAmount}
-                onChange={(e) => setCctAmount(e.target.value)}
+                placeholder="Enter Caltex amount"
+                value={caltexAmount}
+                onChange={(e) => setCaltexAmount(e.target.value)}
                 className="bg-background"
               />
             </div>
@@ -90,7 +90,7 @@ const Trade = () => {
               </Select>
             </div>
 
-            {cctAmount && targetCrypto && (
+            {caltexAmount && targetCrypto && (
               <Card className="bg-muted/50 p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">You will receive:</span>
@@ -117,10 +117,10 @@ const Trade = () => {
             <div>
               <h3 className="mb-1 font-semibold">Current Exchange Rates</h3>
               <ul className="space-y-1 text-sm text-muted-foreground">
-                <li>1 CCT = {exchangeRates.btc.toFixed(2)} BTC</li>
-                <li>1 CCT = {exchangeRates.eth.toFixed(2)} ETH</li>
-                <li>1 CCT = {exchangeRates.usdt.toLocaleString()} USDT</li>
-                <li>1 CCT = {exchangeRates.bnb.toFixed(2)} BNB</li>
+                <li>1 Caltex = {exchangeRates.btc.toFixed(2)} BTC</li>
+                <li>1 Caltex = {exchangeRates.eth.toFixed(2)} ETH</li>
+                <li>1 Caltex = {exchangeRates.usdt.toLocaleString()} USDT</li>
+                <li>1 Caltex = {exchangeRates.bnb.toFixed(2)} BNB</li>
               </ul>
             </div>
           </div>
