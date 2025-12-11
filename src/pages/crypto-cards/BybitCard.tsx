@@ -19,13 +19,36 @@ const BybitCard = () => {
           </div>
 
           <div className="flex items-center gap-4 mb-6">
-            <h1 className="text-4xl font-bold text-foreground">Bybit</h1>
+            <h1 className="text-4xl font-bold text-foreground">Bybit Card</h1>
             <Badge variant="secondary" className="text-sm">Debit</Badge>
           </div>
 
-          <p className="text-xl text-muted-foreground mb-8">
-            Earning interest and cashback rewards
-          </p>
+          {/* About Section */}
+          <Card className="bg-card border-border/50 mb-8">
+            <CardHeader>
+              <CardTitle>About Bybit Card</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-foreground">
+              <p>
+                Our research shows that Bybit Card is one of the leading crypto reward cards. Verified exchange users receive 10% cashback rewards for five spending categories: dining, transport, fashion, travel, and beauty & wellness. Users must add at least $100 to their Bybit Card to qualify, and the monthly cashback is capped at $150 for new users, or $75 for existing customers.
+              </p>
+              <p>
+                The crypto debit card also offers a 10% discount on purchases made with partnered merchants, including Amazon Prime, Netflix, and Spotify. Bybit users with a VIP status receive additional perks. They earn interest of up to 8% on card balances, while standard users get 4%. Other VIP benefits include airport lounge access and full rebates on popular streaming services.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Review Section */}
+          <Card className="bg-card border-border/50 mb-8">
+            <CardHeader>
+              <CardTitle>Bybit Card Review</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-foreground">
+              <p>
+                The provider offers up to $100 in free monthly ATM withdrawals and charges 2% for anything above that threshold. Purchases incur a 0.9% crypto conversion fee, and on non-USD payments, cardholders pay a 1% FX fee. No application or annual fees apply, and Bybit typically approves new members within one business day.
+              </p>
+            </CardContent>
+          </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <Card className="bg-card border-border/50">
@@ -49,9 +72,10 @@ const BybitCard = () => {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-foreground">
-                  <li>• $100 worth of free ATM withdrawals monthly, then 2% thereafter</li>
-                  <li>• 1% FX fees</li>
-                  <li>• 0.9% to convert crypto to merchant currency</li>
+                  <li>• No application or annual fees</li>
+                  <li>• $100 free ATM withdrawals monthly, then 2%</li>
+                  <li>• 1% FX fee on non-USD payments</li>
+                  <li>• 0.9% crypto conversion fee</li>
                 </ul>
               </CardContent>
             </Card>
@@ -65,8 +89,10 @@ const BybitCard = () => {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-foreground">
-                  <li>• Up to 8% interest on card balances</li>
-                  <li>• 10% cashback rewards</li>
+                  <li>• 10% cashback on 5 categories</li>
+                  <li>• Up to 8% interest on card balances (VIP)</li>
+                  <li>• 10% discount with partner merchants</li>
+                  <li>• 100% rebate on streaming services (VIP)</li>
                 </ul>
               </CardContent>
             </Card>
@@ -84,18 +110,47 @@ const BybitCard = () => {
             </Card>
           </div>
 
+          {/* Pros and Cons */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <Card className="bg-card border-border/50">
+              <CardHeader>
+                <CardTitle className="text-green-500">Pros</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3 text-foreground">
+                  <li>• Generous rewards include 10% cashback and 8% interest on card balances</li>
+                  <li>• Get a 100% rebate on streaming services</li>
+                  <li>• $100 in free monthly ATM withdrawals</li>
+                  <li>• Free global card delivery via DHL</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card border-border/50">
+              <CardHeader>
+                <CardTitle className="text-red-500">Cons</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3 text-foreground">
+                  <li>• European users no longer receive cashback rewards</li>
+                  <li>• USD is the only supported fiat currency</li>
+                  <li>• Lower reward rates outside of the core spending categories</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Visit Button */}
           <Card className="bg-card border-border/50">
-            <CardHeader>
-              <CardTitle>Key Features</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3 text-foreground">
-                <li>• Industry-leading 10% cashback rewards</li>
-                <li>• Earn up to 8% interest on card balances</li>
-                <li>• $100 in free ATM withdrawals monthly</li>
-                <li>• Low conversion fees</li>
-                <li>• Wide global availability</li>
-              </ul>
+            <CardContent className="p-6">
+              <a 
+                href="https://www.bybit.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block w-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-center py-4 rounded-lg font-semibold text-lg hover:opacity-90 transition-opacity"
+              >
+                VISIT BYBIT CARD
+              </a>
             </CardContent>
           </Card>
         </div>
