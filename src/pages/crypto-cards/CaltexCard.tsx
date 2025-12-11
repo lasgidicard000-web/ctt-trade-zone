@@ -51,19 +51,6 @@ const CaltexCard = () => {
             Making purchases with zero charges on Bitcoin and gift cards
           </p>
 
-          {/* Visit Caltex Card Button */}
-          <div className="mb-8">
-            <a 
-              href="https://www.caltexvault.com/login" 
-              target="_blank" 
-              rel="noopener noreferrer"
-            >
-              <Button size="lg" className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white">
-                <ExternalLink className="h-5 w-5 mr-2" />
-                VISIT CALTEX CARD
-              </Button>
-            </a>
-          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <Card className="bg-card border-border/50">
