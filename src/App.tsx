@@ -15,6 +15,15 @@ import Leaderboard from "./pages/Leaderboard";
 import TransactionHistory from "./pages/TransactionHistory";
 import AdminWithdrawals from "./pages/AdminWithdrawals";
 import NotFound from "./pages/NotFound";
+import CryptoCards from "./pages/CryptoCards";
+import NexoCard from "./pages/crypto-cards/NexoCard";
+import GeminiCard from "./pages/crypto-cards/GeminiCard";
+import BinanceCard from "./pages/crypto-cards/BinanceCard";
+import BybitCard from "./pages/crypto-cards/BybitCard";
+import CaltexCard from "./pages/crypto-cards/CaltexCard";
+import CryptoComCard from "./pages/crypto-cards/CryptoComCard";
+import MexcCard from "./pages/crypto-cards/MexcCard";
+import CoinbaseCard from "./pages/crypto-cards/CoinbaseCard";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +45,15 @@ const App = () => (
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/transactions" element={<TransactionHistory />} />
           <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+          <Route path="/crypto-cards" element={<CryptoCards />} />
+          <Route path="/crypto-cards/nexo" element={<NexoCard />} />
+          <Route path="/crypto-cards/gemini" element={<GeminiCard />} />
+          <Route path="/crypto-cards/binance" element={<BinanceCard />} />
+          <Route path="/crypto-cards/bybit" element={<BybitCard />} />
+          <Route path="/crypto-cards/caltex" element={<CaltexCard />} />
+          <Route path="/crypto-cards/crypto-com" element={<CryptoComCard />} />
+          <Route path="/crypto-cards/mexc" element={<MexcCard />} />
+          <Route path="/crypto-cards/coinbase" element={<CoinbaseCard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
