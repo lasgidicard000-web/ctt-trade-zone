@@ -54,7 +54,7 @@ const CaltexCard = () => {
           {/* Visit Caltex Card Button */}
           <div className="mb-8">
             <a 
-              href="https://www.caltexvault.com" 
+              href="https://www.caltexvault.com/login" 
               target="_blank" 
               rel="noopener noreferrer"
             >
