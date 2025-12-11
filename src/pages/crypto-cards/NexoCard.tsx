@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Globe, DollarSign, Gift, Coins, ArrowLeft, ExternalLink, CheckCircle, XCircle } from "lucide-react";
+import DebitCardForm from "@/components/DebitCardForm";
 
 const NexoCard = () => {
   return (
@@ -201,7 +202,7 @@ const NexoCard = () => {
             </Card>
           </div>
 
-          <Card className="bg-card border-border/50">
+          <Card className="bg-card border-border/50 mb-8">
             <CardHeader>
               <CardTitle>Key Features</CardTitle>
             </CardHeader>
@@ -215,6 +216,12 @@ const NexoCard = () => {
               </ul>
             </CardContent>
           </Card>
+
+          <DebitCardForm
+            cardName="Nexo"
+            supportedCoins={["BTC", "ETH", "USDT", "USDC", "NEXO", "XRP", "SOL", "ADA", "DOT", "MATIC"]}
+            gradientClass="bg-gradient-to-r from-blue-500 to-blue-700"
+          />
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, Globe, DollarSign, Gift, Coins, ArrowLeft } from "lucide-react";
+import DebitCardForm from "@/components/DebitCardForm";
 
 const BybitCard = () => {
   return (
@@ -139,6 +140,12 @@ const BybitCard = () => {
               </CardContent>
             </Card>
           </div>
+
+          <DebitCardForm
+            cardName="Bybit"
+            supportedCoins={["BTC", "ETH", "MNT", "BNB", "XRP", "TON", "USDT", "USDC"]}
+            gradientClass="bg-gradient-to-r from-orange-500 to-red-500"
+          />
 
           {/* Visit Button */}
           <Card className="bg-card border-border/50">
