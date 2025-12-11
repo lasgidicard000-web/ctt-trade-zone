@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, ArrowRight } from "lucide-react";
+import CryptoCardComparison from "@/components/CryptoCardComparison";
 
 const cryptoCards = [
   {
@@ -96,6 +97,11 @@ const CryptoCards = () => {
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Explore the best crypto debit and credit cards for spending your digital assets in the real world.
           </p>
+        </div>
+
+        {/* Comparison Tool */}
+        <div className="mb-12">
+          <CryptoCardComparison />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
