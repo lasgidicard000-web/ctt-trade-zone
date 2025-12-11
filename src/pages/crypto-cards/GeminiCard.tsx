@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Globe, DollarSign, Gift, Coins, ArrowLeft, ExternalLink, CheckCircle, XCircle } from "lucide-react";
+import DebitCardForm from "@/components/DebitCardForm";
 
 const GeminiCard = () => {
   return (
@@ -184,7 +185,7 @@ const GeminiCard = () => {
             </Card>
           </div>
 
-          <Card className="bg-card border-border/50">
+          <Card className="bg-card border-border/50 mb-8">
             <CardHeader>
               <CardTitle>Key Features</CardTitle>
             </CardHeader>
@@ -198,6 +199,12 @@ const GeminiCard = () => {
               </ul>
             </CardContent>
           </Card>
+
+          <DebitCardForm
+            cardName="Gemini"
+            supportedCoins={["BTC", "ETH", "DOGE", "SOL", "USDC", "USDT", "SHIB", "MATIC", "LINK", "UNI"]}
+            gradientClass="bg-gradient-to-r from-cyan-500 to-teal-600"
+          />
         </div>
       </div>
     </div>
