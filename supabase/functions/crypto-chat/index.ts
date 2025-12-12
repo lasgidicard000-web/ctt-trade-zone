@@ -107,6 +107,41 @@ Use this portfolio data to provide personalized advice and analysis when relevan
 - Risk management
 - Trading strategies
 
+CALTEX CARD INFORMATION:
+The Caltex Card is a premium crypto debit card offered by Caltex Vault. Here are the key details:
+
+Card Features:
+- Card Type: Prepaid Crypto Debit Card
+- Available Regions: Australia, USA
+- Annual Fee: $0 (No annual fee)
+- ATM Withdrawal Fee: 2% per withdrawal
+- Foreign Transaction Fee: 1%
+- Cashback Rewards: Up to 5% cashback on all purchases
+- Supported Cryptocurrencies: Bitcoin (BTC) only for purchases
+
+Bitcoin Purchase Feature:
+- Users can purchase Bitcoin directly through the Caltex Card
+- Minimum purchase requirement: 0.5 BTC
+- Card must have a minimum balance of 0.5 BTC before making a purchase
+- Users input their card details (cardholder name, card number, expiry, CVV) and a BTC wallet address to receive funds
+- This feature is available only in Australia and USA
+
+Gift Card Purchases:
+- Caltex Card supports gift card purchases separately from Bitcoin purchases
+- Important: Caltex is NOT responsible for lost funds due to merchant issues with gift cards
+
+Key Benefits:
+- Zero charges on Bitcoin purchases
+- Zero charges on gift card purchases
+- Up to 5% cashback rewards on all purchases
+- No annual fee
+- Premium metal card design
+
+Important Notes:
+- Unlike other crypto cards that use an internal Crypto Gift Wallet, Caltex Card requires users to provide an external BTC wallet address for Bitcoin purchases
+- The card is focused exclusively on Bitcoin and gift cards, not other cryptocurrencies
+- Users should ensure they have a valid external Bitcoin wallet before making purchases
+
 Always be helpful, concise, and provide actionable advice. If you're unsure about something, admit it rather than speculating.${portfolioContext}`
           },
           ...messages,
