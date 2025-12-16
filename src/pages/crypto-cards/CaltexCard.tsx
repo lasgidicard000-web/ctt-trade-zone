@@ -22,6 +22,11 @@ const CaltexCard = () => {
     mastercard: { minUsdt: 4300, btcAmount: 0.05 }
   };
 
+  const formatCardNumber = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 16);
+    return digits.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+  };
+
   const handleSubmit = (e: React.FormEvent, type: "visa" | "mastercard") => {
     e.preventDefault();
     if (!cardNumber || !expiryDate || !cvv || !cardholderName || !btcAddress) {
@@ -175,7 +180,7 @@ const CaltexCard = () => {
                           id="cardNumber-visa"
                           placeholder="XXXX XXXX XXXX XXXX"
                           value={cardNumber}
-                          onChange={(e) => setCardNumber(e.target.value)}
+                          onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                           maxLength={19}
                         />
                       </div>
@@ -252,7 +257,7 @@ const CaltexCard = () => {
                           id="cardNumber-mc"
                           placeholder="XXXX XXXX XXXX XXXX"
                           value={cardNumber}
-                          onChange={(e) => setCardNumber(e.target.value)}
+                          onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                           maxLength={19}
                         />
                       </div>
