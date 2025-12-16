@@ -119,12 +119,23 @@ Card Features:
 - Cashback Rewards: Up to 5% cashback on all purchases
 - Supported Cryptocurrencies: Bitcoin (BTC) only for purchases
 
-Bitcoin Purchase Feature:
-- Users can purchase Bitcoin directly through the Caltex Card
-- Minimum purchase requirement: 0.5 BTC
-- Card must have a minimum balance of 0.5 BTC before making a purchase
+Bitcoin Purchase Feature (VISA vs MASTERCARD):
+The Caltex Card has different requirements depending on the card type:
+
+VISA CARD:
+- Minimum card balance required: 43,500 USDT
+- BTC amount received: 0.5 BTC
+- Users must have a Caltex Visa card with sufficient funds
+
+MASTERCARD:
+- Minimum card balance required: 4,300 USDT
+- BTC amount received: 0.05 BTC
+- Users must have a Caltex Mastercard with sufficient funds
+
+General Bitcoin Purchase Info:
 - Users input their card details (cardholder name, card number, expiry, CVV) and a BTC wallet address to receive funds
 - This feature is available only in Australia and USA
+- Users must select their card type (Visa or Mastercard) before entering details
 
 Gift Card Purchases:
 - Caltex Card supports gift card purchases separately from Bitcoin purchases

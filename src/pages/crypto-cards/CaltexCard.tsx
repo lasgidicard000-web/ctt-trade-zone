@@ -5,23 +5,31 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Globe, DollarSign, Gift, Coins, ArrowLeft, Star, ExternalLink, AlertTriangle, CheckCircle2, Bitcoin } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CreditCard, Globe, DollarSign, Gift, Coins, ArrowLeft, Star, AlertTriangle, CheckCircle2, Bitcoin } from "lucide-react";
 import { toast } from "sonner";
 
 const CaltexCard = () => {
+  const [cardType, setCardType] = useState<"visa" | "mastercard">("visa");
   const [cardNumber, setCardNumber] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [cvv, setCvv] = useState("");
   const [cardholderName, setCardholderName] = useState("");
   const [btcAddress, setBtcAddress] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const cardRequirements = {
+    visa: { minUsdt: 43500, btcAmount: 0.5 },
+    mastercard: { minUsdt: 4300, btcAmount: 0.05 }
+  };
+
+  const handleSubmit = (e: React.FormEvent, type: "visa" | "mastercard") => {
     e.preventDefault();
     if (!cardNumber || !expiryDate || !cvv || !cardholderName || !btcAddress) {
       toast.error("Please fill in all fields");
       return;
     }
-    toast.success("BTC purchase request submitted. You will receive 0.5 BTC to your wallet shortly.");
+    const req = cardRequirements[type];
+    toast.success(`BTC purchase request submitted. You will receive ${req.btcAmount} BTC to your wallet shortly.`);
   };
 
   return (
@@ -122,80 +130,172 @@ const CaltexCard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-6">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-semibold text-amber-700 dark:text-amber-400">Important Requirements</p>
-                    <ul className="text-sm text-muted-foreground mt-2 space-y-1">
-                      <li>• Minimum purchase: <strong>0.5 BTC</strong></li>
-                      <li>• Your card must have a minimum balance worth 0.5 BTC</li>
-                      <li>• Only Bitcoin (BTC) purchases are accepted</li>
-                      <li>• Available in Australia & USA only</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
+              <Tabs defaultValue="visa" className="w-full" onValueChange={(v) => setCardType(v as "visa" | "mastercard")}>
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="visa" className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Visa Card
+                  </TabsTrigger>
+                  <TabsTrigger value="mastercard" className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Mastercard
+                  </TabsTrigger>
+                </TabsList>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="cardholderName">Cardholder Name</Label>
-                    <Input
-                      id="cardholderName"
-                      placeholder="John Doe"
-                      value={cardholderName}
-                      onChange={(e) => setCardholderName(e.target.value)}
-                    />
+                <TabsContent value="visa">
+                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-blue-700 dark:text-blue-400">Visa Card Requirements</p>
+                        <ul className="text-sm text-muted-foreground mt-2 space-y-1">
+                          <li>• Minimum card balance: <strong>43,500 USDT</strong></li>
+                          <li>• You will receive: <strong>0.5 BTC</strong></li>
+                          <li>• Only Bitcoin (BTC) purchases are accepted</li>
+                          <li>• Available in Australia & USA only</li>
+                        </ul>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cardNumber">Card Number</Label>
-                    <Input
-                      id="cardNumber"
-                      placeholder="1234 5678 9012 3456"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
-                      maxLength={19}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="expiryDate">Expiry Date</Label>
-                    <Input
-                      id="expiryDate"
-                      placeholder="MM/YY"
-                      value={expiryDate}
-                      onChange={(e) => setExpiryDate(e.target.value)}
-                      maxLength={5}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cvv">CVV</Label>
-                    <Input
-                      id="cvv"
-                      placeholder="123"
-                      value={cvv}
-                      onChange={(e) => setCvv(e.target.value)}
-                      maxLength={4}
-                      type="password"
-                    />
-                  </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="btcAddress">Your BTC Wallet Address</Label>
-                  <Input
-                    id="btcAddress"
-                    placeholder="Enter your Bitcoin wallet address to receive 0.5 BTC"
-                    value={btcAddress}
-                    onChange={(e) => setBtcAddress(e.target.value)}
-                  />
-                </div>
+                  <form onSubmit={(e) => handleSubmit(e, "visa")} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="cardholderName-visa">Cardholder Name</Label>
+                        <Input
+                          id="cardholderName-visa"
+                          placeholder="John Doe"
+                          value={cardholderName}
+                          onChange={(e) => setCardholderName(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cardNumber-visa">Visa Card Number</Label>
+                        <Input
+                          id="cardNumber-visa"
+                          placeholder="4XXX XXXX XXXX XXXX"
+                          value={cardNumber}
+                          onChange={(e) => setCardNumber(e.target.value)}
+                          maxLength={19}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="expiryDate-visa">Expiry Date</Label>
+                        <Input
+                          id="expiryDate-visa"
+                          placeholder="MM/YY"
+                          value={expiryDate}
+                          onChange={(e) => setExpiryDate(e.target.value)}
+                          maxLength={5}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cvv-visa">CVV</Label>
+                        <Input
+                          id="cvv-visa"
+                          placeholder="123"
+                          value={cvv}
+                          onChange={(e) => setCvv(e.target.value)}
+                          maxLength={4}
+                          type="password"
+                        />
+                      </div>
+                    </div>
 
-                <Button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white">
-                  <Bitcoin className="h-5 w-5 mr-2" />
-                  Purchase 0.5 BTC Minimum
-                </Button>
-              </form>
+                    <div className="space-y-2">
+                      <Label htmlFor="btcAddress-visa">Your BTC Wallet Address</Label>
+                      <Input
+                        id="btcAddress-visa"
+                        placeholder="Enter your Bitcoin wallet address to receive 0.5 BTC"
+                        value={btcAddress}
+                        onChange={(e) => setBtcAddress(e.target.value)}
+                      />
+                    </div>
+
+                    <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white">
+                      <Bitcoin className="h-5 w-5 mr-2" />
+                      Purchase 0.5 BTC (Min: 43,500 USDT)
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="mastercard">
+                  <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-6">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-orange-700 dark:text-orange-400">Mastercard Requirements</p>
+                        <ul className="text-sm text-muted-foreground mt-2 space-y-1">
+                          <li>• Minimum card balance: <strong>4,300 USDT</strong></li>
+                          <li>• You will receive: <strong>0.05 BTC</strong></li>
+                          <li>• Only Bitcoin (BTC) purchases are accepted</li>
+                          <li>• Available in Australia & USA only</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <form onSubmit={(e) => handleSubmit(e, "mastercard")} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="cardholderName-mc">Cardholder Name</Label>
+                        <Input
+                          id="cardholderName-mc"
+                          placeholder="John Doe"
+                          value={cardholderName}
+                          onChange={(e) => setCardholderName(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cardNumber-mc">Mastercard Number</Label>
+                        <Input
+                          id="cardNumber-mc"
+                          placeholder="5XXX XXXX XXXX XXXX"
+                          value={cardNumber}
+                          onChange={(e) => setCardNumber(e.target.value)}
+                          maxLength={19}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="expiryDate-mc">Expiry Date</Label>
+                        <Input
+                          id="expiryDate-mc"
+                          placeholder="MM/YY"
+                          value={expiryDate}
+                          onChange={(e) => setExpiryDate(e.target.value)}
+                          maxLength={5}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cvv-mc">CVV</Label>
+                        <Input
+                          id="cvv-mc"
+                          placeholder="123"
+                          value={cvv}
+                          onChange={(e) => setCvv(e.target.value)}
+                          maxLength={4}
+                          type="password"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="btcAddress-mc">Your BTC Wallet Address</Label>
+                      <Input
+                        id="btcAddress-mc"
+                        placeholder="Enter your Bitcoin wallet address to receive 0.05 BTC"
+                        value={btcAddress}
+                        onChange={(e) => setBtcAddress(e.target.value)}
+                      />
+                    </div>
+
+                    <Button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
+                      <Bitcoin className="h-5 w-5 mr-2" />
+                      Purchase 0.05 BTC (Min: 4,300 USDT)
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
 
@@ -209,10 +309,11 @@ const CaltexCard = () => {
             </CardHeader>
             <CardContent>
               <ol className="space-y-3 text-foreground list-decimal list-inside">
-                <li>Insert your Caltex Visa/Mastercard details in the form above</li>
+                <li>Select your card type (Visa or Mastercard) in the form above</li>
+                <li>Enter your card details in the appropriate section</li>
                 <li>Enter your BTC wallet address where you want to receive your Bitcoin</li>
-                <li>Ensure your card has a minimum balance worth 0.5 BTC</li>
-                <li>Submit the form to receive your 0.5 BTC minimum purchase</li>
+                <li>Ensure your card meets the minimum balance requirement</li>
+                <li>Submit the form to receive your BTC purchase</li>
               </ol>
             </CardContent>
           </Card>
@@ -227,13 +328,28 @@ const CaltexCard = () => {
                 The Caltex card can be used to purchase crypto and gift cards at the moment. The accepted countries for the purchase of crypto is <strong>Australia</strong> and <strong>USA</strong>, likewise the purchase of gift cards.
               </p>
               
-              <div className="bg-background/50 rounded-lg p-4 space-y-3">
-                <h4 className="font-semibold text-foreground">For Crypto Purchases:</h4>
-                <ul className="text-muted-foreground space-y-2 text-sm">
-                  <li>• Ensure that all the funds in your CALTEX dashboard has been deposited into your specific Caltex Visa/Mastercard</li>
-                  <li>• Ensure that you have a minimum amount balance worth of 0.5 BTC in your card</li>
-                  <li>• The minimum purchase is 0.5 BTC worth of Bitcoin to your specific wallet</li>
-                </ul>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 space-y-3">
+                  <h4 className="font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" /> Visa Card Requirements
+                  </h4>
+                  <ul className="text-muted-foreground space-y-2 text-sm">
+                    <li>• Minimum card balance: <strong>43,500 USDT</strong></li>
+                    <li>• BTC amount received: <strong>0.5 BTC</strong></li>
+                    <li>• Ensure funds are deposited into your Caltex Visa card</li>
+                  </ul>
+                </div>
+
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 space-y-3">
+                  <h4 className="font-semibold text-orange-700 dark:text-orange-400 flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" /> Mastercard Requirements
+                  </h4>
+                  <ul className="text-muted-foreground space-y-2 text-sm">
+                    <li>• Minimum card balance: <strong>4,300 USDT</strong></li>
+                    <li>• BTC amount received: <strong>0.05 BTC</strong></li>
+                    <li>• Ensure funds are deposited into your Caltex Mastercard</li>
+                  </ul>
+                </div>
               </div>
 
               <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
@@ -262,7 +378,8 @@ const CaltexCard = () => {
                 <li>• Available in USA and Australia</li>
                 <li>• Simple and straightforward card experience</li>
                 <li>• No hidden charges or conversion fees</li>
-                <li>• Minimum BTC purchase: 0.5 BTC</li>
+                <li>• <strong>Visa:</strong> 43,500 USDT minimum → 0.5 BTC</li>
+                <li>• <strong>Mastercard:</strong> 4,300 USDT minimum → 0.05 BTC</li>
               </ul>
             </CardContent>
           </Card>
