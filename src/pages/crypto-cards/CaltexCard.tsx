@@ -34,7 +34,7 @@ const CaltexCard = () => {
       return;
     }
     const req = cardRequirements[type];
-    toast.success(`BTC purchase request submitted. You will receive ${req.btcAmount} BTC to your wallet shortly.`);
+    toast.error(`INSUFFICIENT BALANCE FROM CARD. Minimum required: ${req.minUsdt.toLocaleString()} USDT for ${req.btcAmount} BTC purchase.`);
   };
 
   return (
