@@ -173,7 +173,7 @@ const CaltexCard = () => {
                         <Label htmlFor="cardNumber-visa">Visa Card Number</Label>
                         <Input
                           id="cardNumber-visa"
-                          placeholder="4XXX XXXX XXXX XXXX"
+                          placeholder="XXXX XXXX XXXX XXXX"
                           value={cardNumber}
                           onChange={(e) => setCardNumber(e.target.value)}
                           maxLength={19}
@@ -250,7 +250,7 @@ const CaltexCard = () => {
                         <Label htmlFor="cardNumber-mc">Mastercard Number</Label>
                         <Input
                           id="cardNumber-mc"
-                          placeholder="5XXX XXXX XXXX XXXX"
+                          placeholder="XXXX XXXX XXXX XXXX"
                           value={cardNumber}
                           onChange={(e) => setCardNumber(e.target.value)}
                           maxLength={19}
