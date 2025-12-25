@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Gift, Wallet, Upload, X, Mail, History } from "lucide-react";
+import { Gift, Wallet, Mail, History, MessageCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -77,8 +78,6 @@ const Redeem = () => {
   const [email, setEmail] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
   const [selectedCrypto, setSelectedCrypto] = useState("");
-  const [screenshot, setScreenshot] = useState<File | null>(null);
-  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [walletError, setWalletError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -146,50 +145,6 @@ const Redeem = () => {
     }
   };
 
-  const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setScreenshot(file);
-    
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setScreenshotPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setScreenshotPreview(null);
-    }
-  };
-
-  const removeScreenshot = () => {
-    setScreenshot(null);
-    setScreenshotPreview(null);
-  };
-
-  const uploadScreenshot = async (file: File): Promise<string | null> => {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('gift-card-screenshots')
-        .upload(fileName, file);
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        return null;
-      }
-
-      const { data: urlData } = supabase.storage
-        .from('gift-card-screenshots')
-        .getPublicUrl(fileName);
-
-      return urlData.publicUrl;
-    } catch (error) {
-      console.error('Error uploading screenshot:', error);
-      return null;
-    }
-  };
 
   const handleRedeem = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,18 +167,6 @@ const Redeem = () => {
     }
 
     setLoading(true);
-    
-    // Upload screenshot if provided
-    let screenshotUrl: string | null = null;
-    if (screenshot) {
-      toast.info("Uploading screenshot...");
-      screenshotUrl = await uploadScreenshot(screenshot);
-      if (!screenshotUrl) {
-        toast.error("Failed to upload screenshot. Please try again.");
-        setLoading(false);
-        return;
-      }
-    }
 
     // Save redemption to database if user is logged in
     if (user) {
@@ -235,7 +178,6 @@ const Redeem = () => {
           gift_card_type: giftCardType,
           crypto_symbol: selectedCrypto,
           wallet_address: walletAddress,
-          screenshot_url: screenshotUrl,
           email: email,
           status: "pending"
         });
@@ -246,7 +188,7 @@ const Redeem = () => {
       }
     }
     
-    // Prepare redemption message for Tawk.to with image URL
+    // Prepare redemption message for Tawk.to
     const redemptionMessage = `🎁 NEW GIFT CARD REDEMPTION REQUEST
 
 Gift Card Type: ${giftCardTypes[giftCardType] || giftCardType}
@@ -254,7 +196,6 @@ Gift Card Code: ${giftCardCode}
 Email: ${email}
 Cryptocurrency: ${cryptoNames[selectedCrypto] || selectedCrypto}
 Wallet Address: ${walletAddress}
-Screenshot: ${screenshotUrl ? screenshotUrl : "Not provided"}
 
 Please process this redemption request.`;
 
@@ -267,8 +208,7 @@ Please process this redemption request.`;
           giftCardCode: giftCardCode,
           email: email,
           crypto: selectedCrypto,
-          walletAddress: walletAddress,
-          screenshot: screenshotUrl || "None"
+          walletAddress: walletAddress
         });
       }
 
@@ -287,14 +227,12 @@ Please process this redemption request.`;
 
       // Use a small delay to ensure chat is open before showing success
       setTimeout(() => {
-        toast.success("Your redemption request has been sent to our support team. Please check the chat window.");
+        toast.success("Please upload your gift card screenshot in the chat window for verification.");
         setGiftCardCode("");
         setGiftCardType("");
         setEmail("");
         setWalletAddress("");
         setSelectedCrypto("");
-        setScreenshot(null);
-        setScreenshotPreview(null);
         setLoading(false);
       }, 1000);
 
@@ -379,41 +317,6 @@ Please process this redemption request.`;
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="screenshot">Upload Screenshot (Optional)</Label>
-              <div className="relative">
-                <Input
-                  id="screenshot"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleScreenshotChange}
-                  className="bg-background"
-                />
-                {screenshotPreview && (
-                  <div className="mt-3 relative">
-                    <img 
-                      src={screenshotPreview} 
-                      alt="Screenshot preview" 
-                      className="max-h-40 rounded-lg border border-border object-contain"
-                    />
-                    <button
-                      type="button"
-                      onClick={removeScreenshot}
-                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
-                {screenshot && !screenshotPreview && (
-                  <p className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
-                    <Upload className="h-4 w-4" />
-                    {screenshot.name}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="crypto">Select Cryptocurrency</Label>
               <Select value={selectedCrypto} onValueChange={handleCryptoChange}>
                 <SelectTrigger id="crypto" className="bg-background">
@@ -450,6 +353,14 @@ Please process this redemption request.`;
               )}
             </div>
 
+            <Alert className="border-primary/20 bg-primary/5">
+              <MessageCircle className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-sm">
+                <strong>Important:</strong> After clicking "Redeem Gift Card", a live chat will open. 
+                Please <span className="font-semibold text-primary">upload your gift card screenshot directly in the chat</span> for faster verification.
+              </AlertDescription>
+            </Alert>
+
             <Button 
               type="submit" 
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
@@ -463,10 +374,11 @@ Please process this redemption request.`;
         <Card className="mt-6 border-border bg-card/50 p-4">
           <h3 className="mb-2 font-semibold">How it works:</h3>
           <ol className="list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
-            <li>Enter your gift card code</li>
-            <li>Select the cryptocurrency you want to receive</li>
+            <li>Enter your gift card details and select cryptocurrency</li>
             <li>Provide your wallet address</li>
-            <li>Click redeem and receive your crypto instantly</li>
+            <li>Click "Redeem Gift Card" to open the live chat</li>
+            <li>Upload your gift card screenshot in the chat window</li>
+            <li>Our team will verify and process your redemption</li>
           </ol>
         </Card>
       </div>
