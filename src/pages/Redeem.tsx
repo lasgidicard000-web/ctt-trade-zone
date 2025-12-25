@@ -490,19 +490,21 @@ Please process this redemption request.`;
             </div>
 
             {/* Redemption Value Calculator */}
-            {estimate && (
-              <Card id="calculator" className="border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Calculator className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold text-foreground">Estimated Redemption Value</h3>
-                  </div>
+            <Card id="calculator" className="border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Calculator className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold text-foreground">Estimated Redemption Value</h3>
+                </div>
+                {estimate && (
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <RefreshCw className={`h-3 w-3 ${priceChanges.has(selectedCrypto.toUpperCase()) ? 'animate-spin' : ''}`} />
                     <span>Live prices</span>
                   </div>
-                </div>
-                
+                )}
+              </div>
+              
+              {estimate ? (
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between text-muted-foreground">
                     <span>Gift Card Value:</span>
@@ -560,8 +562,12 @@ Please process this redemption request.`;
                     ⚠️ This is an estimate only. Final amount may vary based on verification and processing fees.
                   </p>
                 </div>
-              </Card>
-            )}
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  <p className="text-sm">Enter an amount and select a cryptocurrency to see your estimated redemption value</p>
+                </div>
+              )}
+            </Card>
 
             <Alert className="border-primary/20 bg-primary/5">
               <MessageCircle className="h-4 w-4 text-primary" />
