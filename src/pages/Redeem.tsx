@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Gift, Wallet, Upload } from "lucide-react";
+import { Gift, Wallet, Upload, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Declare Tawk_API for TypeScript
 declare global {
@@ -31,7 +32,53 @@ const Redeem = () => {
   const [walletAddress, setWalletAddress] = useState("");
   const [selectedCrypto, setSelectedCrypto] = useState("");
   const [screenshot, setScreenshot] = useState<File | null>(null);
+  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setScreenshot(file);
+    
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setScreenshotPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setScreenshotPreview(null);
+    }
+  };
+
+  const removeScreenshot = () => {
+    setScreenshot(null);
+    setScreenshotPreview(null);
+  };
+
+  const uploadScreenshot = async (file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('gift-card-screenshots')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        return null;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('gift-card-screenshots')
+        .getPublicUrl(fileName);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading screenshot:', error);
+      return null;
+    }
+  };
 
   const handleRedeem = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,13 +90,25 @@ const Redeem = () => {
 
     setLoading(true);
     
-    // Prepare redemption message for Tawk.to
+    // Upload screenshot if provided
+    let screenshotUrl: string | null = null;
+    if (screenshot) {
+      toast.info("Uploading screenshot...");
+      screenshotUrl = await uploadScreenshot(screenshot);
+      if (!screenshotUrl) {
+        toast.error("Failed to upload screenshot. Please try again.");
+        setLoading(false);
+        return;
+      }
+    }
+    
+    // Prepare redemption message for Tawk.to with image URL
     const redemptionMessage = `🎁 NEW GIFT CARD REDEMPTION REQUEST
 
 Gift Card Code: ${giftCardCode}
 Cryptocurrency: ${cryptoNames[selectedCrypto] || selectedCrypto}
 Wallet Address: ${walletAddress}
-Screenshot: ${screenshot ? screenshot.name : "Not provided"}
+Screenshot: ${screenshotUrl ? screenshotUrl : "Not provided"}
 
 Please process this redemption request.`;
 
@@ -61,7 +120,7 @@ Please process this redemption request.`;
           giftCardCode: giftCardCode,
           crypto: selectedCrypto,
           walletAddress: walletAddress,
-          screenshot: screenshot ? screenshot.name : "None"
+          screenshot: screenshotUrl || "None"
         });
       }
 
@@ -85,6 +144,7 @@ Please process this redemption request.`;
         setWalletAddress("");
         setSelectedCrypto("");
         setScreenshot(null);
+        setScreenshotPreview(null);
         setLoading(false);
       }, 1000);
 
@@ -129,10 +189,26 @@ Please process this redemption request.`;
                   id="screenshot"
                   type="file"
                   accept="image/*"
-                  onChange={(e) => setScreenshot(e.target.files?.[0] || null)}
+                  onChange={handleScreenshotChange}
                   className="bg-background"
                 />
-                {screenshot && (
+                {screenshotPreview && (
+                  <div className="mt-3 relative">
+                    <img 
+                      src={screenshotPreview} 
+                      alt="Screenshot preview" 
+                      className="max-h-40 rounded-lg border border-border object-contain"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeScreenshot}
+                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+                {screenshot && !screenshotPreview && (
                   <p className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
                     <Upload className="h-4 w-4" />
                     {screenshot.name}
