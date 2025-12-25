@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Gift, Wallet, Mail, History, MessageCircle, Calculator, TrendingUp } from "lucide-react";
+import { Gift, Wallet, Mail, History, MessageCircle, Calculator, TrendingUp, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate } from "react-router-dom";
+import { useRealtimePrices } from "@/hooks/useRealtimePrices";
 
 // Exchange rates to USD (approximate)
 const exchangeRatesToUSD: Record<string, number> = {
@@ -104,28 +105,16 @@ const Redeem = () => {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [amountError, setAmountError] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
-  const [cryptoPrices, setCryptoPrices] = useState<Record<string, number>>({});
   const navigate = useNavigate();
-
-  // Fetch crypto prices
-  useEffect(() => {
-    const fetchPrices = async () => {
-      const { data, error } = await supabase
-        .from('coin_prices')
-        .select('symbol, price');
-      
-      if (!error && data) {
-        const pricesMap: Record<string, number> = {};
-        data.forEach(coin => {
-          pricesMap[coin.symbol.toUpperCase()] = typeof coin.price === 'string' 
-            ? parseFloat(coin.price) 
-            : coin.price;
-        });
-        setCryptoPrices(pricesMap);
-      }
-    };
-    fetchPrices();
-  }, []);
+  
+  // Use realtime prices hook for live updates
+  const { prices, priceChanges, loading: pricesLoading } = useRealtimePrices();
+  
+  // Convert prices array to lookup object
+  const cryptoPrices = prices.reduce((acc, coin) => {
+    acc[coin.symbol.toUpperCase()] = coin.price;
+    return acc;
+  }, {} as Record<string, number>);
 
   // Calculate estimated crypto amount
   const calculateEstimatedCrypto = () => {
@@ -501,9 +490,15 @@ Please process this redemption request.`;
             {/* Redemption Value Calculator */}
             {estimate && (
               <Card className="border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Calculator className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-foreground">Estimated Redemption Value</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Calculator className="h-5 w-5 text-primary" />
+                    <h3 className="font-semibold text-foreground">Estimated Redemption Value</h3>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <RefreshCw className={`h-3 w-3 ${priceChanges.has(selectedCrypto.toUpperCase()) ? 'animate-spin' : ''}`} />
+                    <span>Live prices</span>
+                  </div>
                 </div>
                 
                 <div className="space-y-2 text-sm">
@@ -519,12 +514,17 @@ Please process this redemption request.`;
                     </div>
                   )}
                   
-                  <div className="flex justify-between text-muted-foreground">
+                  <div className={`flex justify-between text-muted-foreground transition-colors duration-300 ${
+                    priceChanges.get(selectedCrypto.toUpperCase())?.direction === 'up' ? 'text-green-500' :
+                    priceChanges.get(selectedCrypto.toUpperCase())?.direction === 'down' ? 'text-red-500' : ''
+                  }`}>
                     <span>Current {estimate.cryptoSymbol} Price:</span>
                     <span>${estimate.cryptoPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   
-                  <div className="mt-3 p-3 rounded-lg bg-primary/20 border border-primary/30">
+                  <div className={`mt-3 p-3 rounded-lg bg-primary/20 border border-primary/30 transition-all duration-300 ${
+                    priceChanges.has(selectedCrypto.toUpperCase()) ? 'ring-2 ring-primary/50' : ''
+                  }`}>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">You'll receive approximately:</span>
                       <div className="flex items-center gap-1">
