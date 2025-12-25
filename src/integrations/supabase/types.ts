@@ -442,6 +442,7 @@ export type Database = {
           crypto_symbol: string
           email: string | null
           gift_card_code: string
+          gift_card_currency: string | null
           gift_card_type: string | null
           id: string
           screenshot_url: string | null
@@ -456,6 +457,7 @@ export type Database = {
           crypto_symbol: string
           email?: string | null
           gift_card_code: string
+          gift_card_currency?: string | null
           gift_card_type?: string | null
           id?: string
           screenshot_url?: string | null
@@ -470,6 +472,7 @@ export type Database = {
           crypto_symbol?: string
           email?: string | null
           gift_card_code?: string
+          gift_card_currency?: string | null
           gift_card_type?: string | null
           id?: string
           screenshot_url?: string | null

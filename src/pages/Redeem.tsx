@@ -72,17 +72,51 @@ const giftCardTypes: Record<string, string> = {
   other: "Other",
 };
 
+const currencies: Record<string, { name: string; symbol: string }> = {
+  usd: { name: "USD - US Dollar", symbol: "$" },
+  eur: { name: "EUR - Euro", symbol: "€" },
+  gbp: { name: "GBP - British Pound", symbol: "£" },
+  cad: { name: "CAD - Canadian Dollar", symbol: "$" },
+  aud: { name: "AUD - Australian Dollar", symbol: "$" },
+  jpy: { name: "JPY - Japanese Yen", symbol: "¥" },
+};
+
 const Redeem = () => {
   const [giftCardCode, setGiftCardCode] = useState("");
   const [giftCardType, setGiftCardType] = useState("");
+  const [amount, setAmount] = useState("");
+  const [currency, setCurrency] = useState("usd");
   const [email, setEmail] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
   const [selectedCrypto, setSelectedCrypto] = useState("");
   const [loading, setLoading] = useState(false);
   const [walletError, setWalletError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [amountError, setAmountError] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    checkAuth();
+  }, []);
+
+  const validateAmount = (value: string): boolean => {
+    if (!value) {
+      setAmountError(null);
+      return true;
+    }
+    const numValue = parseFloat(value);
+    if (isNaN(numValue) || numValue <= 0) {
+      setAmountError("Please enter a valid positive amount");
+      return false;
+    }
+    setAmountError(null);
+    return true;
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -149,14 +183,26 @@ const Redeem = () => {
   const handleRedeem = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!giftCardCode || !giftCardType || !email || !walletAddress || !selectedCrypto) {
+    if (!giftCardCode || !giftCardType || !amount || !email || !walletAddress || !selectedCrypto) {
       toast.error("Please fill in all fields");
+      return;
+    }
+
+    // Validate amount
+    if (!validateAmount(amount)) {
+      toast.error("Please enter a valid gift card amount");
       return;
     }
 
     // Validate email format
     if (!validateEmail(email)) {
       toast.error("Please enter a valid email address");
+      return;
+    }
+
+    // Validate wallet address format
+    if (!validateWalletAddress(walletAddress, selectedCrypto)) {
+      toast.error("Please enter a valid wallet address for the selected cryptocurrency");
       return;
     }
 
@@ -176,6 +222,8 @@ const Redeem = () => {
           user_id: user.id,
           gift_card_code: giftCardCode,
           gift_card_type: giftCardType,
+          amount: parseFloat(amount),
+          gift_card_currency: currency.toUpperCase(),
           crypto_symbol: selectedCrypto,
           wallet_address: walletAddress,
           email: email,
@@ -193,6 +241,7 @@ const Redeem = () => {
 
 Gift Card Type: ${giftCardTypes[giftCardType] || giftCardType}
 Gift Card Code: ${giftCardCode}
+Gift Card Amount: ${currencies[currency]?.symbol || ""}${amount} ${currency.toUpperCase()}
 Email: ${email}
 Cryptocurrency: ${cryptoNames[selectedCrypto] || selectedCrypto}
 Wallet Address: ${walletAddress}
@@ -206,6 +255,7 @@ Please process this redemption request.`;
         window.Tawk_API.addEvent('gift_card_redemption', {
           giftCardType: giftCardType,
           giftCardCode: giftCardCode,
+          amount: `${currencies[currency]?.symbol || ""}${amount} ${currency.toUpperCase()}`,
           email: email,
           crypto: selectedCrypto,
           walletAddress: walletAddress
@@ -230,6 +280,8 @@ Please process this redemption request.`;
         toast.success("Please upload your gift card screenshot in the chat window for verification.");
         setGiftCardCode("");
         setGiftCardType("");
+        setAmount("");
+        setCurrency("usd");
         setEmail("");
         setWalletAddress("");
         setSelectedCrypto("");
@@ -290,6 +342,43 @@ Please process this redemption request.`;
                 onChange={(e) => setGiftCardCode(e.target.value)}
                 className="bg-background"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="amount">Gift Card Amount</Label>
+              <div className="flex gap-2">
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger className="w-[140px] bg-background">
+                    <SelectValue placeholder="Currency" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover">
+                    {Object.entries(currencies).map(([key, { name }]) => (
+                      <SelectItem key={key} value={key}>{key.toUpperCase()}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    {currencies[currency]?.symbol || "$"}
+                  </span>
+                  <Input
+                    id="amount"
+                    type="number"
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => {
+                      setAmount(e.target.value);
+                      if (e.target.value) validateAmount(e.target.value);
+                    }}
+                    className={`bg-background pl-7 ${amountError ? 'border-destructive' : ''}`}
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+              {amountError && (
+                <p className="text-sm text-destructive">{amountError}</p>
+              )}
             </div>
 
             <div className="space-y-2">
