@@ -5,10 +5,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Gift, Wallet, Mail, History, MessageCircle } from "lucide-react";
+import { Gift, Wallet, Mail, History, MessageCircle, Calculator, TrendingUp } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate } from "react-router-dom";
+
+// Exchange rates to USD (approximate)
+const exchangeRatesToUSD: Record<string, number> = {
+  usd: 1,
+  eur: 1.10,
+  gbp: 1.27,
+  cad: 0.74,
+  aud: 0.65,
+  jpy: 0.0067,
+};
 
 // Declare Tawk_API for TypeScript
 declare global {
@@ -94,7 +104,53 @@ const Redeem = () => {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [amountError, setAmountError] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [cryptoPrices, setCryptoPrices] = useState<Record<string, number>>({});
   const navigate = useNavigate();
+
+  // Fetch crypto prices
+  useEffect(() => {
+    const fetchPrices = async () => {
+      const { data, error } = await supabase
+        .from('coin_prices')
+        .select('symbol, price');
+      
+      if (!error && data) {
+        const pricesMap: Record<string, number> = {};
+        data.forEach(coin => {
+          pricesMap[coin.symbol.toUpperCase()] = typeof coin.price === 'string' 
+            ? parseFloat(coin.price) 
+            : coin.price;
+        });
+        setCryptoPrices(pricesMap);
+      }
+    };
+    fetchPrices();
+  }, []);
+
+  // Calculate estimated crypto amount
+  const calculateEstimatedCrypto = () => {
+    if (!amount || !selectedCrypto) return null;
+    
+    const cryptoSymbol = selectedCrypto.toUpperCase();
+    const cryptoPrice = cryptoPrices[cryptoSymbol];
+    
+    if (!cryptoPrice) return null;
+    
+    const giftCardValue = parseFloat(amount);
+    if (isNaN(giftCardValue) || giftCardValue <= 0) return null;
+    
+    const usdValue = giftCardValue * (exchangeRatesToUSD[currency] || 1);
+    const estimatedCrypto = usdValue / cryptoPrice;
+    
+    return {
+      usdValue,
+      cryptoAmount: estimatedCrypto,
+      cryptoPrice,
+      cryptoSymbol
+    };
+  };
+
+  const estimate = calculateEstimatedCrypto();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -441,6 +497,53 @@ Please process this redemption request.`;
                 </p>
               )}
             </div>
+
+            {/* Redemption Value Calculator */}
+            {estimate && (
+              <Card className="border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Calculator className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold text-foreground">Estimated Redemption Value</h3>
+                </div>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Gift Card Value:</span>
+                    <span>{currencies[currency]?.symbol}{amount} {currency.toUpperCase()}</span>
+                  </div>
+                  
+                  {currency !== 'usd' && (
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>USD Equivalent:</span>
+                      <span>${estimate.usdValue.toFixed(2)}</span>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Current {estimate.cryptoSymbol} Price:</span>
+                    <span>${estimate.cryptoPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                  
+                  <div className="mt-3 p-3 rounded-lg bg-primary/20 border border-primary/30">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">You'll receive approximately:</span>
+                      <div className="flex items-center gap-1">
+                        <TrendingUp className="h-4 w-4 text-primary" />
+                        <span className="text-lg font-bold text-primary">
+                          {estimate.cryptoAmount < 0.0001 
+                            ? estimate.cryptoAmount.toExponential(4)
+                            : estimate.cryptoAmount.toFixed(8)} {estimate.cryptoSymbol}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground mt-2">
+                    ⚠️ This is an estimate only. Final amount may vary based on verification and processing fees.
+                  </p>
+                </div>
+              </Card>
+            )}
 
             <Alert className="border-primary/20 bg-primary/5">
               <MessageCircle className="h-4 w-4 text-primary" />
