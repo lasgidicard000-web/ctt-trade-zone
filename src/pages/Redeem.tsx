@@ -27,6 +27,30 @@ const cryptoNames: Record<string, string> = {
   bnb: "Binance Coin (BNB)",
 };
 
+// Wallet address validation patterns
+const walletValidators: Record<string, { pattern: RegExp; example: string; description: string }> = {
+  btc: {
+    pattern: /^(1|3)[a-zA-HJ-NP-Z0-9]{25,34}$|^bc1[a-zA-HJ-NP-Z0-9]{39,59}$/,
+    example: "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+    description: "Bitcoin address (starts with 1, 3, or bc1)"
+  },
+  eth: {
+    pattern: /^0x[a-fA-F0-9]{40}$/,
+    example: "0x742d35Cc6634C0532925a3b844Bc9e7595f...",
+    description: "Ethereum address (starts with 0x, 42 characters)"
+  },
+  usdt: {
+    pattern: /^0x[a-fA-F0-9]{40}$|^T[a-zA-HJ-NP-Z0-9]{33}$/,
+    example: "0x... (ERC-20) or T... (TRC-20)",
+    description: "USDT address (ERC-20 or TRC-20 format)"
+  },
+  bnb: {
+    pattern: /^0x[a-fA-F0-9]{40}$|^bnb[a-zA-Z0-9]{39}$/,
+    example: "0x... (BEP-20) or bnb... (BEP-2)",
+    description: "BNB address (BEP-20 or BEP-2 format)"
+  }
+};
+
 const Redeem = () => {
   const [giftCardCode, setGiftCardCode] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
@@ -34,6 +58,46 @@ const Redeem = () => {
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [walletError, setWalletError] = useState<string | null>(null);
+
+  const validateWalletAddress = (address: string, crypto: string): boolean => {
+    if (!crypto || !address) {
+      setWalletError(null);
+      return true;
+    }
+
+    const validator = walletValidators[crypto];
+    if (!validator) {
+      setWalletError(null);
+      return true;
+    }
+
+    const trimmedAddress = address.trim();
+    if (!validator.pattern.test(trimmedAddress)) {
+      setWalletError(`Invalid ${cryptoNames[crypto]} address. ${validator.description}`);
+      return false;
+    }
+
+    setWalletError(null);
+    return true;
+  };
+
+  const handleWalletChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const address = e.target.value;
+    setWalletAddress(address);
+    if (selectedCrypto && address) {
+      validateWalletAddress(address, selectedCrypto);
+    } else {
+      setWalletError(null);
+    }
+  };
+
+  const handleCryptoChange = (crypto: string) => {
+    setSelectedCrypto(crypto);
+    if (walletAddress) {
+      validateWalletAddress(walletAddress, crypto);
+    }
+  };
 
   const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -85,6 +149,12 @@ const Redeem = () => {
     
     if (!giftCardCode || !walletAddress || !selectedCrypto) {
       toast.error("Please fill in all fields");
+      return;
+    }
+
+    // Validate wallet address format
+    if (!validateWalletAddress(walletAddress, selectedCrypto)) {
+      toast.error("Please enter a valid wallet address for the selected cryptocurrency");
       return;
     }
 
@@ -219,7 +289,7 @@ Please process this redemption request.`;
 
             <div className="space-y-2">
               <Label htmlFor="crypto">Select Cryptocurrency</Label>
-              <Select value={selectedCrypto} onValueChange={setSelectedCrypto}>
+              <Select value={selectedCrypto} onValueChange={handleCryptoChange}>
                 <SelectTrigger id="crypto" className="bg-background">
                   <SelectValue placeholder="Choose a cryptocurrency" />
                 </SelectTrigger>
@@ -238,12 +308,20 @@ Please process this redemption request.`;
                 <Wallet className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="wallet"
-                  placeholder="Enter your crypto wallet address"
+                  placeholder={selectedCrypto ? `Enter your ${cryptoNames[selectedCrypto]} wallet address` : "Enter your crypto wallet address"}
                   value={walletAddress}
-                  onChange={(e) => setWalletAddress(e.target.value)}
-                  className="bg-background pl-10"
+                  onChange={handleWalletChange}
+                  className={`bg-background pl-10 ${walletError ? 'border-destructive' : ''}`}
                 />
               </div>
+              {walletError && (
+                <p className="text-sm text-destructive">{walletError}</p>
+              )}
+              {selectedCrypto && !walletError && walletValidators[selectedCrypto] && (
+                <p className="text-xs text-muted-foreground">
+                  Example: {walletValidators[selectedCrypto].example}
+                </p>
+              )}
             </div>
 
             <Button 
