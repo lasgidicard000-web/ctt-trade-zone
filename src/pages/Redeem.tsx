@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Gift, Wallet, Mail, History, MessageCircle, Calculator, TrendingUp, RefreshCw } from "lucide-react";
+import { Gift, Wallet, Mail, History, MessageCircle, Calculator, TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate } from "react-router-dom";
 import { useRealtimePrices } from "@/hooks/useRealtimePrices";
+import { PriceSparkline } from "@/components/PriceSparkline";
 
 // Exchange rates to USD (approximate)
 const exchangeRatesToUSD: Record<string, number> = {
@@ -121,21 +122,22 @@ const Redeem = () => {
     if (!amount || !selectedCrypto) return null;
     
     const cryptoSymbol = selectedCrypto.toUpperCase();
-    const cryptoPrice = cryptoPrices[cryptoSymbol];
+    const coinData = prices.find(p => p.symbol.toUpperCase() === cryptoSymbol);
     
-    if (!cryptoPrice) return null;
+    if (!coinData) return null;
     
     const giftCardValue = parseFloat(amount);
     if (isNaN(giftCardValue) || giftCardValue <= 0) return null;
     
     const usdValue = giftCardValue * (exchangeRatesToUSD[currency] || 1);
-    const estimatedCrypto = usdValue / cryptoPrice;
+    const estimatedCrypto = usdValue / coinData.price;
     
     return {
       usdValue,
       cryptoAmount: estimatedCrypto,
-      cryptoPrice,
-      cryptoSymbol
+      cryptoPrice: coinData.price,
+      cryptoSymbol,
+      change24h: coinData.change_24h
     };
   };
 
@@ -514,12 +516,28 @@ Please process this redemption request.`;
                     </div>
                   )}
                   
-                  <div className={`flex justify-between text-muted-foreground transition-colors duration-300 ${
+                  <div className={`flex justify-between items-center text-muted-foreground transition-colors duration-300 ${
                     priceChanges.get(selectedCrypto.toUpperCase())?.direction === 'up' ? 'text-green-500' :
                     priceChanges.get(selectedCrypto.toUpperCase())?.direction === 'down' ? 'text-red-500' : ''
                   }`}>
                     <span>Current {estimate.cryptoSymbol} Price:</span>
-                    <span>${estimate.cryptoPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <div className="flex items-center gap-2">
+                      <span>${estimate.cryptoPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className={`text-xs flex items-center gap-0.5 ${estimate.change24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {estimate.change24h >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                        {Math.abs(estimate.change24h).toFixed(2)}%
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Price Sparkline */}
+                  <div className="py-2 px-1 bg-background/50 rounded-md">
+                    <PriceSparkline 
+                      currentPrice={estimate.cryptoPrice} 
+                      change24h={estimate.change24h} 
+                      symbol={estimate.cryptoSymbol} 
+                    />
+                    <p className="text-[10px] text-center text-muted-foreground mt-1">24h price trend</p>
                   </div>
                   
                   <div className={`mt-3 p-3 rounded-lg bg-primary/20 border border-primary/30 transition-all duration-300 ${
