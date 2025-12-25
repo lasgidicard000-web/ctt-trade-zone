@@ -491,7 +491,7 @@ Please process this redemption request.`;
 
             {/* Redemption Value Calculator */}
             {estimate && (
-              <Card className="border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4">
+              <Card id="calculator" className="border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Calculator className="h-5 w-5 text-primary" />
