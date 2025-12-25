@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Gift, ArrowLeftRight, Wallet, Zap, Shield, TrendingUp, CreditCard } from "lucide-react";
+import { Gift, ArrowLeftRight, Wallet, Zap, Shield, TrendingUp, CreditCard, Calculator } from "lucide-react";
 
 const Index = () => {
   return (
@@ -25,6 +25,12 @@ const Index = () => {
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90" asChild>
                 <Link to="/redeem">Redeem Gift Card</Link>
+              </Button>
+              <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground" asChild>
+                <Link to="/redeem#calculator">
+                  <Calculator className="mr-2 h-4 w-4" />
+                  Calculator
+                </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link to="/trade">Start Trading</Link>
