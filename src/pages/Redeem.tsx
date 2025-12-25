@@ -7,6 +7,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Gift, Wallet, Upload } from "lucide-react";
 
+// Declare Tawk_API for TypeScript
+declare global {
+  interface Window {
+    Tawk_API?: {
+      maximize?: () => void;
+      addEvent?: (eventName: string, metadata: Record<string, string>, callback?: () => void) => void;
+      setAttributes?: (attributes: Record<string, string>, callback?: (error?: Error) => void) => void;
+      onLoad?: () => void;
+    };
+  }
+}
+
+const cryptoNames: Record<string, string> = {
+  btc: "Bitcoin (BTC)",
+  eth: "Ethereum (ETH)",
+  usdt: "Tether (USDT)",
+  bnb: "Binance Coin (BNB)",
+};
+
 const Redeem = () => {
   const [giftCardCode, setGiftCardCode] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
@@ -24,14 +43,59 @@ const Redeem = () => {
 
     setLoading(true);
     
-    // Simulate redemption process
-    setTimeout(() => {
-      toast.success("Gift card redeemed successfully! Crypto sent to your wallet.");
-      setGiftCardCode("");
-      setWalletAddress("");
-      setSelectedCrypto("");
+    // Prepare redemption message for Tawk.to
+    const redemptionMessage = `🎁 NEW GIFT CARD REDEMPTION REQUEST
+
+Gift Card Code: ${giftCardCode}
+Cryptocurrency: ${cryptoNames[selectedCrypto] || selectedCrypto}
+Wallet Address: ${walletAddress}
+Screenshot: ${screenshot ? screenshot.name : "Not provided"}
+
+Please process this redemption request.`;
+
+    // Send to Tawk.to live chat
+    if (window.Tawk_API) {
+      // Add event for tracking
+      if (window.Tawk_API.addEvent) {
+        window.Tawk_API.addEvent('gift_card_redemption', {
+          giftCardCode: giftCardCode,
+          crypto: selectedCrypto,
+          walletAddress: walletAddress,
+          screenshot: screenshot ? screenshot.name : "None"
+        });
+      }
+
+      // Set visitor attributes
+      if (window.Tawk_API.setAttributes) {
+        window.Tawk_API.setAttributes({
+          'redemption_request': 'true',
+          'crypto_type': selectedCrypto
+        });
+      }
+
+      // Open chat widget and send message
+      if (window.Tawk_API.maximize) {
+        window.Tawk_API.maximize();
+      }
+
+      // Use a small delay to ensure chat is open before showing success
+      setTimeout(() => {
+        toast.success("Your redemption request has been sent to our support team. Please check the chat window.");
+        setGiftCardCode("");
+        setWalletAddress("");
+        setSelectedCrypto("");
+        setScreenshot(null);
+        setLoading(false);
+      }, 1000);
+
+      // Copy message to clipboard so user can paste it in chat
+      navigator.clipboard.writeText(redemptionMessage).then(() => {
+        toast.info("Redemption details copied to clipboard. Please paste in the chat.");
+      });
+    } else {
+      toast.error("Chat support is not available. Please try again later.");
       setLoading(false);
-    }, 2000);
+    }
   };
 
   return (
