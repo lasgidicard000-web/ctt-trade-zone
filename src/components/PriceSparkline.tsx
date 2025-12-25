@@ -69,7 +69,8 @@ export const PriceSparkline = ({ currentPrice, change24h, symbol }: PriceSparkli
     fetchHistory();
   }, [symbol, currentPrice, change24h]);
 
-  const data = historyData.length > 0 ? historyData : useMemo(() => {
+  // Always call useMemo unconditionally to avoid React Hooks violation
+  const simulatedData = useMemo(() => {
     const points = 24;
     const startPrice = currentPrice / (1 + change24h / 100);
     const priceRange = currentPrice - startPrice;
@@ -84,6 +85,9 @@ export const PriceSparkline = ({ currentPrice, change24h, symbol }: PriceSparkli
       };
     });
   }, [currentPrice, change24h]);
+
+  // Conditionally select which data to use
+  const data = historyData.length > 0 ? historyData : simulatedData;
 
   const isPositive = change24h >= 0;
   const strokeColor = isPositive ? "hsl(142, 76%, 36%)" : "hsl(0, 84%, 60%)";
