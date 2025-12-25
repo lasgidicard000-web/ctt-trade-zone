@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import Redeem from "./pages/Redeem";
+import RedemptionHistory from "./pages/RedemptionHistory";
 import Trade from "./pages/Trade";
 import Wallet from "./pages/Wallet";
 import Chat from "./pages/Chat";
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/redeem" element={<Redeem />} />
+          <Route path="/redemption-history" element={<RedemptionHistory />} />
           <Route path="/trade" element={<Trade />} />
           <Route path="/wallet" element={<Wallet />} />
           <Route path="/chat" element={<Chat />} />

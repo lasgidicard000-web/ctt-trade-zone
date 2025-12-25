@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Gift, Wallet, Upload, X, Mail } from "lucide-react";
+import { Gift, Wallet, Upload, X, Mail, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Link, useNavigate } from "react-router-dom";
 
 // Declare Tawk_API for TypeScript
 declare global {
@@ -81,6 +82,16 @@ const Redeem = () => {
   const [loading, setLoading] = useState(false);
   const [walletError, setWalletError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    checkAuth();
+  }, []);
 
   const validateEmail = (email: string): boolean => {
     if (!email) {
@@ -213,6 +224,27 @@ const Redeem = () => {
         return;
       }
     }
+
+    // Save redemption to database if user is logged in
+    if (user) {
+      const { error: dbError } = await supabase
+        .from("redemptions")
+        .insert({
+          user_id: user.id,
+          gift_card_code: giftCardCode,
+          gift_card_type: giftCardType,
+          crypto_symbol: selectedCrypto,
+          wallet_address: walletAddress,
+          screenshot_url: screenshotUrl,
+          email: email,
+          status: "pending"
+        });
+
+      if (dbError) {
+        console.error("Error saving redemption:", dbError);
+        // Continue anyway - still send to Tawk.to
+      }
+    }
     
     // Prepare redemption message for Tawk.to with image URL
     const redemptionMessage = `🎁 NEW GIFT CARD REDEMPTION REQUEST
@@ -285,6 +317,14 @@ Please process this redemption request.`;
           </div>
           <h1 className="mb-2 text-4xl font-bold">Redeem Gift Card</h1>
           <p className="text-muted-foreground">Convert your gift cards to crypto instantly</p>
+          {user && (
+            <Link to="/redemption-history">
+              <Button variant="outline" className="mt-4">
+                <History className="mr-2 h-4 w-4" />
+                View Redemption History
+              </Button>
+            </Link>
+          )}
         </div>
 
         <Card className="border-border bg-card p-6">
