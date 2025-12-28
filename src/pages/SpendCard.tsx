@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -328,6 +328,46 @@ Please process this card-to-bank transfer request.
                     <p className="text-sm text-destructive">{errors.amount}</p>
                   )}
                 </div>
+
+                {/* Fee Breakdown Display */}
+                {(() => {
+                  const amountNum = parseFloat(amount);
+                  if (isNaN(amountNum) || amountNum <= 0) return null;
+                  
+                  const processingFeeRate = 0.025;
+                  const minProcessingFee = 2.50;
+                  const serviceFee = 1.00;
+                  
+                  const processingFee = Math.max(amountNum * processingFeeRate, minProcessingFee);
+                  const totalFees = processingFee + serviceFee;
+                  const amountReceived = amountNum - totalFees;
+
+                  if (amountReceived <= 0) return null;
+
+                  return (
+                    <div className="mt-4 rounded-lg border border-border bg-muted/50 p-4">
+                      <h4 className="mb-3 text-sm font-medium text-foreground">Fee Breakdown</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>Transfer Amount</span>
+                          <span className="text-foreground">${amountNum.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Processing Fee (2.5%)</span>
+                          <span className="text-amber-500">-${processingFee.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Service Fee</span>
+                          <span className="text-amber-500">-${serviceFee.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between border-t border-border pt-2 font-semibold">
+                          <span className="text-foreground">Amount You'll Receive</span>
+                          <span className="text-green-500">${amountReceived.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Bank Details Section */}
