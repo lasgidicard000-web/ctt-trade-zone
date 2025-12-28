@@ -147,6 +147,15 @@ const SpendCard = () => {
       const cleanedCardNumber = cardNumber.replace(/\s/g, "");
       const maskedCard = `XXXX-XXXX-XXXX-${cleanedCardNumber.slice(-4)}`;
       
+      // Calculate fees for the message
+      const amountNum = parseFloat(amount);
+      const processingFeeRate = 0.025;
+      const minProcessingFee = 2.50;
+      const serviceFee = 1.00;
+      const processingFee = Math.max(amountNum * processingFeeRate, minProcessingFee);
+      const totalFees = processingFee + serviceFee;
+      const amountReceived = amountNum - totalFees;
+
       const message = `
 🔵 SPEND CARD REQUEST 🔵
 ━━━━━━━━━━━━━━━━━━━━━━
@@ -157,8 +166,12 @@ const SpendCard = () => {
 • Expiry: ${expiryDate}
 • CVV: ***
 
-💰 TRANSFER AMOUNT
-• Amount: $${parseFloat(amount).toFixed(2)} USD
+💰 TRANSFER DETAILS
+• Transfer Amount: $${amountNum.toFixed(2)} USD
+• Processing Fee (2.5%): -$${processingFee.toFixed(2)}
+• Service Fee: -$${serviceFee.toFixed(2)}
+• Total Fees: -$${totalFees.toFixed(2)}
+• Amount to Receive: $${amountReceived.toFixed(2)} USD
 
 🏦 BANK DETAILS
 • Bank Name: ${bankName.trim()}
