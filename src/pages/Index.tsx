@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Gift, ArrowLeftRight, Wallet, Zap, Shield, TrendingUp, CreditCard, Calculator } from "lucide-react";
+import { Gift, ArrowLeftRight, Wallet, Zap, Shield, TrendingUp, CreditCard, Calculator, Banknote } from "lucide-react";
 
 const Index = () => {
   return (
@@ -39,6 +39,12 @@ const Index = () => {
                 <Link to="/crypto-cards">
                   <CreditCard className="mr-2 h-4 w-4" />
                   Crypto Cards
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground" asChild>
+                <Link to="/spend-card">
+                  <Banknote className="mr-2 h-4 w-4" />
+                  Spend Card
                 </Link>
               </Button>
             </div>
