@@ -59,7 +59,7 @@ const Index = () => {
           <p className="text-muted-foreground">Three powerful tools in one seamless platform</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Link to="/redeem">
             <Card className="group h-full cursor-pointer border-border bg-card p-6 transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/20">
               <div className="mb-4 inline-flex rounded-lg bg-primary/10 p-3">
@@ -92,6 +92,18 @@ const Index = () => {
               <h3 className="mb-2 text-xl font-semibold">Wallet Dashboard</h3>
               <p className="text-muted-foreground">
                 View all available coins and their current prices. Track your portfolio in real-time.
+              </p>
+            </Card>
+          </Link>
+
+          <Link to="/spend-card">
+            <Card className="group h-full cursor-pointer border-border bg-card p-6 transition-all hover:border-accent hover:shadow-lg hover:shadow-accent/20">
+              <div className="mb-4 inline-flex rounded-lg bg-accent/10 p-3">
+                <Banknote className="h-6 w-6 text-accent" />
+              </div>
+              <h3 className="mb-2 text-xl font-semibold">Spend Card</h3>
+              <p className="text-muted-foreground">
+                Transfer funds from your Mastercard directly to any bank account worldwide with ease.
               </p>
             </Card>
           </Link>
