@@ -25,6 +25,7 @@ import CaltexCard from "./pages/crypto-cards/CaltexCard";
 import CryptoComCard from "./pages/crypto-cards/CryptoComCard";
 import MexcCard from "./pages/crypto-cards/MexcCard";
 import CoinbaseCard from "./pages/crypto-cards/CoinbaseCard";
+import SpendCard from "./pages/SpendCard";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
           <Route path="/crypto-cards/crypto-com" element={<CryptoComCard />} />
           <Route path="/crypto-cards/mexc" element={<MexcCard />} />
           <Route path="/crypto-cards/coinbase" element={<CoinbaseCard />} />
+          <Route path="/spend-card" element={<SpendCard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
