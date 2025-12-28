@@ -56,7 +56,7 @@ const Index = () => {
       <section className="container mx-auto px-4 py-20">
         <div className="mb-12 text-center">
           <h2 className="mb-4 text-3xl font-bold">Everything You Need</h2>
-          <p className="text-muted-foreground">Three powerful tools in one seamless platform</p>
+          <p className="text-muted-foreground">Four powerful tools in one seamless platform</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
