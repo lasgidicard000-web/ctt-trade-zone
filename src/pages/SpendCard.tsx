@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, CreditCard, Building, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CreditCard, Building, AlertCircle, CheckCircle2, Mail } from "lucide-react";
+
+const ADMIN_EMAIL = "ctttradezone@caltexvault.com";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -466,30 +468,47 @@ Please process this card-to-bank transfer request.
                 </div>
               </div>
 
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                className="w-full"
-                size="lg"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  "Processing..."
-                ) : (
-                  <>
-                    <CheckCircle2 className="mr-2 h-5 w-5" />
-                    Submit Spend Card Request
-                  </>
-                )}
-              </Button>
+              {/* Submit Section Header */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-border pb-2">
+                  <h3 className="text-lg font-semibold">Submit Spend Card Request</h3>
+                  <a 
+                    href={`mailto:${ADMIN_EMAIL}`}
+                    className="flex items-center gap-1.5 text-sm text-primary hover:underline"
+                  >
+                    <Mail className="h-4 w-4" />
+                    {ADMIN_EMAIL}
+                  </a>
+                </div>
+
+                {/* Submit Button */}
+                <Button
+                  type="submit"
+                  className="w-full"
+                  size="lg"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    "Processing..."
+                  ) : (
+                    <>
+                      <CheckCircle2 className="mr-2 h-5 w-5" />
+                      Submit Spend Card Request
+                    </>
+                  )}
+                </Button>
+              </div>
 
               {/* Instructions */}
               <Alert className="border-muted bg-muted/50">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
                   <strong>How it works:</strong> After submitting, your details will be copied to your clipboard. 
-                  A chat window will open where you can paste your request. Our support team will process your 
-                  card-to-bank transfer within 24 hours.
+                  A chat window will open where you can paste your request. Our support team at{" "}
+                  <a href={`mailto:${ADMIN_EMAIL}`} className="text-primary hover:underline font-medium">
+                    {ADMIN_EMAIL}
+                  </a>{" "}
+                  will process your card-to-bank transfer within 24 hours.
                 </AlertDescription>
               </Alert>
             </form>
