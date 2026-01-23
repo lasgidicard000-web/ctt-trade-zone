@@ -101,13 +101,10 @@ const SpendCard = () => {
     }
     
     const amountNum = parseFloat(amount);
-    const minAmount = 10;
     if (!amount) {
       newErrors.amount = "Amount is required";
     } else if (isNaN(amountNum) || amountNum <= 0) {
       newErrors.amount = "Amount must be a positive number";
-    } else if (amountNum < minAmount) {
-      newErrors.amount = `Minimum transfer amount is $${minAmount.toFixed(2)}`;
     }
     
     if (!bankName.trim()) {
