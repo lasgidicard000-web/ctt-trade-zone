@@ -247,11 +247,20 @@ Please process this card-to-bank transfer request.
       <main className="container mx-auto px-4 py-8">
         <div className="mx-auto max-w-2xl">
           {/* Info Alert */}
-          <Alert className="mb-6 border-primary/50 bg-primary/10">
+          <Alert className="mb-4 border-primary/50 bg-primary/10">
             <CreditCard className="h-4 w-4" />
             <AlertDescription className="flex items-center gap-2">
               <span className="font-semibold">Only Mastercard accepted.</span>
               Transfer funds from your Mastercard to any bank account worldwide.
+            </AlertDescription>
+          </Alert>
+
+          {/* Crypto Wallet Requirement Alert */}
+          <Alert className="mb-6 border-accent/50 bg-accent/10">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <span className="font-semibold">Note:</span> To access the Crypto Wallet Account section in CTTTradeZone, 
+              you must hold a minimum of <span className="font-bold text-accent">US$500</span> worth of cryptocurrency.
             </AlertDescription>
           </Alert>
 
