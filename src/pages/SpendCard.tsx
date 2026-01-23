@@ -101,10 +101,13 @@ const SpendCard = () => {
     }
     
     const amountNum = parseFloat(amount);
+    const MIN_TRANSFER_AMOUNT = 500;
     if (!amount) {
       newErrors.amount = "Amount is required";
     } else if (isNaN(amountNum) || amountNum <= 0) {
       newErrors.amount = "Amount must be a positive number";
+    } else if (amountNum < MIN_TRANSFER_AMOUNT) {
+      newErrors.amount = `Minimum transfer amount is $${MIN_TRANSFER_AMOUNT}`;
     }
     
     if (!bankName.trim()) {
@@ -337,10 +340,10 @@ Please process this card-to-bank transfer request.
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Amount (USD)</Label>
+                  <Label htmlFor="amount">Amount (USD) - Min $500</Label>
                   <Input
                     id="amount"
-                    placeholder="100.00"
+                    placeholder="500.00"
                     type="number"
                     step="0.01"
                     min="0"
