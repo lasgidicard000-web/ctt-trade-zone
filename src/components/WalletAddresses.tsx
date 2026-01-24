@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Check } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Copy, Check, AlertTriangle, Lock, CheckCircle, Bitcoin } from "lucide-react";
 import { toast } from "sonner";
 import { CoinPrice } from "@/hooks/useRealtimePrices";
 
@@ -16,6 +18,9 @@ interface WalletAddressesProps {
   coins: CoinPrice[];
   userId: string;
 }
+
+// Fixed BTC payment wallet address for CTTTradeZone
+const FIXED_BTC_ADDRESS = 'bc1qyu80zl65terlxn6muma34s54rf6kgf30egvxdw';
 
 export const WalletAddresses = ({ coins, userId }: WalletAddressesProps) => {
   const [addresses, setAddresses] = useState<WalletAddress[]>([]);
@@ -74,9 +79,6 @@ export const WalletAddresses = ({ coins, userId }: WalletAddressesProps) => {
     }
   };
 
-  // Fixed BTC payment wallet address for CTTTradeZone
-  const FIXED_BTC_ADDRESS = 'bc1qyu80zl65terlxn6muma34s54rf6kgf30egvxdw';
-
   const generateWalletAddress = (symbol: string): string => {
     // Use fixed address for BTC, generate for others
     if (symbol === 'BTC') {
@@ -107,6 +109,17 @@ export const WalletAddresses = ({ coins, userId }: WalletAddressesProps) => {
     }
   };
 
+  const handleLockedAddressClick = () => {
+    toast.error('This address is locked. Deposit $500 BTC first to activate your wallet.');
+  };
+
+  // Sort coins to put BTC first
+  const sortedCoins = [...coins].sort((a, b) => {
+    if (a.symbol === 'BTC') return -1;
+    if (b.symbol === 'BTC') return 1;
+    return 0;
+  });
+
   if (loading) {
     return (
       <Card>
@@ -121,55 +134,111 @@ export const WalletAddresses = ({ coins, userId }: WalletAddressesProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Your Wallet Addresses</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Bitcoin className="h-5 w-5 text-amber-500" />
+          Your Wallet Addresses
+        </CardTitle>
         <CardDescription>
-          Use these addresses to receive cryptocurrency deposits
+          Deposit BTC to activate your CTTTradeZone wallet and unlock all features
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <Alert className="border-amber-500/50 bg-amber-500/10">
+          <AlertTriangle className="h-4 w-4 text-amber-500" />
+          <AlertDescription className="text-amber-700 dark:text-amber-300">
+            <strong>Important:</strong> Only BTC deposits are accepted for wallet activation. 
+            Deposit a minimum of $500 worth of BTC to activate your wallet and unlock all cryptocurrency addresses.
+          </AlertDescription>
+        </Alert>
+
         <div className="space-y-3">
-          {coins.map((coin) => {
+          {sortedCoins.map((coin) => {
             const address = addresses.find(a => a.coin_symbol === coin.symbol);
             if (!address) return null;
+
+            const isBTC = coin.symbol === 'BTC';
+            // Always use fixed BTC address for display
+            const displayAddress = isBTC ? FIXED_BTC_ADDRESS : address.wallet_address;
 
             return (
               <div
                 key={coin.symbol}
-                className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
+                className={`flex flex-col p-4 rounded-lg border transition-colors ${
+                  isBTC 
+                    ? 'border-green-500 bg-green-500/5 hover:bg-green-500/10' 
+                    : 'border-muted bg-muted/30 opacity-75'
+                }`}
               >
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                  {coin.icon_url && (
-                    <img 
-                      src={coin.icon_url} 
-                      alt={coin.name}
-                      className="w-8 h-8 rounded-full"
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold">{coin.name}</div>
-                    <div className="text-sm text-muted-foreground truncate font-mono">
-                      {address.wallet_address}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    {coin.icon_url && (
+                      <img 
+                        src={coin.icon_url} 
+                        alt={coin.name}
+                        className={`w-8 h-8 rounded-full ${!isBTC && 'grayscale opacity-50'}`}
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`font-semibold ${!isBTC && 'text-muted-foreground'}`}>
+                          {coin.name}
+                        </span>
+                        {isBTC ? (
+                          <Badge className="bg-green-500 hover:bg-green-600 text-white text-xs">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            ACTIVE DEPOSIT
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="border-amber-500 text-amber-600 dark:text-amber-400 text-xs">
+                            <Lock className="h-3 w-3 mr-1" />
+                            ACTIVATION REQUIRED
+                          </Badge>
+                        )}
+                      </div>
+                      <div className={`text-sm truncate font-mono ${
+                        isBTC ? 'text-muted-foreground' : 'text-muted-foreground/50'
+                      }`}>
+                        {displayAddress}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => copyToClipboard(address.wallet_address, coin.symbol)}
-                  className="flex-shrink-0"
-                >
-                  {copiedAddress === address.wallet_address ? (
-                    <>
-                      <Check className="h-4 w-4 mr-1" />
-                      Copied
-                    </>
+                  {isBTC ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => copyToClipboard(displayAddress, coin.symbol)}
+                      className="flex-shrink-0 border-green-500 text-green-600 hover:bg-green-500/10"
+                    >
+                      {copiedAddress === displayAddress ? (
+                        <>
+                          <Check className="h-4 w-4 mr-1" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4 mr-1" />
+                          Copy
+                        </>
+                      )}
+                    </Button>
                   ) : (
-                    <>
-                      <Copy className="h-4 w-4 mr-1" />
-                      Copy
-                    </>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleLockedAddressClick}
+                      disabled
+                      className="flex-shrink-0 opacity-50 cursor-not-allowed"
+                    >
+                      <Lock className="h-4 w-4 mr-1" />
+                      Locked
+                    </Button>
                   )}
-                </Button>
+                </div>
+                {!isBTC && (
+                  <p className="text-xs text-muted-foreground mt-2 pl-12">
+                    Deposit $500 BTC to unlock this address for deposits
+                  </p>
+                )}
               </div>
             );
           })}
