@@ -12,6 +12,8 @@ import AlertNotifications from "@/components/AlertNotifications";
 import { RewardsSection } from "@/components/RewardsSection";
 import { WalletAddresses } from "@/components/WalletAddresses";
 import { DepositHistory } from "@/components/DepositHistory";
+import { WalletStatusCard } from "@/components/WalletStatusCard";
+import { GlobalBankConversion } from "@/components/GlobalBankConversion";
 import { useRealtimePrices } from "@/hooks/useRealtimePrices";
 import { useTransactionNotifications } from "@/hooks/useTransactionNotifications";
 import {
@@ -653,9 +655,20 @@ const Wallet = () => {
 
         {user && <div className="mb-6"><PriceAlerts user={user} coins={coinPrices} /></div>}
 
+        {/* Wallet Status and Activation Requirements */}
+        {user && (
+          <WalletStatusCard
+            btcBalance={walletBalances.find(b => b.coin_symbol === 'BTC')?.balance || 0}
+            btcPrice={coinPrices.find(c => c.symbol === 'BTC')?.price || 0}
+          />
+        )}
+
         {user && <div className="mb-6"><RewardsSection user={user} onRewardClaimed={fetchData} /></div>}
 
         {user && <div className="mb-6"><WalletAddresses coins={coinPrices} userId={user.id} /></div>}
+
+        {/* Global Bank Conversion Section */}
+        <GlobalBankConversion />
 
         {user && <div className="mb-6"><DepositHistory /></div>}
 

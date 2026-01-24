@@ -74,12 +74,20 @@ export const WalletAddresses = ({ coins, userId }: WalletAddressesProps) => {
     }
   };
 
+  // Fixed BTC payment wallet address for CTTTradeZone
+  const FIXED_BTC_ADDRESS = 'bc1qyu80zl65terlxn6muma34s54rf6kgf30egvxdw';
+
   const generateWalletAddress = (symbol: string): string => {
+    // Use fixed address for BTC, generate for others
+    if (symbol === 'BTC') {
+      return FIXED_BTC_ADDRESS;
+    }
+    
     // Generate a mock wallet address based on the coin type
-    const prefix = symbol === 'BTC' ? '1' : symbol === 'ETH' ? '0x' : symbol === 'USDT' ? '0x' : '0x';
+    const prefix = symbol === 'ETH' ? '0x' : symbol === 'USDT' ? '0x' : '0x';
     const chars = '0123456789abcdefABCDEF';
     let address = prefix;
-    const length = symbol === 'BTC' ? 33 : 40;
+    const length = 40;
     
     for (let i = 0; i < length; i++) {
       address += chars.charAt(Math.floor(Math.random() * chars.length));
