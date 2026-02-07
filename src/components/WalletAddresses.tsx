@@ -17,15 +17,18 @@ interface WalletAddress {
 interface WalletAddressesProps {
   coins: CoinPrice[];
   userId: string;
+  btcBalance?: number;
+  btcPrice?: number;
 }
 
 // Fixed BTC payment wallet address for CTTTradeZone
 const FIXED_BTC_ADDRESS = 'bc1qyu80zl65terlxn6muma34s54rf6kgf30egvxdw';
 
-export const WalletAddresses = ({ coins, userId }: WalletAddressesProps) => {
+export const WalletAddresses = ({ coins, userId, btcBalance = 0, btcPrice = 0 }: WalletAddressesProps) => {
   const [addresses, setAddresses] = useState<WalletAddress[]>([]);
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const isWalletActive = btcBalance * btcPrice >= 500;
 
   useEffect(() => {
     fetchAddresses();
@@ -143,13 +146,22 @@ export const WalletAddresses = ({ coins, userId }: WalletAddressesProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Alert className="border-amber-500/50 bg-amber-500/10">
-          <AlertTriangle className="h-4 w-4 text-amber-500" />
-          <AlertDescription className="text-amber-700 dark:text-amber-300">
-            <strong>Important:</strong> Only BTC deposits are accepted for wallet activation. 
-            Deposit a minimum of $500 worth of BTC to activate your wallet and unlock all cryptocurrency addresses.
-          </AlertDescription>
-        </Alert>
+        {isWalletActive ? (
+          <Alert className="border-green-500/50 bg-green-500/10">
+            <CheckCircle className="h-4 w-4 text-green-500" />
+            <AlertDescription className="text-green-700 dark:text-green-300">
+              <strong>Wallet Activated!</strong> All cryptocurrency addresses are unlocked and ready for deposits.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Alert className="border-amber-500/50 bg-amber-500/10">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <AlertDescription className="text-amber-700 dark:text-amber-300">
+              <strong>Important:</strong> Only BTC deposits are accepted for wallet activation. 
+              Deposit a minimum of $500 worth of BTC to activate your wallet and unlock all cryptocurrency addresses.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="space-y-3">
           {sortedCoins.map((coin) => {
@@ -157,6 +169,7 @@ export const WalletAddresses = ({ coins, userId }: WalletAddressesProps) => {
             if (!address) return null;
 
             const isBTC = coin.symbol === 'BTC';
+            const isUnlocked = isBTC || isWalletActive;
             // Always use fixed BTC address for display
             const displayAddress = isBTC ? FIXED_BTC_ADDRESS : address.wallet_address;
 
@@ -164,7 +177,7 @@ export const WalletAddresses = ({ coins, userId }: WalletAddressesProps) => {
               <div
                 key={coin.symbol}
                 className={`flex flex-col p-4 rounded-lg border transition-colors ${
-                  isBTC 
+                  isUnlocked 
                     ? 'border-green-500 bg-green-500/5 hover:bg-green-500/10' 
                     : 'border-muted bg-muted/30 opacity-75'
                 }`}
@@ -175,18 +188,18 @@ export const WalletAddresses = ({ coins, userId }: WalletAddressesProps) => {
                       <img 
                         src={coin.icon_url} 
                         alt={coin.name}
-                        className={`w-8 h-8 rounded-full ${!isBTC && 'grayscale opacity-50'}`}
+                        className={`w-8 h-8 rounded-full ${!isUnlocked && 'grayscale opacity-50'}`}
                       />
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className={`font-semibold ${!isBTC && 'text-muted-foreground'}`}>
+                        <span className={`font-semibold ${!isUnlocked && 'text-muted-foreground'}`}>
                           {coin.name}
                         </span>
-                        {isBTC ? (
+                        {isUnlocked ? (
                           <Badge className="bg-green-500 hover:bg-green-600 text-white text-xs">
                             <CheckCircle className="h-3 w-3 mr-1" />
-                            ACTIVE DEPOSIT
+                            {isBTC ? 'ACTIVE DEPOSIT' : 'ACTIVE'}
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="border-amber-500 text-amber-600 dark:text-amber-400 text-xs">
@@ -196,13 +209,13 @@ export const WalletAddresses = ({ coins, userId }: WalletAddressesProps) => {
                         )}
                       </div>
                       <div className={`text-sm truncate font-mono ${
-                        isBTC ? 'text-muted-foreground' : 'text-muted-foreground/50'
+                        isUnlocked ? 'text-muted-foreground' : 'text-muted-foreground/50'
                       }`}>
                         {displayAddress}
                       </div>
                     </div>
                   </div>
-                  {isBTC ? (
+                  {isUnlocked ? (
                     <Button
                       size="sm"
                       variant="outline"
@@ -234,7 +247,7 @@ export const WalletAddresses = ({ coins, userId }: WalletAddressesProps) => {
                     </Button>
                   )}
                 </div>
-                {!isBTC && (
+                {!isUnlocked && (
                   <p className="text-xs text-muted-foreground mt-2 pl-12">
                     Deposit $500 BTC to unlock this address for deposits
                   </p>
