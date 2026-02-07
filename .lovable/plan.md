@@ -1,37 +1,39 @@
 
 
-## Plan: Activate Jeremy Element's Wallet Account
+## Plan: Unlock All Crypto Wallet Addresses for Jeremy Element
 
-### What This Does
-This will add BTC funds to Jeremy Element's wallet so their CTTTradeZone dashboard shows as **ACTIVE** with the wallet section fully operational.
+### Problem
+The `WalletAddresses` component currently hardcodes the lock/unlock logic based on `isBTC` -- only BTC is shown as active, and all other coins (ETH, USDT, BNB, CTT) are always shown as locked regardless of whether the user has paid the $500 activation fee.
 
-### Steps
+### Solution
+Modify the `WalletAddresses` component to accept the user's BTC balance and BTC price, then check if the wallet is activated (BTC value >= $500). When activated, all addresses will be shown as unlocked and copyable.
 
-#### 1. Insert BTC Balance for Jeremy Element
-Add a wallet balance record with enough BTC to exceed the $500 activation threshold.
+### Changes
 
-- **User ID:** `c890854e-0685-4fb6-9afa-48188047c220`
-- **Coin:** BTC
-- **Amount:** 0.00500000 BTC (approximately $514 at current price of ~$102,917)
+#### 1. Update `WalletAddresses` component props
+Add `btcBalance` and `btcPrice` props so the component can determine activation status.
 
-This will be done via a database migration that inserts (or upserts) the BTC balance into the `wallet_balances` table.
+#### 2. Update unlock logic in `WalletAddresses`
+Replace the hardcoded `isBTC` check with an `isActivated` flag:
+- If `btcBalance * btcPrice >= 500`, all addresses are unlocked (green border, copy button enabled, no "ACTIVATION REQUIRED" badge)
+- If not activated, keep current behavior (only BTC active, others locked)
 
-#### 2. Result
-Once the balance is set:
-- The WalletStatusCard will calculate: 0.005 x $102,917 = ~$514 (greater than $500)
-- The wallet status badge will show **ACTIVE** (green)
-- The BTC deposit address (`bc1qyu80zl65terlxn6muma34s54rf6kgf30egvxdw`) will remain active
-- All wallet features will be available to Jeremy Element
+#### 3. Update the Wallet page
+Pass `btcBalance` and `btcPrice` to the `WalletAddresses` component from the existing wallet data already available in `Wallet.tsx`.
 
 ### Technical Details
 
-**SQL Migration:**
-```sql
-INSERT INTO public.wallet_balances (user_id, coin_symbol, balance)
-VALUES ('c890854e-0685-4fb6-9afa-48188047c220', 'BTC', 0.00500000)
-ON CONFLICT (user_id, coin_symbol) 
-DO UPDATE SET balance = 0.00500000, updated_at = now();
-```
+**File: `src/components/WalletAddresses.tsx`**
+- Add `btcBalance` and `btcPrice` to the props interface
+- Calculate `isWalletActive = btcBalance * btcPrice >= 500`
+- Change the rendering condition from `isBTC` to `isBTC || isWalletActive`
+- When active: all coins get green border, "ACTIVE" badge, working copy button
+- Update the alert banner to show a success message when wallet is activated
 
-No code changes are needed -- only a database update to set the BTC balance for this user.
+**File: `src/pages/Wallet.tsx`**
+- Pass two additional props to `WalletAddresses`:
+  - `btcBalance={walletBalances.find(b => b.coin_symbol === 'BTC')?.balance || 0}`
+  - `btcPrice={coinPrices.find(c => c.symbol === 'BTC')?.price || 0}`
+
+No database changes needed -- Jeremy's 0.005 BTC balance already exceeds the $500 threshold.
 
