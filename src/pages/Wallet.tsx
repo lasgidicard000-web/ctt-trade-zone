@@ -665,7 +665,7 @@ const Wallet = () => {
 
         {user && <div className="mb-6"><RewardsSection user={user} onRewardClaimed={fetchData} /></div>}
 
-        {user && <div className="mb-6"><WalletAddresses coins={coinPrices} userId={user.id} /></div>}
+        {user && <div className="mb-6"><WalletAddresses coins={coinPrices} userId={user.id} btcBalance={walletBalances.find(b => b.coin_symbol === 'BTC')?.balance || 0} btcPrice={coinPrices.find(c => c.symbol === 'BTC')?.price || 0} /></div>}
 
         {/* Global Bank Conversion Section */}
         <GlobalBankConversion />
