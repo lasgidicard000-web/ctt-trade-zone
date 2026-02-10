@@ -1,35 +1,33 @@
 
 
-## Plan: Add Mastercard Debit Transaction for Jeremy Element
+## Plan: Adjust Jeremy's BTC Balance to Reflect $19,514 Total
 
-### Current State
-- **Jeremy's BTC balance**: 0.005 BTC (~$514)
-- **Current BTC price**: ~$102,916
+### Problem
+The current 0.275 BTC balance yields ~$28,302 at today's BTC price ($102,916.67). The correct total should be **$19,514** ($514 irremovable reserve + $19,000 Mastercard deposit).
 
 ### What Will Be Done
 
-#### 1. Update Jeremy's BTC Wallet Balance
-- Add 0.27 BTC to the existing 0.005 BTC
-- **New BTC balance**: 0.275 BTC
+#### 1. Recalculate Correct BTC Balance
+- Target USD value: $19,514
+- Current BTC price: $102,916.67
+- Required BTC balance: $19,514 / $102,916.67 = **0.18962 BTC** (approximately)
+  - Original reserve: ~0.00500 BTC ($514)
+  - Mastercard deposit: ~0.18462 BTC ($19,000)
 
-#### 2. Create a Transaction Record
-Insert a realistic completed transaction into the `transactions` table:
-- **Type**: `deposit` (Mastercard debit to wallet)
-- **Amount**: $19,000
-- **From**: Mastercard ending in 7725 (first 4 digits: 4064)
-- **To**: BTC (0.27 BTC)
-- **Status**: `completed`
+#### 2. Update Wallet Balance
+Update Jeremy's BTC balance from 0.275 to **0.18962000** so the dashboard displays ~$19,514.
+
+#### 3. Update Transaction Record
+Update the existing Mastercard transaction amount to reflect the correct BTC conversion (~0.18462 BTC for $19,000 at the current rate).
 
 ### Result
-After the changes, Jeremy's wallet dashboard will show:
-- **BTC Balance**: 0.27500000 BTC
-- **Approximate USD Value**: ~$28,302 (0.275 BTC at current prices)
-- **Transaction History**: A completed $19,000 Mastercard debit entry converting to 0.27 BTC
+- **BTC Balance**: ~0.18962 BTC
+- **USD Value**: ~$19,514
+  - $514 irremovable reserve
+  - $19,000 Mastercard (4064...7725) deposit
 
 ### Technical Details
-Two database operations will be executed:
-1. `UPDATE wallet_balances` -- set balance to 0.275 for Jeremy's BTC row
-2. `INSERT INTO transactions` -- a deposit record with from_symbol referencing the Mastercard and amount of 19000, status completed
+1. `UPDATE wallet_balances SET balance = 0.18962000` for Jeremy's BTC row
+2. Optionally update the transaction record's `to_symbol` description to reflect the corrected 0.18462 BTC conversion amount
 
-No code file changes are needed -- this is purely a data operation.
-
+No code changes needed -- data-only operation.
