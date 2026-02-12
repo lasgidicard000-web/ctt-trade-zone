@@ -97,7 +97,7 @@ const TransactionHistory = () => {
             date: new Date(tx.created_at),
             type: tx.type,
             amount: parseFloat(tx.amount),
-            currency: tx.to_symbol || "USDT",
+            currency: tx.to_symbol || tx.from_symbol || "BTC",
             status: tx.status,
             details: `${tx.from_symbol || ""} → ${tx.to_symbol || ""}`,
             source: "transaction",
