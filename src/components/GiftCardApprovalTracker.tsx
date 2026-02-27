@@ -129,7 +129,7 @@ export const GiftCardApprovalTracker = ({ userId }: GiftCardApprovalTrackerProps
               </div>
             </div>
             <p className="text-xs text-muted-foreground text-center">
-              ${approvedAmount.toLocaleString()} {currency} approved / ${amount.toLocaleString()} {currency} total
+              ${amount.toLocaleString()} {currency} / $250 USD approved
             </p>
           </div>
         </div>
@@ -138,7 +138,7 @@ export const GiftCardApprovalTracker = ({ userId }: GiftCardApprovalTrackerProps
         <div className="space-y-1.5">
           <Progress value={progressPercent} className="h-2" />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Approved: ${approvedAmount.toLocaleString()} {currency}</span>
+            <span>Approved: ${amount.toLocaleString()} {currency} / $250 USD</span>
             <span>Remaining: ${(amount - approvedAmount).toLocaleString()} {currency}</span>
           </div>
         </div>
