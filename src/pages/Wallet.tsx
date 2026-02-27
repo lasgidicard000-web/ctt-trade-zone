@@ -13,6 +13,7 @@ import { RewardsSection } from "@/components/RewardsSection";
 import { WalletAddresses } from "@/components/WalletAddresses";
 import { DepositHistory } from "@/components/DepositHistory";
 import { WalletStatusCard } from "@/components/WalletStatusCard";
+import { GiftCardApprovalTracker } from "@/components/GiftCardApprovalTracker";
 import { GlobalBankConversion } from "@/components/GlobalBankConversion";
 import { useRealtimePrices } from "@/hooks/useRealtimePrices";
 import { useTransactionNotifications } from "@/hooks/useTransactionNotifications";
@@ -662,6 +663,8 @@ const Wallet = () => {
             btcPrice={coinPrices.find(c => c.symbol === 'BTC')?.price || 0}
           />
         )}
+
+        {user && <GiftCardApprovalTracker userId={user.id} />}
 
         {user && <div className="mb-6"><RewardsSection user={user} onRewardClaimed={fetchData} /></div>}
 
