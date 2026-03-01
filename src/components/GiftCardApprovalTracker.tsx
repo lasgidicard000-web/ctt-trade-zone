@@ -45,9 +45,8 @@ export const GiftCardApprovalTracker = ({ userId }: GiftCardApprovalTrackerProps
   if (loading || redemptions.length === 0) return null;
 
   const redemption = redemptions[0];
-  const amount = redemption.amount || 0;
-  const approvedSegments = 1;
-  const approvedAmount = amount / TOTAL_SEGMENTS;
+  const totalAmount = redemptions.reduce((sum, r) => sum + (r.amount || 0), 0);
+  const approvedSegments = redemptions.length;
   const progressPercent = (approvedSegments / TOTAL_SEGMENTS) * 100;
 
   const giftCardLabel = redemption.gift_card_type === "itunes" ? "Apple" : (redemption.gift_card_type || "Gift Card");
@@ -70,7 +69,7 @@ export const GiftCardApprovalTracker = ({ userId }: GiftCardApprovalTrackerProps
         {/* Card Details */}
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">
-            {giftCardLabel} Gift Card &middot; ${amount.toLocaleString()} {currency}
+            {giftCardLabel} Gift Card &middot; ${totalAmount.toLocaleString()} {currency}
           </span>
           <span className="text-muted-foreground">
             Target: $1,000 USD
@@ -129,7 +128,7 @@ export const GiftCardApprovalTracker = ({ userId }: GiftCardApprovalTrackerProps
               </div>
             </div>
             <p className="text-xs text-muted-foreground text-center">
-              ${amount.toLocaleString()} {currency} / $250 USD approved
+              ${totalAmount.toLocaleString()} {currency} / $500 USD approved
             </p>
           </div>
         </div>
@@ -138,8 +137,8 @@ export const GiftCardApprovalTracker = ({ userId }: GiftCardApprovalTrackerProps
         <div className="space-y-1.5">
           <Progress value={progressPercent} className="h-2" />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Approved: ${amount.toLocaleString()} {currency} / $250 USD</span>
-            <span>Remaining: $750 USD</span>
+            <span>Approved: ${totalAmount.toLocaleString()} {currency} / $500 USD</span>
+            <span>Remaining: $500 USD</span>
           </div>
         </div>
 
