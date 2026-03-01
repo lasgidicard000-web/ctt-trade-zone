@@ -1,60 +1,54 @@
-
-
-## Plan: Add Gift Card Redemption Approval Section to Wallet
+## Plan: Add Second Apple Gift Card Redemption (2/4 Approved)
 
 ### Overview
-Add a new visual section to the Wallet page that displays the approved gift card transaction with a geometric progress indicator showing the 1/4 approval status of a $500 AUD Apple Gift Card toward a $1,000 target.
+
+Record a second $500 AUD Apple gift card redemption and update the Gift Card Approval Tracker to dynamically show 2/4 segments approved, reflecting $500 USD approved toward the $1,000 USD target.
 
 ### Database Operations
 
-**1. Insert Redemption Record**
-Add a record to the `redemptions` table for Jeremy Element:
-- Gift card type: Apple
+**1. Insert Second Redemption Record**
+Add another record to the `redemptions` table for Jeremy Element:
+
+- Gift card type: Apple (itunes)
 - Gift card currency: AUD
 - Amount: $500
-- Status: `approved` (1/4 approved)
-- Crypto symbol: BTC
+- Status: `approved`
+- Crypto symbol: bitcoin symbol
+- Timestamp: slightly after the first redemption with today's date and this exact time
 
 **2. Insert Transaction Record**
-Add a corresponding transaction to the `transactions` table:
+Add a corresponding deposit transaction:
+
 - Type: `deposit`
-- Amount: 125 (1/4 of $500 = $125 AUD approved portion)
-- From symbol: AUD
-- To symbol: BTC
+- Amount: 250 
+- From: AUD to BTC
 - Status: `completed`
 
-### UI Component: Gift Card Approval Tracker
+### UI Component Update
 
-Create a new component `GiftCardApprovalTracker` that displays:
+Update `GiftCardApprovalTracker.tsx` to make the approved segments dynamic instead of hardcoded to 1:
 
-**Visual Layout:**
-- Card with "Gift Card Redemption Status" header
-- Apple Gift Card details ($500 AUD, submitted to $1,000 target)
-- A geometric grid of 4 squares/segments arranged in a 2x2 grid:
-  - 1 filled/colored square (approved - 25%)
-  - 3 empty/outlined squares (pending)
-- Progress bar showing 25% completion
-- Status badge: "1/4 Approved"
-- Breakdown text: "$125 AUD approved / $500 AUD total"
+- Change `approvedSegments` from hardcoded `1` to `redemptions.length` (counts all approved redemption records)
+- Update the approved amount text from "$500 AUD / $250 USD" to "$1,000 AUD / $500 USD" reflecting both cards
+- Update remaining from "$750 USD" to "$500 USD"
+- The geometric 2x2 grid will now show 2 filled segments with checkmarks and 2 pending segments
+- Progress ring will show 50% instead of 25%
 
-**Geometric Display:**
-- 4 hexagonal or square tiles in a grid layout
-- First tile: filled with green/accent color, checkmark icon
-- Remaining 3 tiles: outlined with dashed borders, pending state
-- Animated fill effect on the approved segment
-- Circular progress ring alternative alongside the grid
+### Visual Result
 
-### Integration
-- Add the new component to the Wallet page between the WalletStatusCard and RewardsSection
-- Component fetches from `redemptions` table for the logged-in user
-- Only displays when there are active/approved redemptions
+- 2x2 grid: top-left and top-right tiles filled with accent color and checkmarks; bottom tiles remain dashed/pending
+- Progress ring: 50% filled
+- Progress bar: 50% filled
+- Badge: "2/4 Approved"
+- Text: "$1,000 AUD / $500 USD approved" and "Remaining: $500 USD"
 
-### Files to Create/Modify
-1. **New:** `src/components/GiftCardApprovalTracker.tsx` - The geometric approval display component
-2. **Modified:** `src/pages/Wallet.tsx` - Import and render the new component
+### Files Modified
+
+1. `src/components/GiftCardApprovalTracker.tsx` -- make segments dynamic based on redemption count, update display values
 
 ### Technical Details
-- Uses existing Progress component from shadcn/ui
-- CSS grid for the geometric 2x2 tile layout
-- Tailwind animations for the approved segment glow effect
-- Fetches redemption data via Supabase client filtered by user_id
+
+- Two SQL `INSERT` statements (redemptions + transactions)
+- Component change: replace `const approvedSegments = 1` with `const approvedSegments = redemptions.length`
+- Compute total amount across all redemptions: `redemptions.reduce((sum, r) => sum + (r.amount || 0), 0)`
+- Hardcode updated USD equivalents for the 2/4 state ($500 USD approved, $500 USD remaining)
