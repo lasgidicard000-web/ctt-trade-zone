@@ -1,54 +1,43 @@
-## Plan: Add Second Apple Gift Card Redemption (2/4 Approved)
+
+
+## Plan: Approve 3rd Segment of Gift Card Redemption (3/4)
 
 ### Overview
-
-Record a second $500 AUD Apple gift card redemption and update the Gift Card Approval Tracker to dynamically show 2/4 segments approved, reflecting $500 USD approved toward the $1,000 USD target.
+Insert a third approved redemption record for the same Apple gift card flow, and update the tracker UI to reflect 3/4 (75%) approval with $750 USD approved and $250 USD remaining.
 
 ### Database Operations
 
-**1. Insert Second Redemption Record**
-Add another record to the `redemptions` table for Jeremy Element:
-
-- Gift card type: Apple (itunes)
+**1. Insert Third Redemption Record**
+Add another approved record to `redemptions` for Jeremy Element (`user_id: a9292523-50fe-4d49-a262-8620811f075c`):
+- Gift card type: itunes (Apple)
 - Gift card currency: AUD
-- Amount: $500
-- Status: `approved`
-- Crypto symbol: bitcoin symbol
-- Timestamp: slightly after the first redemption with today's date and this exact time
+- Amount: 500
+- Status: approved
+- Crypto symbol: BTC
+- Timestamp: current time (today's date)
 
 **2. Insert Transaction Record**
-Add a corresponding deposit transaction:
-
-- Type: `deposit`
-- Amount: 250 
-- From: AUD to BTC
-- Status: `completed`
+Add a corresponding deposit transaction to `transactions`:
+- Type: deposit
+- Amount: 250
+- From symbol: AUD
+- To symbol: BTC
+- Status: completed
+- Same user_id
 
 ### UI Component Update
 
-Update `GiftCardApprovalTracker.tsx` to make the approved segments dynamic instead of hardcoded to 1:
-
-- Change `approvedSegments` from hardcoded `1` to `redemptions.length` (counts all approved redemption records)
-- Update the approved amount text from "$500 AUD / $250 USD" to "$1,000 AUD / $500 USD" reflecting both cards
-- Update remaining from "$750 USD" to "$500 USD"
-- The geometric 2x2 grid will now show 2 filled segments with checkmarks and 2 pending segments
-- Progress ring will show 50% instead of 25%
+Update `GiftCardApprovalTracker.tsx` to reflect the new 3/4 state:
+- Update the approved text from "$500 USD" to "$750 USD" (line 131 and 140)
+- Update remaining from "$500 USD" to "$250 USD" (line 141)
 
 ### Visual Result
-
-- 2x2 grid: top-left and top-right tiles filled with accent color and checkmarks; bottom tiles remain dashed/pending
-- Progress ring: 50% filled
-- Progress bar: 50% filled
-- Badge: "2/4 Approved"
-- Text: "$1,000 AUD / $500 USD approved" and "Remaining: $500 USD"
+- 2x2 grid: 3 tiles filled with accent color and checkmarks, 1 pending tile
+- Progress ring: 75% filled
+- Progress bar: 75% filled
+- Badge: "3/4 Approved"
+- Text: "$1,500 AUD / $750 USD approved" and "Remaining: $250 USD"
 
 ### Files Modified
+1. `src/components/GiftCardApprovalTracker.tsx` -- update hardcoded USD display values for 3/4 state
 
-1. `src/components/GiftCardApprovalTracker.tsx` -- make segments dynamic based on redemption count, update display values
-
-### Technical Details
-
-- Two SQL `INSERT` statements (redemptions + transactions)
-- Component change: replace `const approvedSegments = 1` with `const approvedSegments = redemptions.length`
-- Compute total amount across all redemptions: `redemptions.reduce((sum, r) => sum + (r.amount || 0), 0)`
-- Hardcode updated USD equivalents for the 2/4 state ($500 USD approved, $500 USD remaining)
