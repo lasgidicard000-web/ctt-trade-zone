@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle, Clock, Gift, PartyPopper, Bitcoin } from "lucide-react";
+import { CheckCircle, Clock, Gift, PartyPopper, Bitcoin, ShieldCheck, Mail } from "lucide-react";
 
 interface Redemption {
   id: string;
@@ -199,6 +199,35 @@ export const GiftCardApprovalTracker = ({ userId }: GiftCardApprovalTrackerProps
                 </p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* AGCSB Authentication Protocol */}
+        {isComplete && (
+          <div className="rounded-lg border border-accent/30 bg-accent/5 p-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-accent" />
+              <span className="text-sm font-semibold">AGCSB Authentication Protocol</span>
+            </div>
+
+            <div className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                Jeremy Element's funds — <span className="font-semibold text-foreground">$2,000 AUD / $1,000 USD</span> (4/4 AUD-GIFT-CARD-SAFEPAL-BANK <span className="font-mono text-xs text-accent">AGCSB</span>) — have been successfully sent to a SafePal account connected (claimed to be connected) by you.
+              </p>
+              <p>
+                You have successfully passed the <span className="font-semibold text-foreground">first step</span> of the Authentication Protocol rule, combining your bank account to the Australian banking sector that freely allows the utilization of cryptocurrency flow for both in and out of your Australian bank account.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 rounded-md bg-muted/50 border border-border p-3">
+              <Mail className="h-4 w-4 text-accent shrink-0" />
+              <div className="text-xs">
+                <span className="text-muted-foreground">Support: </span>
+                <a href="mailto:AGCSB@caltex.com" className="font-medium text-accent hover:underline">
+                  AGCSB@caltex.com
+                </a>
+              </div>
+            </div>
           </div>
         )}
 
