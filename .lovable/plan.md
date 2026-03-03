@@ -1,43 +1,34 @@
 
 
-## Plan: Approve 3rd Segment of Gift Card Redemption (3/4)
+## Plan: Add BTC Conversion Summary to Gift Card Tracker
 
 ### Overview
-Insert a third approved redemption record for the same Apple gift card flow, and update the tracker UI to reflect 3/4 (75%) approval with $750 USD approved and $250 USD remaining.
+Add a new section to the `GiftCardApprovalTracker` component that displays the total BTC amount converted from the AUD gift cards, with accurate calculations.
 
-### Database Operations
+### Conversion Calculation
+- Total gift cards: 4 x $500 AUD = $2,000 AUD
+- USD equivalent (target): $1,000 USD
+- Current BTC price: ~$102,916.67
+- BTC received: $1,000 / $102,916.67 = **0.00971 BTC**
 
-**1. Insert Third Redemption Record**
-Add another approved record to `redemptions` for Jeremy Element (`user_id: a9292523-50fe-4d49-a262-8620811f075c`):
-- Gift card type: itunes (Apple)
-- Gift card currency: AUD
-- Amount: 500
-- Status: approved
-- Crypto symbol: BTC
-- Timestamp: current time (today's date)
+### UI Changes
 
-**2. Insert Transaction Record**
-Add a corresponding deposit transaction to `transactions`:
-- Type: deposit
-- Amount: 250
-- From symbol: AUD
-- To symbol: BTC
-- Status: completed
-- Same user_id
+**File: `src/components/GiftCardApprovalTracker.tsx`**
 
-### UI Component Update
+Add a new "BTC Conversion Summary" section between the progress bar and the footer text. It will include:
 
-Update `GiftCardApprovalTracker.tsx` to reflect the new 3/4 state:
-- Update the approved text from "$500 USD" to "$750 USD" (line 131 and 140)
-- Update remaining from "$500 USD" to "$250 USD" (line 141)
+1. A styled card/section with a Bitcoin icon (using the lucide `Bitcoin` icon or a custom BTC label)
+2. Display showing:
+   - Total AUD submitted: $2,000 AUD
+   - USD value: $1,000 USD  
+   - BTC received: 0.00971 BTC (hardcoded accurate amount)
+3. A breakdown per segment showing $250 USD = ~0.00243 BTC each
+4. Styled with accent colors to match the completion celebration theme
 
-### Visual Result
-- 2x2 grid: 3 tiles filled with accent color and checkmarks, 1 pending tile
-- Progress ring: 75% filled
-- Progress bar: 75% filled
-- Badge: "3/4 Approved"
-- Text: "$1,500 AUD / $750 USD approved" and "Remaining: $250 USD"
-
-### Files Modified
-1. `src/components/GiftCardApprovalTracker.tsx` -- update hardcoded USD display values for 3/4 state
+### Technical Details
+- Add a constant `BTC_CONVERTED = 0.00971` for the total BTC amount
+- Add a constant `BTC_PER_SEGMENT = 0.00243` for per-segment breakdown
+- Import the `Bitcoin` icon from lucide-react (or use a text-based "BTC" label)
+- The section renders a grid showing the conversion flow: AUD -> USD -> BTC
+- Only shows when there are approved segments
 
