@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle, Clock, Gift, PartyPopper, Bitcoin } from "lucide-react";
+import { CheckCircle, Clock, Gift, PartyPopper, Bitcoin, ShieldCheck, Mail } from "lucide-react";
 
 interface Redemption {
   id: string;
