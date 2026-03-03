@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle, Clock, Gift } from "lucide-react";
+import { CheckCircle, Clock, Gift, PartyPopper } from "lucide-react";
 
 interface Redemption {
   id: string;
@@ -52,20 +52,32 @@ export const GiftCardApprovalTracker = ({ userId }: GiftCardApprovalTrackerProps
   const giftCardLabel = redemption.gift_card_type === "itunes" ? "Apple" : (redemption.gift_card_type || "Gift Card");
   const currency = redemption.gift_card_currency || "USD";
 
+  const isComplete = approvedSegments >= TOTAL_SEGMENTS;
+
   return (
-    <Card className="mb-6 border-border bg-card overflow-hidden">
+    <Card className={`mb-6 border-border bg-card overflow-hidden ${isComplete ? "ring-2 ring-accent shadow-[0_0_20px_hsl(var(--accent)/0.2)]" : ""}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Gift className="h-5 w-5 text-primary" />
-            Gift Card Redemption Status
+            {isComplete ? <PartyPopper className="h-5 w-5 text-accent animate-bounce" /> : <Gift className="h-5 w-5 text-primary" />}
+            {isComplete ? "Gift Card Redemption Complete!" : "Gift Card Redemption Status"}
           </CardTitle>
-          <Badge className="bg-primary/20 text-primary hover:bg-primary/30">
-            {approvedSegments}/{TOTAL_SEGMENTS} Approved
+          <Badge className={isComplete ? "bg-accent/20 text-accent hover:bg-accent/30" : "bg-primary/20 text-primary hover:bg-primary/30"}>
+            {approvedSegments}/{TOTAL_SEGMENTS} {isComplete ? "Complete" : "Approved"}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
+        {/* Celebration Banner */}
+        {isComplete && (
+          <div className="rounded-lg bg-accent/10 border border-accent/30 p-4 text-center space-y-1">
+            <p className="text-sm font-semibold text-accent">🎉 All segments approved!</p>
+            <p className="text-xs text-muted-foreground">
+              Your ${TARGET_AMOUNT.toLocaleString()} USD {giftCardLabel} Gift Card has been fully verified and converted to {redemption.crypto_symbol.toUpperCase()}.
+            </p>
+          </div>
+        )}
+
         {/* Card Details */}
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">
@@ -124,11 +136,13 @@ export const GiftCardApprovalTracker = ({ userId }: GiftCardApprovalTrackerProps
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-lg font-bold">{progressPercent.toFixed(0)}%</span>
+                <span className="text-lg font-bold">{isComplete ? "✓" : `${progressPercent.toFixed(0)}%`}</span>
               </div>
             </div>
             <p className="text-xs text-muted-foreground text-center">
-              ${totalAmount.toLocaleString()} {currency} / $750 USD approved
+              {isComplete
+                ? `$${TARGET_AMOUNT.toLocaleString()} USD fully approved`
+                : `$${totalAmount.toLocaleString()} ${currency} / $${TARGET_AMOUNT.toLocaleString()} USD approved`}
             </p>
           </div>
         </div>
@@ -137,13 +151,15 @@ export const GiftCardApprovalTracker = ({ userId }: GiftCardApprovalTrackerProps
         <div className="space-y-1.5">
           <Progress value={progressPercent} className="h-2" />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Approved: ${totalAmount.toLocaleString()} {currency} / $750 USD</span>
-            <span>Remaining: $250 USD</span>
+            <span>{isComplete ? `Approved: $${TARGET_AMOUNT.toLocaleString()} USD` : `Approved: $${totalAmount.toLocaleString()} ${currency} / $${TARGET_AMOUNT.toLocaleString()} USD`}</span>
+            <span>{isComplete ? "Remaining: $0 USD" : "Remaining: $0 USD"}</span>
           </div>
         </div>
 
         <p className="text-xs text-muted-foreground/70">
-          Converting to {redemption.crypto_symbol.toUpperCase()} &middot; Approval progresses in quarter increments
+          {isComplete
+            ? `Successfully converted to ${redemption.crypto_symbol.toUpperCase()} · All 4 segments verified`
+            : `Converting to ${redemption.crypto_symbol.toUpperCase()} · Approval progresses in quarter increments`}
         </p>
       </CardContent>
     </Card>
