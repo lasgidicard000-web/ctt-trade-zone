@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle, Clock, Gift, PartyPopper } from "lucide-react";
+import { CheckCircle, Clock, Gift, PartyPopper, Bitcoin } from "lucide-react";
 
 interface Redemption {
   id: string;
@@ -21,6 +21,8 @@ interface GiftCardApprovalTrackerProps {
 
 const TOTAL_SEGMENTS = 4;
 const TARGET_AMOUNT = 1000;
+const BTC_CONVERTED = 0.00971;
+const BTC_PER_SEGMENT = 0.00243;
 
 export const GiftCardApprovalTracker = ({ userId }: GiftCardApprovalTrackerProps) => {
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
@@ -155,6 +157,50 @@ export const GiftCardApprovalTracker = ({ userId }: GiftCardApprovalTrackerProps
             <span>{isComplete ? "Remaining: $0 USD" : "Remaining: $0 USD"}</span>
           </div>
         </div>
+
+        {/* BTC Conversion Summary */}
+        {approvedSegments > 0 && (
+          <div className={`rounded-lg border p-4 space-y-3 ${isComplete ? "bg-accent/5 border-accent/30" : "bg-muted/30 border-border"}`}>
+            <div className="flex items-center gap-2">
+              <Bitcoin className={`h-5 w-5 ${isComplete ? "text-accent" : "text-primary"}`} />
+              <span className="text-sm font-semibold">BTC Conversion Summary</span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-md bg-muted/50 p-2">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">AUD Submitted</p>
+                <p className="text-sm font-bold">${(approvedSegments * 500).toLocaleString()}</p>
+              </div>
+              <div className="rounded-md bg-muted/50 p-2">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">USD Value</p>
+                <p className="text-sm font-bold">${(approvedSegments * 250).toLocaleString()}</p>
+              </div>
+              <div className={`rounded-md p-2 ${isComplete ? "bg-accent/10" : "bg-primary/10"}`}>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">BTC Received</p>
+                <p className={`text-sm font-bold ${isComplete ? "text-accent" : "text-primary"}`}>
+                  {(approvedSegments * BTC_PER_SEGMENT).toFixed(5)}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              {Array.from({ length: approvedSegments }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Segment {i + 1}: $250 USD</span>
+                  <span className={isComplete ? "text-accent" : "text-primary"}>≈ {BTC_PER_SEGMENT.toFixed(5)} BTC</span>
+                </div>
+              ))}
+            </div>
+
+            {isComplete && (
+              <div className="text-center pt-1 border-t border-accent/20">
+                <p className="text-xs text-muted-foreground">
+                  Total: <span className="font-semibold text-accent">{BTC_CONVERTED} BTC</span> at ~$102,917/BTC
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         <p className="text-xs text-muted-foreground/70">
           {isComplete
