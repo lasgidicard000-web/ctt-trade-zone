@@ -223,9 +223,9 @@ export const GiftCardApprovalTracker = ({ userId }: GiftCardApprovalTrackerProps
               <Mail className="h-4 w-4 text-accent shrink-0" />
               <div className="text-xs">
                 <span className="text-muted-foreground">Support: </span>
-                <a href="mailto:AGCSB@caltex.com" className="font-medium text-accent hover:underline">
-                  AGCSB@caltex.com
-                </a>
+                <a href="mailto:agcsb@caltexvault.com" className="font-medium text-accent hover:underline">
+                   agcsb@caltexvault.com
+                 </a>
               </div>
             </div>
           </div>
