@@ -101,6 +101,7 @@ const TransactionHistory = () => {
             currency: tx.to_symbol || tx.from_symbol || "BTC",
             status: tx.status,
             details: `${tx.from_symbol || ""} → ${tx.to_symbol || ""}`,
+            notes: tx.notes || null,
             source: "transaction",
           });
         });
