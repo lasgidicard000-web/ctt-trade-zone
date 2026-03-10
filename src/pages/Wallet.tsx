@@ -665,6 +665,7 @@ const Wallet = () => {
           />
         )}
 
+        {user && <AGCSBCreditBadge userId={user.id} />}
         {user && <GiftCardApprovalTracker userId={user.id} />}
 
         {user && <div className="mb-6"><RewardsSection user={user} onRewardClaimed={fetchData} /></div>}
