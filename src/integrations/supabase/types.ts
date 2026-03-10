@@ -546,6 +546,7 @@ export type Database = {
           created_at: string
           from_symbol: string | null
           id: string
+          notes: string | null
           status: string
           to_symbol: string | null
           type: string
@@ -556,6 +557,7 @@ export type Database = {
           created_at?: string
           from_symbol?: string | null
           id?: string
+          notes?: string | null
           status?: string
           to_symbol?: string | null
           type: string
@@ -566,6 +568,7 @@ export type Database = {
           created_at?: string
           from_symbol?: string | null
           id?: string
+          notes?: string | null
           status?: string
           to_symbol?: string | null
           type?: string
