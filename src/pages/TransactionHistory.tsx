@@ -35,6 +35,7 @@ interface CombinedTransaction {
   currency: string;
   status: string;
   details: string;
+  notes: string | null;
   source: string;
 }
 
