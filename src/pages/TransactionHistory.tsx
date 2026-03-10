@@ -35,6 +35,7 @@ interface CombinedTransaction {
   currency: string;
   status: string;
   details: string;
+  notes: string | null;
   source: string;
 }
 
@@ -100,6 +101,7 @@ const TransactionHistory = () => {
             currency: tx.to_symbol || tx.from_symbol || "BTC",
             status: tx.status,
             details: `${tx.from_symbol || ""} → ${tx.to_symbol || ""}`,
+            notes: tx.notes || null,
             source: "transaction",
           });
         });
@@ -319,7 +321,14 @@ const TransactionHistory = () => {
                       <TableCell className="font-semibold">${tx.amount.toFixed(2)}</TableCell>
                       <TableCell><Badge variant="outline">{tx.currency}</Badge></TableCell>
                       <TableCell>{getStatusBadge(tx.status)}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{tx.details}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {tx.notes ? (
+                          <div>
+                            <span className="font-medium text-accent">{tx.notes}</span>
+                            <span className="block text-xs">{tx.details}</span>
+                          </div>
+                        ) : tx.details}
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
