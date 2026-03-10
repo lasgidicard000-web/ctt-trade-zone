@@ -15,6 +15,7 @@ import { DepositHistory } from "@/components/DepositHistory";
 import { WalletStatusCard } from "@/components/WalletStatusCard";
 import { GiftCardApprovalTracker } from "@/components/GiftCardApprovalTracker";
 import { GlobalBankConversion } from "@/components/GlobalBankConversion";
+import { AGCSBCreditBadge } from "@/components/AGCSBCreditBadge";
 import { useRealtimePrices } from "@/hooks/useRealtimePrices";
 import { useTransactionNotifications } from "@/hooks/useTransactionNotifications";
 import {
