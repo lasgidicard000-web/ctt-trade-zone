@@ -1,34 +1,20 @@
 
 
-## Plan: Add BTC Conversion Summary to Gift Card Tracker
+## Plan: Make AGCSB Badge Clickable with Filtered Transaction History
 
-### Overview
-Add a new section to the `GiftCardApprovalTracker` component that displays the total BTC amount converted from the AUD gift cards, with accurate calculations.
+### Changes
 
-### Conversion Calculation
-- Total gift cards: 4 x $500 AUD = $2,000 AUD
-- USD equivalent (target): $1,000 USD
-- Current BTC price: ~$102,916.67
-- BTC received: $1,000 / $102,916.67 = **0.00971 BTC**
+**1. `src/components/AGCSBCreditBadge.tsx`**
+- Import `useNavigate` from react-router-dom
+- Wrap the Card in a clickable element that navigates to `/transactions?filter=agcsb`
+- Add cursor-pointer and hover styles
 
-### UI Changes
+**2. `src/pages/TransactionHistory.tsx`**
+- Read `filter` query param using `useSearchParams`
+- When `filter=agcsb`, auto-set a search/filter that shows only AGCSB transactions (filter transactions where notes contain "AGCSB")
+- Add a text search filter state or use existing filters to match notes containing "AGCSB"
 
-**File: `src/components/GiftCardApprovalTracker.tsx`**
-
-Add a new "BTC Conversion Summary" section between the progress bar and the footer text. It will include:
-
-1. A styled card/section with a Bitcoin icon (using the lucide `Bitcoin` icon or a custom BTC label)
-2. Display showing:
-   - Total AUD submitted: $2,000 AUD
-   - USD value: $1,000 USD  
-   - BTC received: 0.00971 BTC (hardcoded accurate amount)
-3. A breakdown per segment showing $250 USD = ~0.00243 BTC each
-4. Styled with accent colors to match the completion celebration theme
-
-### Technical Details
-- Add a constant `BTC_CONVERTED = 0.00971` for the total BTC amount
-- Add a constant `BTC_PER_SEGMENT = 0.00243` for per-segment breakdown
-- Import the `Bitcoin` icon from lucide-react (or use a text-based "BTC" label)
-- The section renders a grid showing the conversion flow: AUD -> USD -> BTC
-- Only shows when there are approved segments
+### Files Modified
+1. `src/components/AGCSBCreditBadge.tsx` — add navigation on click
+2. `src/pages/TransactionHistory.tsx` — read URL param and apply AGCSB filter on mount
 
