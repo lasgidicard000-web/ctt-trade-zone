@@ -54,6 +54,13 @@ const TransactionHistory = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [minAmount, setMinAmount] = useState("");
   const [maxAmount, setMaxAmount] = useState("");
+  const [agcsbFilter, setAgcsbFilter] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("filter") === "agcsb") {
+      setAgcsbFilter(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const checkUser = async () => {
