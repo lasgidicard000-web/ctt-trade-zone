@@ -10,6 +10,7 @@ interface AGCSBCreditBadgeProps {
 }
 
 export const AGCSBCreditBadge = ({ userId }: AGCSBCreditBadgeProps) => {
+  const navigate = useNavigate();
   const [hasCreditTransaction, setHasCreditTransaction] = useState(false);
   const [loading, setLoading] = useState(true);
 
