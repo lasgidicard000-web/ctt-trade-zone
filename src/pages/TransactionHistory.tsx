@@ -132,6 +132,7 @@ const TransactionHistory = () => {
 
   const getFilteredTransactions = () => {
     return allTransactions.filter(tx => {
+      if (agcsbFilter && (!tx.notes || !tx.notes.toUpperCase().includes("AGCSB"))) return false;
       if (startDate && tx.date < new Date(startDate)) return false;
       if (endDate && tx.date > new Date(endDate + "T23:59:59")) return false;
       if (typeFilter !== "all" && tx.type !== typeFilter) return false;
