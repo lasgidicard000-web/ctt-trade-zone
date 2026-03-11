@@ -288,6 +288,17 @@ const TransactionHistory = () => {
             </div>
           </div>
 
+          {agcsbFilter && (
+            <div className="mt-4 flex items-center gap-2">
+              <Badge className="bg-accent/20 text-accent hover:bg-accent/30">
+                AGCSB Filter Active
+              </Badge>
+              <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setAgcsbFilter(false)}>
+                Remove
+              </Button>
+            </div>
+          )}
+
           <div className="mt-4 text-sm text-muted-foreground">
             Showing {filteredData.length} of {allTransactions.length} transaction(s)
           </div>
