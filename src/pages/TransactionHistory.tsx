@@ -41,6 +41,7 @@ interface CombinedTransaction {
 
 const TransactionHistory = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
