@@ -202,6 +202,7 @@ const TransactionHistory = () => {
     setStatusFilter("all");
     setMinAmount("");
     setMaxAmount("");
+    setAgcsbFilter(false);
   };
 
   const filteredData = getFilteredTransactions();
