@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ interface CombinedTransaction {
 
 const TransactionHistory = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,6 +54,13 @@ const TransactionHistory = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [minAmount, setMinAmount] = useState("");
   const [maxAmount, setMaxAmount] = useState("");
+  const [agcsbFilter, setAgcsbFilter] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("filter") === "agcsb") {
+      setAgcsbFilter(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -124,6 +132,7 @@ const TransactionHistory = () => {
 
   const getFilteredTransactions = () => {
     return allTransactions.filter(tx => {
+      if (agcsbFilter && (!tx.notes || !tx.notes.toUpperCase().includes("AGCSB"))) return false;
       if (startDate && tx.date < new Date(startDate)) return false;
       if (endDate && tx.date > new Date(endDate + "T23:59:59")) return false;
       if (typeFilter !== "all" && tx.type !== typeFilter) return false;
@@ -193,6 +202,7 @@ const TransactionHistory = () => {
     setStatusFilter("all");
     setMinAmount("");
     setMaxAmount("");
+    setAgcsbFilter(false);
   };
 
   const filteredData = getFilteredTransactions();
@@ -277,6 +287,17 @@ const TransactionHistory = () => {
               <Input type="number" placeholder="Unlimited" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} step="0.01" />
             </div>
           </div>
+
+          {agcsbFilter && (
+            <div className="mt-4 flex items-center gap-2">
+              <Badge className="bg-accent/20 text-accent hover:bg-accent/30">
+                AGCSB Filter Active
+              </Badge>
+              <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setAgcsbFilter(false)}>
+                Remove
+              </Button>
+            </div>
+          )}
 
           <div className="mt-4 text-sm text-muted-foreground">
             Showing {filteredData.length} of {allTransactions.length} transaction(s)

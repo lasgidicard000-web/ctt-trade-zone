@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +10,7 @@ interface AGCSBCreditBadgeProps {
 }
 
 export const AGCSBCreditBadge = ({ userId }: AGCSBCreditBadgeProps) => {
+  const navigate = useNavigate();
   const [hasCreditTransaction, setHasCreditTransaction] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +35,10 @@ export const AGCSBCreditBadge = ({ userId }: AGCSBCreditBadgeProps) => {
   if (loading || !hasCreditTransaction) return null;
 
   return (
-    <Card className="mb-6 overflow-hidden border-accent/40 bg-gradient-to-r from-accent/5 via-accent/10 to-accent/5">
+    <Card
+      className="mb-6 overflow-hidden border-accent/40 bg-gradient-to-r from-accent/5 via-accent/10 to-accent/5 cursor-pointer transition-shadow hover:shadow-md hover:border-accent/60"
+      onClick={() => navigate("/transactions?filter=agcsb")}
+    >
       <div className="flex items-center gap-4 p-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent/20">
           <ShieldCheck className="h-6 w-6 text-accent" />
