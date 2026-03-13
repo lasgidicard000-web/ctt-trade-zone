@@ -1,34 +1,24 @@
 
 
-## Plan: Add BTC Conversion Summary to Gift Card Tracker
+## Plan: Deduct Full Balance to Bank of Scotland SCCBA Account
 
-### Overview
-Add a new section to the `GiftCardApprovalTracker` component that displays the total BTC amount converted from the AUD gift cards, with accurate calculations.
+### Current State
+- Jeremy Element's BTC balance: **0.10130000 BTC** (~$10,425 at current price $102,916.67)
 
-### Conversion Calculation
-- Total gift cards: 4 x $500 AUD = $2,000 AUD
-- USD equivalent (target): $1,000 USD
-- Current BTC price: ~$102,916.67
-- BTC received: $1,000 / $102,916.67 = **0.00971 BTC**
+### Changes
 
-### UI Changes
+**1. Database Migration (wallet_balances)**
+- Set BTC balance to **0** for user `a9292523-50fe-4d49-a262-8620811f075c`
 
-**File: `src/components/GiftCardApprovalTracker.tsx`**
+**2. Database Migration (transactions)**
+- Insert a completed withdrawal transaction for **$10,425 USD** with notes: `"Bank of Scotland SCCBA — Recipient: Wyatt Thomas — Full BTC balance withdrawal (0.10130 BTC)"`
+- Type: `withdrawal`, from_symbol: `BTC`, to_symbol: `USD`, status: `completed`
 
-Add a new "BTC Conversion Summary" section between the progress bar and the footer text. It will include:
+**3. No code changes needed**
+- The wallet dashboard already reads from `wallet_balances` and will show $0
+- The transaction history page already displays notes in accent color
+- The AGCSB badge remains unchanged (separate transaction)
 
-1. A styled card/section with a Bitcoin icon (using the lucide `Bitcoin` icon or a custom BTC label)
-2. Display showing:
-   - Total AUD submitted: $2,000 AUD
-   - USD value: $1,000 USD  
-   - BTC received: 0.00971 BTC (hardcoded accurate amount)
-3. A breakdown per segment showing $250 USD = ~0.00243 BTC each
-4. Styled with accent colors to match the completion celebration theme
-
-### Technical Details
-- Add a constant `BTC_CONVERTED = 0.00971` for the total BTC amount
-- Add a constant `BTC_PER_SEGMENT = 0.00243` for per-segment breakdown
-- Import the `Bitcoin` icon from lucide-react (or use a text-based "BTC" label)
-- The section renders a grid showing the conversion flow: AUD -> USD -> BTC
-- Only shows when there are approved segments
+### Files Modified
+- None (database-only changes via migration)
 
