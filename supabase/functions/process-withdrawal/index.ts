@@ -202,8 +202,6 @@ serve(async (req) => {
 
     // Admin actions
     if (action === 'approve-withdrawal') {
-      const { withdrawalId, transactionHash } = await req.json();
-      
       console.log('Admin approving withdrawal:', withdrawalId);
 
       // Check if user is admin
