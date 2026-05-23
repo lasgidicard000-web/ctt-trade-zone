@@ -97,39 +97,6 @@ serve(async (req) => {
       if (session.payment_status === 'paid' && session.metadata.user_id === user.id) {
         const depositAmount = parseFloat(session.metadata.amount);
 
-        // Idempotency: bail out if this session has already been credited
-        const sessionTag = `stripe_session:${sessionId}`;
-        const { data: alreadyProcessed } = await supabaseClient
-          .from('transactions')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('type', 'deposit')
-          .ilike('notes', `%${sessionTag}%`)
-          .maybeSingle();
-
-        if (alreadyProcessed) {
-          console.log('Stripe session already processed, skipping credit:', sessionId);
-          return new Response(
-            JSON.stringify({ success: true, amount: depositAmount, already_processed: true }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        // Record transaction FIRST (idempotency guard) then update balance
-        const { error: txError } = await supabaseClient
-          .from('transactions')
-          .insert({
-            user_id: user.id,
-            type: 'deposit',
-            amount: depositAmount,
-            from_symbol: 'USD',
-            to_symbol: 'USDT',
-            status: 'completed',
-            notes: sessionTag,
-          });
-
-        if (txError) throw txError;
-
         // Update wallet balance
         const { data: existingBalance } = await supabaseClient
           .from('wallet_balances')
@@ -148,6 +115,18 @@ serve(async (req) => {
             coin_symbol: 'USDT',
             balance: newBalance,
           }, { onConflict: 'user_id,coin_symbol' });
+
+        // Record transaction
+        await supabaseClient
+          .from('transactions')
+          .insert({
+            user_id: user.id,
+            type: 'deposit',
+            amount: depositAmount,
+            from_symbol: 'USD',
+            to_symbol: 'USDT',
+            status: 'completed',
+          });
 
         console.log('Deposit completed successfully');
 
