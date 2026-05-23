@@ -22,6 +22,18 @@ const Index = () => {
             <p className="mb-8 text-xl text-muted-foreground">
               Redeem gift cards, trade Caltex tokens, and manage your crypto portfolio—all in one powerful platform
             </p>
+            <div className="mb-8 flex justify-center">
+              <Button
+                size="lg"
+                className="h-14 bg-gradient-to-r from-primary to-accent px-10 text-base font-bold uppercase tracking-wider text-primary-foreground shadow-lg shadow-primary/40 transition-transform hover:scale-105 hover:shadow-xl hover:shadow-accent/50"
+                asChild
+              >
+                <Link to="/investment-plans">
+                  <TrendingUp className="mr-2 h-5 w-5" />
+                  View Investment Plans
+                </Link>
+              </Button>
+            </div>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90" asChild>
                 <Link to="/redeem">Redeem Gift Card</Link>
