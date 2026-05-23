@@ -105,7 +105,6 @@ serve(async (req) => {
 
       leaderboard = Array.from(volumeMap.entries())
         .map(([userId, volume]) => ({
-          user_id: userId,
           display_name: profiles?.find(p => p.user_id === userId)?.display_name || 'Anonymous',
           value: volume,
         }))
