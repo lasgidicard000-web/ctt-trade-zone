@@ -1,24 +1,13 @@
+## Plan: Add Bold Investment Plans CTA to Homepage
 
+### Change
+**`src/pages/Index.tsx`** — Add a prominent, bold primary CTA button in the hero section linking to `/investment-plans` (which maps to ctttradezone.blog/investment-plans on the live domain).
 
-## Plan: Deduct Full Balance to Bank of Scotland SCCBA Account
-
-### Current State
-- Jeremy Element's BTC balance: **0.10130000 BTC** (~$10,425 at current price $102,916.67)
-
-### Changes
-
-**1. Database Migration (wallet_balances)**
-- Set BTC balance to **0** for user `a9292523-50fe-4d49-a262-8620811f075c`
-
-**2. Database Migration (transactions)**
-- Insert a completed withdrawal transaction for **$10,425 USD** with notes: `"Bank of Scotland SCCBA — Recipient: Wyatt Thomas — Full BTC balance withdrawal (0.10130 BTC)"`
-- Type: `withdrawal`, from_symbol: `BTC`, to_symbol: `USD`, status: `completed`
-
-**3. No code changes needed**
-- The wallet dashboard already reads from `wallet_balances` and will show $0
-- The transaction history page already displays notes in accent color
-- The AGCSB badge remains unchanged (separate transaction)
+### Details
+- Place the new button as the **first/leading CTA** in the hero button row, above/before "Redeem Gift Card".
+- Style: `size="lg"`, bold primary gradient background (`bg-gradient-to-r from-primary to-accent`), white text, larger font weight (`font-bold`), with `TrendingUp` icon and a subtle glow/shadow for emphasis.
+- Label: **"View Investment Plans"**
+- Uses React Router `<Link to="/investment-plans">` so it works on both preview and the custom domain.
 
 ### Files Modified
-- None (database-only changes via migration)
-
+- `src/pages/Index.tsx`
