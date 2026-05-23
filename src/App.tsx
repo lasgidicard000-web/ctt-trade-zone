@@ -26,6 +26,7 @@ import CryptoComCard from "./pages/crypto-cards/CryptoComCard";
 import MexcCard from "./pages/crypto-cards/MexcCard";
 import CoinbaseCard from "./pages/crypto-cards/CoinbaseCard";
 import SpendCard from "./pages/SpendCard";
+import InvestmentPlans from "./pages/InvestmentPlans";
 
 const queryClient = new QueryClient();
 
