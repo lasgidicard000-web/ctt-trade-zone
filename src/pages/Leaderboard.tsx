@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { User } from "@supabase/supabase-js";
 
 interface LeaderboardEntry {
-  user_id: string;
   display_name: string;
   value: number;
 }
