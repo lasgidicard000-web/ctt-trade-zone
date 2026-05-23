@@ -70,7 +70,6 @@ serve(async (req) => {
 
       leaderboard = Array.from(portfolioValues.entries())
         .map(([userId, value]) => ({
-          user_id: userId,
           display_name: profiles?.find(p => p.user_id === userId)?.display_name || 'Anonymous',
           value: value,
         }))
