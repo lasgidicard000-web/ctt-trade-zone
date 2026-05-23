@@ -126,7 +126,7 @@ const Leaderboard = () => {
                 )}
               </div>
             </div>
-          ))
+          );})
         )}
       </div>
     </Card>
