@@ -28,7 +28,7 @@ serve(async (req) => {
       startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     }
 
-    let leaderboard: Array<{ user_id: string; display_name: string; value: number }> = [];
+    let leaderboard: Array<{ display_name: string; value: number }> = [];
 
     if (category === 'portfolio') {
       // Get all users with their wallet balances
@@ -70,7 +70,6 @@ serve(async (req) => {
 
       leaderboard = Array.from(portfolioValues.entries())
         .map(([userId, value]) => ({
-          user_id: userId,
           display_name: profiles?.find(p => p.user_id === userId)?.display_name || 'Anonymous',
           value: value,
         }))
@@ -106,7 +105,6 @@ serve(async (req) => {
 
       leaderboard = Array.from(volumeMap.entries())
         .map(([userId, volume]) => ({
-          user_id: userId,
           display_name: profiles?.find(p => p.user_id === userId)?.display_name || 'Anonymous',
           value: volume,
         }))
@@ -141,7 +139,6 @@ serve(async (req) => {
 
       leaderboard = Array.from(referralCounts.entries())
         .map(([userId, count]) => ({
-          user_id: userId,
           display_name: profiles?.find(p => p.user_id === userId)?.display_name || 'Anonymous',
           value: count,
         }))

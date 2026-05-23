@@ -52,7 +52,7 @@ serve(async (req) => {
       throw new Error('Not authenticated');
     }
 
-    const { action, amount, walletAddress, withdrawalId } = await req.json();
+    const { action, amount, walletAddress, withdrawalId, transactionHash, reason } = await req.json();
 
     if (action === 'request-withdrawal') {
       console.log('Processing withdrawal request for user:', user.id);
@@ -202,8 +202,6 @@ serve(async (req) => {
 
     // Admin actions
     if (action === 'approve-withdrawal') {
-      const { withdrawalId, transactionHash } = await req.json();
-      
       console.log('Admin approving withdrawal:', withdrawalId);
 
       // Check if user is admin
@@ -250,8 +248,6 @@ serve(async (req) => {
     }
 
     if (action === 'reject-withdrawal') {
-      const { withdrawalId, reason } = await req.json();
-      
       console.log('Admin rejecting withdrawal:', withdrawalId);
 
       // Check if user is admin
