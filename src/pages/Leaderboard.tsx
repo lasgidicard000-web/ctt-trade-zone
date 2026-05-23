@@ -91,11 +91,13 @@ const Leaderboard = () => {
         {entries.length === 0 ? (
           <p className="py-8 text-center text-muted-foreground">No data available</p>
         ) : (
-          entries.map((entry, index) => (
+          entries.map((entry, index) => {
+            const isMe = !!user?.user_metadata?.display_name && entry.display_name === user.user_metadata.display_name;
+            return (
             <div
-              key={entry.user_id}
+              key={`${entry.display_name}-${index}`}
               className={`flex items-center justify-between rounded-lg p-4 transition-colors ${
-                entry.user_id === user?.id
+                isMe
                   ? 'bg-primary/10 border-2 border-primary'
                   : 'bg-muted/50 hover:bg-muted'
               }`}
@@ -107,7 +109,7 @@ const Leaderboard = () => {
                 <div>
                   <p className="font-semibold">
                     {entry.display_name}
-                    {entry.user_id === user?.id && (
+                    {isMe && (
                       <span className="ml-2 text-xs text-primary">(You)</span>
                     )}
                   </p>
