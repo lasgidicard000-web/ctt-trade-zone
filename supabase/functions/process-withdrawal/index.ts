@@ -248,8 +248,6 @@ serve(async (req) => {
     }
 
     if (action === 'reject-withdrawal') {
-      const { withdrawalId, reason } = await req.json();
-      
       console.log('Admin rejecting withdrawal:', withdrawalId);
 
       // Check if user is admin
