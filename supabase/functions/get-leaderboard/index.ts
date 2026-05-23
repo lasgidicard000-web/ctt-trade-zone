@@ -28,7 +28,7 @@ serve(async (req) => {
       startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     }
 
-    let leaderboard: Array<{ user_id: string; display_name: string; value: number }> = [];
+    let leaderboard: Array<{ display_name: string; value: number }> = [];
 
     if (category === 'portfolio') {
       // Get all users with their wallet balances
