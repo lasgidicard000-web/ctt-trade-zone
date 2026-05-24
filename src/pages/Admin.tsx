@@ -357,10 +357,11 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="prices" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="prices">Coin Prices</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
             <TabsTrigger value="deposits">Deposits</TabsTrigger>
+            <TabsTrigger value="redemptions">Redemptions</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
           </TabsList>
