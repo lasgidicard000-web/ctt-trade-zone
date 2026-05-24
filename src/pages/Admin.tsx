@@ -574,6 +574,22 @@ const Admin = () => {
             <AdminDepositManagement />
           </TabsContent>
 
+          <TabsContent value="redemptions">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gift Card Redemption Submissions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Review all submitted gift card redemption documents, approve, reject, or mark as paid.
+                </p>
+                <Button onClick={() => navigate("/admin/redemptions")}>
+                  Open Redemption Manager
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="users" className="space-y-4">
             <Card>
               <CardHeader>
