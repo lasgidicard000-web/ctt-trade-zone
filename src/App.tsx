@@ -15,6 +15,7 @@ import TradingSimulator from "./pages/TradingSimulator";
 import Leaderboard from "./pages/Leaderboard";
 import TransactionHistory from "./pages/TransactionHistory";
 import AdminWithdrawals from "./pages/AdminWithdrawals";
+import AdminRedemptions from "./pages/AdminRedemptions";
 import NotFound from "./pages/NotFound";
 import CryptoCards from "./pages/CryptoCards";
 import NexoCard from "./pages/crypto-cards/NexoCard";
