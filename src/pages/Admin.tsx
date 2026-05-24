@@ -357,10 +357,11 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="prices" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="prices">Coin Prices</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
             <TabsTrigger value="deposits">Deposits</TabsTrigger>
+            <TabsTrigger value="redemptions">Redemptions</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
           </TabsList>
@@ -571,6 +572,22 @@ const Admin = () => {
 
           <TabsContent value="deposits">
             <AdminDepositManagement />
+          </TabsContent>
+
+          <TabsContent value="redemptions">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gift Card Redemption Submissions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Review all submitted gift card redemption documents, approve, reject, or mark as paid.
+                </p>
+                <Button onClick={() => navigate("/admin/redemptions")}>
+                  Open Redemption Manager
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="users" className="space-y-4">

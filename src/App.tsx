@@ -15,6 +15,7 @@ import TradingSimulator from "./pages/TradingSimulator";
 import Leaderboard from "./pages/Leaderboard";
 import TransactionHistory from "./pages/TransactionHistory";
 import AdminWithdrawals from "./pages/AdminWithdrawals";
+import AdminRedemptions from "./pages/AdminRedemptions";
 import NotFound from "./pages/NotFound";
 import CryptoCards from "./pages/CryptoCards";
 import NexoCard from "./pages/crypto-cards/NexoCard";
@@ -49,6 +50,7 @@ const App = () => (
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/transactions" element={<TransactionHistory />} />
           <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+          <Route path="/admin/redemptions" element={<AdminRedemptions />} />
           <Route path="/crypto-cards" element={<CryptoCards />} />
           <Route path="/crypto-cards/nexo" element={<NexoCard />} />
           <Route path="/crypto-cards/gemini" element={<GeminiCard />} />
