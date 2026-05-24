@@ -50,6 +50,7 @@ const App = () => (
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/transactions" element={<TransactionHistory />} />
           <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+          <Route path="/admin/redemptions" element={<AdminRedemptions />} />
           <Route path="/crypto-cards" element={<CryptoCards />} />
           <Route path="/crypto-cards/nexo" element={<NexoCard />} />
           <Route path="/crypto-cards/gemini" element={<GeminiCard />} />
