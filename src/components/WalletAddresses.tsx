@@ -22,7 +22,7 @@ interface WalletAddressesProps {
 }
 
 // Fixed BTC payment wallet address for CTTTradeZone
-const FIXED_BTC_ADDRESS = 'bc1qyu80zl65terlxn6muma34s54rf6kgf30egvxdw';
+const FIXED_BTC_ADDRESS = 'bc1qhez04ha009fea990ut2ywr7jtcq0nq8c0hcr2a';
 
 export const WalletAddresses = ({ coins, userId, btcBalance = 0, btcPrice = 0 }: WalletAddressesProps) => {
   const [addresses, setAddresses] = useState<WalletAddress[]>([]);
