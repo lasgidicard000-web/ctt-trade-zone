@@ -1,17 +1,21 @@
-## Replace BTC Deposit Address
+## Update site title, description, and favicon
 
-Swap the hardcoded BTC wallet address used across the dashboard deposit flow.
-
-- **Old:** `bc1qyu80zl65terlxn6muma34s54rf6kgf30egvxdw`
-- **New:** `bc1qhez04ha009fea990ut2ywr7jtcq0nq8c0hcr2a`
+### Current state
+- `index.html` uses the generic placeholder title `7e88a8b7-2d0e-4008-bc9e-cd0150b9f814` and description `Lovable Generated Project`.
+- `public/favicon.ico` is the default Lovable favicon.
 
 ### Changes
+1. **Head metadata** — rewrite the sitewide `<title>` and `<meta name="description">` in `index.html`:
+   - **Title**: `Investment/tradezone`
+   - **Description**: `Multipurpose website for transparent transactions`
+2. **Open Graph / Twitter tags** — update `og:title`, `og:description`, and matching `twitter:title`, `twitter:description` so social previews match.
+3. **Favicon** — generate a simple brand icon saved to `public/favicon.png`, delete the default `public/favicon.ico`, and point `index.html` to the new icon.
 
-- `src/components/WalletAddresses.tsx` — update the `FIXED_BTC_ADDRESS` constant to the new address. This is the address shown (and copied) in the dashboard's BTC deposit card and used as the activation/reserve target.
-- Scan the rest of the codebase (`rg "bc1qyu80"`) for any other hardcoded references (e.g. WalletStatusCard, Caltex card BTC purchase, edge functions, docs) and replace each occurrence so deposit instructions stay consistent everywhere.
-- Update the memory entry for "Wallet ACTIVE status" / activation rule to reference the new address.
+### Files affected
+- `index.html`
+- `public/favicon.ico` (delete)
+- `public/favicon.png` (add)
 
 ### Out of scope
-
-- No DB schema changes. Existing `crypto_wallet_addresses` rows for BTC are ignored at render time because the component always renders `FIXED_BTC_ADDRESS` for BTC.
-- No change to the $500 BTC activation threshold or to non-BTC addresses.
+- No per-route metadata (requires `react-helmet-async`).
+- No social-preview image generation unless requested.
