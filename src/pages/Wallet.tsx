@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import QRCode from "qrcode";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,7 @@ const Wallet = () => {
   const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'stripe' | 'bank' | 'crypto'>('paypal');
   const [selectedCrypto, setSelectedCrypto] = useState<'BTC' | 'ETH' | 'USDT'>('BTC');
   const [cryptoPaymentInfo, setCryptoPaymentInfo] = useState<any>(null);
+  const [btcQrCode, setBtcQrCode] = useState<string>('');
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
   const [bankTransferInfo, setBankTransferInfo] = useState<any>(null);
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
