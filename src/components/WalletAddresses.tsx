@@ -156,8 +156,7 @@ export const WalletAddresses = ({ coins, userId, btcBalance = 0, btcPrice = 0 }:
           <Alert className="border-amber-500/50 bg-amber-500/10">
             <AlertTriangle className="h-4 w-4 text-amber-500" />
             <AlertDescription className="text-amber-700 dark:text-amber-300">
-              <strong>Important:</strong> Only BTC deposits are accepted for wallet activation. 
-              Deposit a minimum of $500 worth of BTC to activate your wallet and unlock all cryptocurrency addresses.
+              Deposit at least <strong>$200 worth of BTC</strong> to your wallet address below to activate all features.
             </AlertDescription>
           </Alert>
         )}
