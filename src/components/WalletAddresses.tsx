@@ -113,7 +113,7 @@ export const WalletAddresses = ({ coins, userId, btcBalance = 0, btcPrice = 0 }:
   };
 
   const handleLockedAddressClick = () => {
-    toast.error('This address is locked. Deposit $500 BTC first to activate your wallet.');
+    toast.error('This address is locked. Deposit $200 worth of BTC first to activate your wallet.');
   };
 
   const sortedCoins = [...coins].sort((a, b) => {
