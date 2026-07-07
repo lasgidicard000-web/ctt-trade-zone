@@ -73,8 +73,7 @@ export const WalletStatusCard = ({ btcBalance, btcPrice }: WalletStatusCardProps
         <Alert className="mb-4 border-primary/20 bg-primary/5">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-sm">
-            A minimum of <strong>US$500 worth of BTC</strong> is required to activate your CTTTradeZone wallet dashboard. 
-            The $500 BTC deposit must be made through the crypto deposit method only.
+            A minimum deposit of <strong>$200 worth of BTC</strong> to your wallet activates your CTTTradeZone dashboard. Deposit to the wallet section first to unlock all features.
           </AlertDescription>
         </Alert>
 
