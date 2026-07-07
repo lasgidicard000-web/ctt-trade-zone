@@ -448,8 +448,8 @@ const InvestmentPlans = () => {
                     <p className="text-xs text-muted-foreground">{plan.referral.extra}</p>
                   </div>
 
-                  <Button asChild className="w-full mt-auto">
-                    <Link to="/wallet">Deposit & Activate</Link>
+                  <Button className="w-full mt-auto" onClick={() => setDepositPlan(plan)}>
+                    Deposit & Activate
                   </Button>
                 </CardContent>
               </Card>
