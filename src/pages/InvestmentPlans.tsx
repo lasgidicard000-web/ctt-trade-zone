@@ -297,6 +297,50 @@ const terms = [
 ];
 
 const InvestmentPlans = () => {
+  const [depositPlan, setDepositPlan] = useState<Plan | null>(null);
+  const [cashOutOpen, setCashOutOpen] = useState(false);
+  const [cashOutAddress, setCashOutAddress] = useState("");
+  const [cashOutAmount, setCashOutAmount] = useState("");
+  const [cashOutNetwork, setCashOutNetwork] = useState("BTC");
+
+  const copyBtcAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(FIXED_BTC_ADDRESS);
+      toast.success("BTC address copied!");
+    } catch {
+      toast.error("Failed to copy address");
+    }
+  };
+
+  const handleCashOutSubmit = async () => {
+    const addr = cashOutAddress.trim();
+    const amt = parseFloat(cashOutAmount);
+    if (!addr || /^\d+$/.test(addr)) {
+      toast.error("Enter a valid external wallet address (numeric-only addresses are not allowed).");
+      return;
+    }
+    if (!amt || amt <= 0) {
+      toast.error("Enter a valid cash-out amount in USD.");
+      return;
+    }
+    const payload = [
+      "=== Cash Out Invested Capital ===",
+      `Network: ${cashOutNetwork}`,
+      `External Wallet Address: ${addr}`,
+      `Amount (USD): $${amt.toFixed(2)}`,
+      `Note: Cash-out requested with/without completion of trading cycle.`,
+    ].join("\n");
+    try {
+      await navigator.clipboard.writeText(payload);
+      toast.success("Cash-out request copied. Paste it into the live chat to proceed.");
+      setCashOutOpen(false);
+      setCashOutAddress("");
+      setCashOutAmount("");
+    } catch {
+      toast.error("Failed to copy request.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
