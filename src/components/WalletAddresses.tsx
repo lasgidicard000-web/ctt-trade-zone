@@ -275,7 +275,7 @@ export const WalletAddresses = ({ coins, userId, btcBalance = 0, btcPrice = 0 }:
 
                 {!isUnlocked && (
                   <p className="text-xs text-muted-foreground mt-2 pl-12">
-                    Deposit $500 BTC to unlock this address for deposits
+                    Deposit $200 worth of BTC to unlock this address for deposits
                   </p>
                 )}
               </div>
