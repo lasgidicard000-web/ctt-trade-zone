@@ -23,7 +23,7 @@ interface WalletAddressesProps {
 }
 
 // Fixed CTTTradeZone payment wallet addresses
-const FIXED_BTC_ADDRESS = 'bc1q76qphckpcegrj3qc5y57qr4vvs8p9hprlypsrk';
+export const FIXED_BTC_ADDRESS = 'bc1q76qphckpcegrj3qc5y57qr4vvs8p9hprlypsrk';
 const FIXED_ETH_ADDRESS = '0x05e25079b12964de29e409E89803ccaF5248876B';
 const USDT_NETWORK_ADDRESSES: Record<string, { label: string; address: string }> = {
   TRC20: { label: 'USDT (TRC20 · Tron)', address: 'TFyYSnWZTUyEWJyqWHW4fE6FSwJhtYVq9L' },
@@ -36,7 +36,7 @@ export const WalletAddresses = ({ coins, userId, btcBalance = 0, btcPrice = 0 }:
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [usdtNetwork, setUsdtNetwork] = useState<'TRC20' | 'ERC20' | 'BEP20'>('TRC20');
-  const isWalletActive = btcBalance * btcPrice >= 500;
+  const isWalletActive = btcBalance * btcPrice >= 200;
 
   useEffect(() => {
     fetchAddresses();
@@ -113,7 +113,7 @@ export const WalletAddresses = ({ coins, userId, btcBalance = 0, btcPrice = 0 }:
   };
 
   const handleLockedAddressClick = () => {
-    toast.error('This address is locked. Deposit $500 BTC first to activate your wallet.');
+    toast.error('This address is locked. Deposit $200 worth of BTC first to activate your wallet.');
   };
 
   const sortedCoins = [...coins].sort((a, b) => {
@@ -156,8 +156,7 @@ export const WalletAddresses = ({ coins, userId, btcBalance = 0, btcPrice = 0 }:
           <Alert className="border-amber-500/50 bg-amber-500/10">
             <AlertTriangle className="h-4 w-4 text-amber-500" />
             <AlertDescription className="text-amber-700 dark:text-amber-300">
-              <strong>Important:</strong> Only BTC deposits are accepted for wallet activation. 
-              Deposit a minimum of $500 worth of BTC to activate your wallet and unlock all cryptocurrency addresses.
+              Deposit at least <strong>$200 worth of BTC</strong> to your wallet address below to activate all features.
             </AlertDescription>
           </Alert>
         )}
@@ -276,7 +275,7 @@ export const WalletAddresses = ({ coins, userId, btcBalance = 0, btcPrice = 0 }:
 
                 {!isUnlocked && (
                   <p className="text-xs text-muted-foreground mt-2 pl-12">
-                    Deposit $500 BTC to unlock this address for deposits
+                    Deposit $200 worth of BTC to unlock this address for deposits
                   </p>
                 )}
               </div>

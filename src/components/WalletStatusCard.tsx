@@ -16,8 +16,8 @@ interface WalletStatusCardProps {
 
 export const WalletStatusCard = ({ btcBalance, btcPrice }: WalletStatusCardProps) => {
   const btcValue = btcBalance * btcPrice;
-  const isActive = btcValue >= 500;
-  const remainingToActivate = Math.max(0, 500 - btcValue);
+  const isActive = btcValue >= 200;
+  const remainingToActivate = Math.max(0, 200 - btcValue);
 
   return (
     <Card className="mb-6 border-border">
@@ -73,8 +73,7 @@ export const WalletStatusCard = ({ btcBalance, btcPrice }: WalletStatusCardProps
         <Alert className="mb-4 border-primary/20 bg-primary/5">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-sm">
-            A minimum of <strong>US$500 worth of BTC</strong> is required to activate your CTTTradeZone wallet dashboard. 
-            The $500 BTC deposit must be made through the crypto deposit method only.
+            A minimum deposit of <strong>$200 worth of BTC</strong> to your wallet activates your CTTTradeZone dashboard. Deposit to the wallet section first to unlock all features.
           </AlertDescription>
         </Alert>
 
@@ -83,22 +82,19 @@ export const WalletStatusCard = ({ btcBalance, btcPrice }: WalletStatusCardProps
             <AccordionTrigger className="text-sm font-semibold hover:no-underline">
               <span className="flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 text-amber-500" />
-                What Happens to Your $500?
+                About Your $200 Activation Deposit
               </span>
             </AccordionTrigger>
             <AccordionContent>
               <div className="space-y-3 text-sm text-muted-foreground pl-6">
                 <p>
-                  <strong className="text-foreground">Deposit Method:</strong> Your $500 must be deposited through the normal crypto method in Bitcoin only (not bank debits, PayPal, card debit, etc.)
+                  <strong className="text-foreground">Deposit Method:</strong> Deposit $200 worth of BTC to your wallet section first via the standard crypto method.
                 </p>
                 <p>
-                  <strong className="text-foreground">Non-Withdrawable:</strong> This $500 is not withdrawable nor transferable. It serves as your wallet activation reserve.
+                  <strong className="text-foreground">Activation Balance:</strong> The $200 acts as your activation balance, keeping your dashboard features unlocked.
                 </p>
                 <p>
-                  <strong className="text-foreground">Wallet Closure:</strong> Transferring or attempting to withdraw the $500 leads to immediate closure of your wallet dashboard.
-                </p>
-                <p>
-                  <strong className="text-foreground">Status Protection:</strong> If the $500 BTC reserve is tampered with in any way, your wallet status will automatically change to INACTIVE.
+                  <strong className="text-foreground">Flexible Access:</strong> You can manage your funds through the wallet dashboard once activated.
                 </p>
               </div>
             </AccordionContent>
@@ -132,7 +128,7 @@ export const WalletStatusCard = ({ btcBalance, btcPrice }: WalletStatusCardProps
                   <div>
                     <p className="font-medium text-sm">Gas-Free Mastercard Debits</p>
                     <p className="text-sm text-muted-foreground">
-                      All crypto Mastercards can be debited into the wallet dashboard without any gas fee. Fees are calculated and deducted from the untouchable $500 reserve.
+                      All crypto Mastercards can be debited into the wallet dashboard without any gas fee. Fees are calculated and deducted from the $200 activation reserve.
                     </p>
                   </div>
                 </div>

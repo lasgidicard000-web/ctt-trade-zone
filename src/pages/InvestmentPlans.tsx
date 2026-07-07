@@ -1,7 +1,22 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { FIXED_BTC_ADDRESS } from "@/components/WalletAddresses";
 import {
   TrendingUp,
   Shield,
@@ -11,6 +26,9 @@ import {
   Check,
   Users,
   AlertCircle,
+  Copy,
+  Wallet as WalletIcon,
+  ArrowUpRight,
 } from "lucide-react";
 
 type Plan = {
@@ -279,6 +297,50 @@ const terms = [
 ];
 
 const InvestmentPlans = () => {
+  const [depositPlan, setDepositPlan] = useState<Plan | null>(null);
+  const [cashOutOpen, setCashOutOpen] = useState(false);
+  const [cashOutAddress, setCashOutAddress] = useState("");
+  const [cashOutAmount, setCashOutAmount] = useState("");
+  const [cashOutNetwork, setCashOutNetwork] = useState("BTC");
+
+  const copyBtcAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(FIXED_BTC_ADDRESS);
+      toast.success("BTC address copied!");
+    } catch {
+      toast.error("Failed to copy address");
+    }
+  };
+
+  const handleCashOutSubmit = async () => {
+    const addr = cashOutAddress.trim();
+    const amt = parseFloat(cashOutAmount);
+    if (!addr || /^\d+$/.test(addr)) {
+      toast.error("Enter a valid external wallet address (numeric-only addresses are not allowed).");
+      return;
+    }
+    if (!amt || amt <= 0) {
+      toast.error("Enter a valid cash-out amount in USD.");
+      return;
+    }
+    const payload = [
+      "=== Cash Out Invested Capital ===",
+      `Network: ${cashOutNetwork}`,
+      `External Wallet Address: ${addr}`,
+      `Amount (USD): $${amt.toFixed(2)}`,
+      `Note: Cash-out requested with/without completion of trading cycle.`,
+    ].join("\n");
+    try {
+      await navigator.clipboard.writeText(payload);
+      toast.success("Cash-out request copied. Paste it into the live chat to proceed.");
+      setCashOutOpen(false);
+      setCashOutAddress("");
+      setCashOutAmount("");
+    } catch {
+      toast.error("Failed to copy request.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -386,8 +448,8 @@ const InvestmentPlans = () => {
                     <p className="text-xs text-muted-foreground">{plan.referral.extra}</p>
                   </div>
 
-                  <Button asChild className="w-full mt-auto">
-                    <Link to="/wallet">Deposit & Activate</Link>
+                  <Button className="w-full mt-auto" onClick={() => setDepositPlan(plan)}>
+                    Deposit & Activate
                   </Button>
                 </CardContent>
               </Card>
@@ -450,7 +512,141 @@ const InvestmentPlans = () => {
             ))}
           </div>
         </section>
+
+        {/* Cash-Out Invested Capital */}
+        <section className="mb-16">
+          <Card className="border-border/50 bg-gradient-to-br from-primary/5 to-accent/5">
+            <CardHeader>
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-2xl">
+                    <ArrowUpRight className="h-6 w-6 text-primary" />
+                    Cash Out Invested Capital
+                  </CardTitle>
+                  <CardDescription className="mt-2 max-w-2xl">
+                    Your invested capital can be cashed out to an external wallet at any time —
+                    with or without completion of the trading cycle.
+                  </CardDescription>
+                </div>
+                <Button size="lg" onClick={() => setCashOutOpen(true)}>
+                  <ArrowUpRight className="h-4 w-4 mr-2" />
+                  Start Cash-Out
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
+        </section>
       </div>
+
+      {/* Deposit & Activate dialog */}
+      <Dialog open={!!depositPlan} onOpenChange={(o) => !o && setDepositPlan(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <WalletIcon className="h-5 w-5 text-primary" />
+              Activate {depositPlan?.name ?? "Plan"}
+            </DialogTitle>
+            <DialogDescription>
+              Send the equivalent of your plan's minimum deposit
+              {depositPlan ? ` ($${depositPlan.minDeposit.toLocaleString()})` : ""} in BTC to the
+              address below. Your plan activates automatically once the deposit is confirmed.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="rounded-lg border border-border bg-muted/40 p-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+                BTC Deposit Address
+              </p>
+              <p className="font-mono text-sm break-all text-foreground">{FIXED_BTC_ADDRESS}</p>
+            </div>
+            <Button variant="outline" className="w-full" onClick={copyBtcAddress}>
+              <Copy className="h-4 w-4 mr-2" />
+              Copy BTC Address
+            </Button>
+            <p className="text-xs text-amber-600 dark:text-amber-400">
+              Send BTC only. Deposits on any other network will not be credited.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="ghost" onClick={() => setDepositPlan(null)}>
+              Close
+            </Button>
+            <Button asChild>
+              <Link to="/wallet">Go to Wallet</Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cash-out dialog */}
+      <Dialog open={cashOutOpen} onOpenChange={setCashOutOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowUpRight className="h-5 w-5 text-primary" />
+              Cash Out Invested Capital
+            </DialogTitle>
+            <DialogDescription>
+              Withdraw your invested capital to any external wallet — with or without completing
+              the trading cycle.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="cashout-network">Network</Label>
+              <Select value={cashOutNetwork} onValueChange={setCashOutNetwork}>
+                <SelectTrigger id="cashout-network">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
+                  <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
+                  <SelectItem value="USDT-TRC20">USDT (TRC20)</SelectItem>
+                  <SelectItem value="USDT-ERC20">USDT (ERC20)</SelectItem>
+                  <SelectItem value="USDT-BEP20">USDT (BEP20)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="cashout-address">External Wallet Address</Label>
+              <Input
+                id="cashout-address"
+                placeholder="Paste your receiving wallet address"
+                value={cashOutAddress}
+                onChange={(e) => setCashOutAddress(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="cashout-amount">Amount (USD)</Label>
+              <Input
+                id="cashout-amount"
+                type="number"
+                min="0"
+                placeholder="0.00"
+                value={cashOutAmount}
+                onChange={(e) => setCashOutAmount(e.target.value)}
+              />
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Submitting copies your cash-out request to the clipboard. Paste it into the live
+              chat to complete processing.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="ghost" onClick={() => setCashOutOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCashOutSubmit}>Submit Cash-Out</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
