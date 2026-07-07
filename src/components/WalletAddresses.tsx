@@ -36,7 +36,7 @@ export const WalletAddresses = ({ coins, userId, btcBalance = 0, btcPrice = 0 }:
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [usdtNetwork, setUsdtNetwork] = useState<'TRC20' | 'ERC20' | 'BEP20'>('TRC20');
-  const isWalletActive = btcBalance * btcPrice >= 500;
+  const isWalletActive = btcBalance * btcPrice >= 200;
 
   useEffect(() => {
     fetchAddresses();
