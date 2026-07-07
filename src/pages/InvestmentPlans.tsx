@@ -1,7 +1,22 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { FIXED_BTC_ADDRESS } from "@/components/WalletAddresses";
 import {
   TrendingUp,
   Shield,
@@ -11,6 +26,9 @@ import {
   Check,
   Users,
   AlertCircle,
+  Copy,
+  Wallet as WalletIcon,
+  ArrowUpRight,
 } from "lucide-react";
 
 type Plan = {
