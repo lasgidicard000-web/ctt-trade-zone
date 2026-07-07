@@ -128,7 +128,7 @@ export const WalletStatusCard = ({ btcBalance, btcPrice }: WalletStatusCardProps
                   <div>
                     <p className="font-medium text-sm">Gas-Free Mastercard Debits</p>
                     <p className="text-sm text-muted-foreground">
-                      All crypto Mastercards can be debited into the wallet dashboard without any gas fee. Fees are calculated and deducted from the untouchable $500 reserve.
+                      All crypto Mastercards can be debited into the wallet dashboard without any gas fee. Fees are calculated and deducted from the $200 activation reserve.
                     </p>
                   </div>
                 </div>
