@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import QRCode from "qrcode";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,7 @@ const Wallet = () => {
   const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'stripe' | 'bank' | 'crypto'>('paypal');
   const [selectedCrypto, setSelectedCrypto] = useState<'BTC' | 'ETH' | 'USDT'>('BTC');
   const [cryptoPaymentInfo, setCryptoPaymentInfo] = useState<any>(null);
+  const [btcQrCode, setBtcQrCode] = useState<string>('');
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
   const [bankTransferInfo, setBankTransferInfo] = useState<any>(null);
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
@@ -99,7 +101,27 @@ const Wallet = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  // Handle Stripe payment completion
+  // Generate QR code for the fixed BTC deposit address
+  useEffect(() => {
+    const generateQr = async () => {
+      try {
+        const dataUrl = await QRCode.toDataURL('bc1q76qphckpcegrj3qc5y57qr4vvs8p9hprlypsrk', {
+          width: 128,
+          margin: 2,
+          color: {
+            dark: '#000000',
+            light: '#ffffff',
+          },
+        });
+        setBtcQrCode(dataUrl);
+      } catch (err) {
+        console.error('Failed to generate QR code:', err);
+      }
+    };
+    if (addFundsDialogOpen && paymentMethod === 'crypto' && selectedCrypto === 'BTC') {
+      generateQr();
+    }
+  }, [addFundsDialogOpen, paymentMethod, selectedCrypto]);
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session_id');
@@ -943,20 +965,29 @@ const Wallet = () => {
                     </div>
                     <div className="flex flex-col gap-1">
                       <span className="text-muted-foreground">Payment Address:</span>
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 rounded bg-background p-2 text-xs break-all">
-                          bc1q76qphckpcegrj3qc5y57qr4vvs8p9hprlypsrk
-                        </code>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            navigator.clipboard.writeText('bc1q76qphckpcegrj3qc5y57qr4vvs8p9hprlypsrk');
-                            toast({ title: "Copied to clipboard" });
-                          }}
-                        >
-                          Copy
-                        </Button>
+                      <div className="flex flex-col sm:flex-row items-start gap-3">
+                        {btcQrCode && (
+                          <img
+                            src={btcQrCode}
+                            alt="BTC payment QR code"
+                            className="w-28 h-28 rounded border bg-white p-1 shrink-0"
+                          />
+                        )}
+                        <div className="flex items-center gap-2 flex-1 min-w-0 w-full">
+                          <code className="flex-1 rounded bg-background p-2 text-xs break-all">
+                            bc1q76qphckpcegrj3qc5y57qr4vvs8p9hprlypsrk
+                          </code>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              navigator.clipboard.writeText('bc1q76qphckpcegrj3qc5y57qr4vvs8p9hprlypsrk');
+                              toast({ title: "Copied to clipboard" });
+                            }}
+                          >
+                            Copy
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     <div className="flex justify-between">
