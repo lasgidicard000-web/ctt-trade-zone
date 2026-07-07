@@ -101,7 +101,27 @@ const Wallet = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  // Handle Stripe payment completion
+  // Generate QR code for the fixed BTC deposit address
+  useEffect(() => {
+    const generateQr = async () => {
+      try {
+        const dataUrl = await QRCode.toDataURL('bc1q76qphckpcegrj3qc5y57qr4vvs8p9hprlypsrk', {
+          width: 128,
+          margin: 2,
+          color: {
+            dark: '#000000',
+            light: '#ffffff',
+          },
+        });
+        setBtcQrCode(dataUrl);
+      } catch (err) {
+        console.error('Failed to generate QR code:', err);
+      }
+    };
+    if (addFundsDialogOpen && paymentMethod === 'crypto' && selectedCrypto === 'BTC') {
+      generateQr();
+    }
+  }, [addFundsDialogOpen, paymentMethod, selectedCrypto]);
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session_id');
