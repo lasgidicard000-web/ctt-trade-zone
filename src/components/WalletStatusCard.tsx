@@ -16,8 +16,8 @@ interface WalletStatusCardProps {
 
 export const WalletStatusCard = ({ btcBalance, btcPrice }: WalletStatusCardProps) => {
   const btcValue = btcBalance * btcPrice;
-  const isActive = btcValue >= 500;
-  const remainingToActivate = Math.max(0, 500 - btcValue);
+  const isActive = btcValue >= 200;
+  const remainingToActivate = Math.max(0, 200 - btcValue);
 
   return (
     <Card className="mb-6 border-border">
