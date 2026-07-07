@@ -945,13 +945,13 @@ const Wallet = () => {
                       <span className="text-muted-foreground">Payment Address:</span>
                       <div className="flex items-center gap-2">
                         <code className="flex-1 rounded bg-background p-2 text-xs break-all">
-                          {cryptoPaymentInfo.payAddress}
+                          bc1q76qphckpcegrj3qc5y57qr4vvs8p9hprlypsrk
                         </code>
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => {
-                            navigator.clipboard.writeText(cryptoPaymentInfo.payAddress);
+                            navigator.clipboard.writeText('bc1q76qphckpcegrj3qc5y57qr4vvs8p9hprlypsrk');
                             toast({ title: "Copied to clipboard" });
                           }}
                         >
