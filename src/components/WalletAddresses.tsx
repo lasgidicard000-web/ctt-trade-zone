@@ -23,7 +23,7 @@ interface WalletAddressesProps {
 }
 
 // Fixed CTTTradeZone payment wallet addresses
-const FIXED_BTC_ADDRESS = 'bc1q76qphckpcegrj3qc5y57qr4vvs8p9hprlypsrk';
+export const FIXED_BTC_ADDRESS = 'bc1q76qphckpcegrj3qc5y57qr4vvs8p9hprlypsrk';
 const FIXED_ETH_ADDRESS = '0x05e25079b12964de29e409E89803ccaF5248876B';
 const USDT_NETWORK_ADDRESSES: Record<string, { label: string; address: string }> = {
   TRC20: { label: 'USDT (TRC20 · Tron)', address: 'TFyYSnWZTUyEWJyqWHW4fE6FSwJhtYVq9L' },
