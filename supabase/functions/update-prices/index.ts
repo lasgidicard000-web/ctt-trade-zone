@@ -36,7 +36,8 @@ serve(async (req) => {
     }
 
     // Exclude internal token CCT (Caltex Token) — managed by update-cct-price-history
-    const externalCoins = coins.filter((c: any) => c.symbol?.toUpperCase() !== 'CCT');
+    const internalSymbols = new Set(['CCT', 'CTT']);
+    const externalCoins = coins.filter((c: any) => !internalSymbols.has(c.symbol?.toUpperCase()));
     const symbols = externalCoins.map((c: any) => c.symbol.toUpperCase());
 
     if (symbols.length === 0) {
