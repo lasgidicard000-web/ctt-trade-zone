@@ -1560,6 +1560,146 @@ const InvestmentPlans = () => {
 
 /* ============ Sub-components ============ */
 
+const trendColor = (t: Plan["marketTrend"]) =>
+  t === "Bullish"
+    ? "text-emerald-400"
+    : t === "Bearish"
+    ? "text-rose-400"
+    : "text-muted-foreground";
+
+const perfColor = (v: number) => (v >= 0 ? "text-emerald-400" : "text-rose-400");
+
+const PerformanceMetrics = ({ plan }: { plan: Plan }) => (
+  <div className="rounded-xl border border-border/50 p-4 bg-background/30">
+    <div className="flex items-center justify-between mb-3">
+      <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+        <LineChart className="h-4 w-4 text-primary" />
+        Live Performance
+      </h4>
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+        Market-based · not guaranteed
+      </span>
+    </div>
+    <div className="grid grid-cols-3 gap-2 text-center">
+      <div className="rounded-lg border border-border/40 bg-background/50 p-2">
+        <p className="text-[10px] uppercase text-muted-foreground">Today</p>
+        <p className={`text-sm font-semibold flex items-center justify-center gap-0.5 ${perfColor(plan.todayPerf)}`}>
+          {plan.todayPerf >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+          {plan.todayPerf >= 0 ? "+" : ""}
+          {plan.todayPerf.toFixed(2)}%
+        </p>
+      </div>
+      <div className="rounded-lg border border-border/40 bg-background/50 p-2">
+        <p className="text-[10px] uppercase text-muted-foreground">7-Day</p>
+        <p className={`text-sm font-semibold ${perfColor(plan.weekPerf)}`}>
+          {plan.weekPerf >= 0 ? "+" : ""}
+          {plan.weekPerf.toFixed(2)}%
+        </p>
+      </div>
+      <div className="rounded-lg border border-border/40 bg-background/50 p-2">
+        <p className="text-[10px] uppercase text-muted-foreground">30-Day</p>
+        <p className={`text-sm font-semibold ${perfColor(plan.monthPerf)}`}>
+          {plan.monthPerf >= 0 ? "+" : ""}
+          {plan.monthPerf.toFixed(2)}%
+        </p>
+      </div>
+    </div>
+    <div className="mt-3 space-y-2">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">Estimated Range</span>
+        <span className="font-medium text-foreground">
+          {plan.perfRange[0]}% – {plan.perfRange[1]}% /day
+        </span>
+      </div>
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">Market Trend</span>
+        <span className={`font-medium ${trendColor(plan.marketTrend)}`}>{plan.marketTrend}</span>
+      </div>
+      <div>
+        <div className="flex items-center justify-between text-xs mb-1">
+          <span className="text-muted-foreground">AI Confidence</span>
+          <span className="font-medium text-foreground">{plan.aiConfidence}%</span>
+        </div>
+        <Progress value={plan.aiConfidence} className="h-1.5" />
+      </div>
+    </div>
+  </div>
+);
+
+const TradingModeSelector = ({
+  mode,
+  onChange,
+  onInfoAuto,
+  onInfoManual,
+}: {
+  mode: TradingMode;
+  onChange: (m: TradingMode) => void;
+  onInfoAuto: () => void;
+  onInfoManual: () => void;
+}) => (
+  <div className="rounded-xl border border-border/50 p-3 bg-background/30">
+    <div className="flex items-center justify-between mb-2">
+      <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+        <Bot className="h-4 w-4 text-primary" />
+        Trading Mode
+      </h4>
+    </div>
+    <div className="grid grid-cols-2 gap-2">
+      <button
+        type="button"
+        onClick={() => onChange("auto")}
+        className={`text-left rounded-lg border p-2.5 text-xs transition-all ${
+          mode === "auto"
+            ? "border-primary bg-primary/10 text-foreground"
+            : "border-border/50 bg-background/40 text-muted-foreground hover:border-primary/40"
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">Automated AI</span>
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              onInfoAuto();
+            }}
+            className="text-[10px] underline text-primary"
+          >
+            info
+          </span>
+        </div>
+        <p className="mt-1 text-[10px] leading-tight">AI engine executes trades for you.</p>
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange("manual")}
+        className={`text-left rounded-lg border p-2.5 text-xs transition-all ${
+          mode === "manual"
+            ? "border-primary bg-primary/10 text-foreground"
+            : "border-border/50 bg-background/40 text-muted-foreground hover:border-primary/40"
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">Manual Signals</span>
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              onInfoManual();
+            }}
+            className="text-[10px] underline text-primary"
+          >
+            info
+          </span>
+        </div>
+        <p className="mt-1 text-[10px] leading-tight">You receive AI signals, execute manually.</p>
+      </button>
+    </div>
+  </div>
+);
+
+
 const Row = ({ label, value, full }: { label: string; value: string; full?: boolean }) => (
   <div className={full ? "col-span-2 flex justify-between" : "flex justify-between"}>
     <span className="text-muted-foreground">{label}:</span>
