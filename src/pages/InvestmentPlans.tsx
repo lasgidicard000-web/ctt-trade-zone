@@ -1008,11 +1008,11 @@ const InvestmentPlans = () => {
 
         {/* ============ AI TRADING ENGINE ============ */}
         <Reveal>
-          <section className="mb-16">
+          <section id="ai-engine" className="mb-16 scroll-mt-24">
             <SectionHeading
               badge="AI Trading Engine"
-              title="Institutional-Grade AI Dashboard"
-              subtitle="Live view of the AI's status, focus, and confidence signals across markets."
+              title="Automated AI Trading Engine"
+              subtitle="When enabled on a plan, the AI engine executes trades on your behalf according to plan risk and strategy parameters. You retain full ownership of your capital."
             />
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard icon={Bot} label="AI Status" value="Active" accent="emerald" />
@@ -1025,8 +1025,39 @@ const InvestmentPlans = () => {
               <RingCard label="Portfolio Health" value={91} color="hsl(142 76% 46%)" />
             </div>
             <p className="text-xs text-muted-foreground text-center mt-4">
-              Values shown are examples until connected to live services.
+              Values shown are illustrative until connected to your live account.
             </p>
+          </section>
+        </Reveal>
+
+        {/* ============ MANUAL TRADING SIGNALS ============ */}
+        <Reveal>
+          <section id="manual-signals" className="mb-16 scroll-mt-24">
+            <SectionHeading
+              badge="Manual Trading Signals"
+              title="Manual AI Signal Feed"
+              subtitle="Prefer to trade yourself? Receive AI-generated entry, exit, and risk signals and execute them manually from your dashboard."
+            />
+            <div className="grid md:grid-cols-3 gap-4">
+              {[
+                { icon: Radio, title: "Real-Time Signals", desc: "Entry, exit, and risk levels delivered as they trigger." },
+                { icon: Bot, title: "AI-Generated", desc: "Backed by the same engine that powers Automated Trading." },
+                { icon: ShieldCheck, title: "You Stay in Control", desc: "Every trade is executed manually by you — no auto-execution." },
+              ].map((s) => (
+                <Card
+                  key={s.title}
+                  className="border-border/50 bg-card/60 backdrop-blur-md hover:border-primary/40 transition-all"
+                >
+                  <CardContent className="p-5">
+                    <div className="p-2.5 inline-flex rounded-lg bg-primary/10 text-primary mb-3">
+                      <s.icon className="h-5 w-5" />
+                    </div>
+                    <h4 className="font-semibold text-foreground">{s.title}</h4>
+                    <p className="text-sm text-muted-foreground mt-1">{s.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </section>
         </Reveal>
 
