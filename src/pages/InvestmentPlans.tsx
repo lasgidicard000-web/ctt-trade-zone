@@ -1387,7 +1387,48 @@ const InvestmentPlans = () => {
             </CardHeader>
           </Card>
         </section>
+
+        {/* ============ QUICK LINKS ============ */}
+        <Reveal>
+          <section className="mb-16">
+            <Card className="border-border/50 bg-card/60 backdrop-blur-md">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <h3 className="text-lg font-semibold">Quick Links</h3>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <Button variant="outline" size="sm" onClick={() => scrollToId("plans")}>
+                    Plan Details
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => scrollToId("ai-engine")}>
+                    AI Trading Engine
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => scrollToId("manual-signals")}>
+                    Manual Signals
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/leaderboard">Referral Rewards</Link>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/">Dashboard</Link>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/wallet">Deposit Page</Link>
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => scrollToId("faq")}>
+                    FAQ
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={openSupport}>
+                    Support
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        </Reveal>
       </div>
+
 
       {/* Deposit & Activate dialog */}
       <Dialog open={!!depositPlan} onOpenChange={(o) => !o && setDepositPlan(null)}>
