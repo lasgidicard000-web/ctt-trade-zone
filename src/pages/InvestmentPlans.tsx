@@ -1398,34 +1398,49 @@ const InvestmentPlans = () => {
               Activate {depositPlan?.name ?? "Plan"}
             </DialogTitle>
             <DialogDescription>
-              Send the equivalent of your plan's minimum deposit
-              {depositPlan ? ` ($${depositPlan.minDeposit.toLocaleString()})` : ""} in BTC to the
-              address below. Your plan activates automatically once the deposit is confirmed.
+              You'll be redirected to the deposit page where you can pay with your preferred
+              method (Crypto, PayPal, and more). Minimum for this plan:
+              {depositPlan ? ` $${depositPlan.minDeposit.toLocaleString()}` : ""}. Trading mode:{" "}
+              <span className="font-medium text-foreground">
+                {depositPlan
+                  ? getMode(depositPlan.id) === "auto"
+                    ? "Automated AI Trading Engine"
+                    : "Manual Trading Signals"
+                  : ""}
+              </span>
+              . Plan activates automatically once your deposit is confirmed.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3">
             <div className="rounded-lg border border-border bg-muted/40 p-3">
               <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
-                BTC Deposit Address
+                Quick BTC Deposit Address
               </p>
-              <p className="font-mono text-sm break-all text-foreground">{FIXED_BTC_ADDRESS}</p>
+              <p className="font-mono text-xs break-all text-foreground">{FIXED_BTC_ADDRESS}</p>
             </div>
             <Button variant="outline" className="w-full" onClick={copyBtcAddress}>
               <Copy className="h-4 w-4 mr-2" />
               Copy BTC Address
             </Button>
-            <p className="text-xs text-amber-600 dark:text-amber-400">
-              Send BTC only. Deposits on any other network will not be credited.
+            <p className="text-xs text-muted-foreground">
+              Prefer another method? Continue to the deposit page to choose Crypto, PayPal, and
+              more.
             </p>
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-2">
-            <Button variant="ghost" onClick={() => setDepositPlan(null)}>
-              Close
+          <DialogFooter className="gap-2 sm:gap-2 flex-col sm:flex-row">
+            <Button variant="ghost" asChild>
+              <Link to="/">Go to Dashboard</Link>
             </Button>
-            <Button asChild>
-              <Link to="/wallet">Go to Wallet</Link>
+            <Button
+              className="bg-gradient-to-r from-primary to-cyan-400 text-primary-foreground"
+              onClick={() => {
+                if (depositPlan) goToDeposit(depositPlan);
+                setDepositPlan(null);
+              }}
+            >
+              Continue to Deposit
             </Button>
           </DialogFooter>
         </DialogContent>
