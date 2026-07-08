@@ -1280,7 +1280,7 @@ const InvestmentPlans = () => {
 
         {/* ============ FAQ ============ */}
         <Reveal>
-          <section className="mb-16">
+          <section id="faq" className="mb-16 scroll-mt-24">
             <SectionHeading badge="FAQ" title="Frequently Asked Questions" />
             <Card className="border-border/50 bg-card/60 backdrop-blur-md">
               <CardContent className="p-4 md:p-6">
