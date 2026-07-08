@@ -1089,7 +1089,7 @@ const InvestmentPlans = () => {
                       <SelectContent>
                         {plans.map((p) => (
                           <SelectItem key={p.id} value={p.id}>
-                            {p.name} ({p.dailyROI}/day)
+                            {p.name} ({p.perfRange[0]}–{p.perfRange[1]}% /day range)
                           </SelectItem>
                         ))}
                       </SelectContent>
