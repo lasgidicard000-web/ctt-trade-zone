@@ -560,14 +560,20 @@ const InvestmentPlans = () => {
     }
   };
 
-  // Estimator calc — simple daily ROI compounding using plan's daily ROI %.
+  // Estimator — projects a low/mid/high range from the selected plan's dynamic performance band.
   const estPlan = plans.find((p) => p.id === estPlanId) ?? plans[0];
-  const dailyPct = parseFloat(estPlan.dailyROI) / 100 || 0;
+  const lowPct = estPlan.perfRange[0] / 100;
+  const highPct = estPlan.perfRange[1] / 100;
+  const midPct = (lowPct + highPct) / 2;
   const amt = parseFloat(estAmount) || 0;
   const days = parseInt(estDays) || 0;
-  const finalVal = amt * Math.pow(1 + dailyPct, days);
+  const lowVal = amt * Math.pow(1 + lowPct, days);
+  const midVal = amt * Math.pow(1 + midPct, days);
+  const highVal = amt * Math.pow(1 + highPct, days);
+  const finalVal = midVal;
   const earnings = finalVal - amt;
   const growthPct = amt > 0 ? (earnings / amt) * 100 : 0;
+  const dailyPct = midPct;
 
   const marketSymbols = ["BTC", "ETH", "BNB", "SOL", "XRP"];
   const marketCoins = marketSymbols.map((s) => ({
