@@ -97,8 +97,9 @@ const plans: Plan[] = [
     name: "Recruit Plan",
     tagline: "Start Your Journey With Confidence",
     marketing:
-      "This beginner-friendly plan offers 1% daily ROI, a monthly $20 salary, and simple rules that help you grow steadily. Designed for new investors who want predictable progress without complexity.",
+      "A beginner-friendly entry tier with AI-guided market participation, a monthly $20 salary, and simple rules that help you grow steadily. Designed for new investors who want a predictable, low-complexity experience.",
     minDeposit: 200,
+    dailyROI: "1%",
     dailyROI: "1%",
     duration: "30 days",
     salary: "$20 / month",
