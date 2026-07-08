@@ -967,15 +967,33 @@ const InvestmentPlans = () => {
                             <p className="text-xs text-muted-foreground">{plan.referral.extra}</p>
                           </div>
 
-                          <Button
-                            className="w-full mt-auto bg-gradient-to-r from-primary to-cyan-400 text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)] transition-all"
-                            onClick={() => setDepositPlan(plan)}
-                          >
-                            Deposit & Activate
-                          </Button>
-                          <p className="text-[10px] text-muted-foreground text-center -mt-1">
-                            Projections are illustrative estimates, not guaranteed returns.
-                          </p>
+                          <div className="mt-auto space-y-2">
+                            <Button
+                              className="w-full bg-gradient-to-r from-primary to-cyan-400 text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)] transition-all"
+                              onClick={() => setDepositPlan(plan)}
+                            >
+                              Deposit & Activate
+                            </Button>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => scrollToId(`plan-${plan.id}`)}
+                              >
+                                Plan Details
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                              >
+                                <Link to="/leaderboard">Referral Rewards</Link>
+                              </Button>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground text-center">
+                              Market-based performance metrics — not guaranteed returns.
+                            </p>
+                          </div>
                         </CardContent>
                       </Card>
                     </Reveal>
