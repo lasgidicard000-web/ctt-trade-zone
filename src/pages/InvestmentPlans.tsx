@@ -596,11 +596,11 @@ const InvestmentPlans = () => {
   const faqs = [
     {
       q: "How do investment plans work?",
-      a: "Each plan has a minimum deposit, daily ROI, and a fixed duration. Once activated, your dashboard tracks daily returns, salary, and cycle progress automatically.",
+      a: "Each plan has a minimum deposit, a fixed duration, and a set of dynamic market-based performance indicators (today's / 7-day / 30-day performance, AI confidence, market trend, risk level). Once activated, your dashboard tracks live performance and cycle progress automatically. Performance is market-driven and not guaranteed.",
     },
     {
       q: "How do I deposit funds?",
-      a: "Choose a plan and click Deposit & Activate. Send the plan's minimum in BTC to the address shown. Activation is automatic on confirmation.",
+      a: "Choose a plan, pick Automated AI Trading or Manual Trading Signals, then click Deposit & Activate. You'll be sent to the Wallet page where you can pay with Crypto, PayPal, or another supported method. Activation happens automatically once the deposit is confirmed.",
     },
     {
       q: "How are withdrawals processed?",
