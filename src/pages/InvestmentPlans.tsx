@@ -280,7 +280,7 @@ const plans: Plan[] = [
     name: "General Plan",
     tagline: "The Flagship Tier for Maximum Advantage",
     marketing:
-      "Our top-tier experience with 3% daily ROI, reinvest freedom, analytic depth, and elite privileges. Designed for users who want maximum utility and complete platform access.",
+      "Our flagship experience — institutional-grade AI, full reinvest freedom, deepest analytics, and elite privileges. Designed for users who want maximum utility and complete platform access.",
     minDeposit: 5000,
     dailyROI: "3%",
     duration: "90 days",
@@ -288,6 +288,12 @@ const plans: Plan[] = [
     minWithdrawal: "$10",
     reinvestment: "Fully allowed",
     bonus: "Loyalty Bonus: 5% at cycle completion",
+    todayPerf: 1.72,
+    weekPerf: 11.4,
+    monthPerf: 42.6,
+    perfRange: [1.4, 3.6],
+    marketTrend: "Bullish",
+    aiConfidence: 91,
     dashboard: [
       "Enterprise-grade analytics",
       "API tracking access",
