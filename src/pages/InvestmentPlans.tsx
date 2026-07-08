@@ -198,12 +198,6 @@ const plans: Plan[] = [
     perfRange: [0.9, 2.4],
     marketTrend: "Bullish",
     aiConfidence: 82,
-    minDeposit: 1000,
-    dailyROI: "2%",
-    duration: "45 days",
-    salary: "$50 / month",
-    minWithdrawal: "$30",
-    reinvestment: "Unlimited (monthly cap)",
     dashboard: [
       "Advanced analytics",
       "Auto reinvest scheduler",
