@@ -483,11 +483,36 @@ const Reveal = ({ children, className = "" }: { children: React.ReactNode; class
 };
 
 const InvestmentPlans = () => {
+  const navigate = useNavigate();
   const [depositPlan, setDepositPlan] = useState<Plan | null>(null);
   const [cashOutOpen, setCashOutOpen] = useState(false);
   const [cashOutAddress, setCashOutAddress] = useState("");
   const [cashOutAmount, setCashOutAmount] = useState("");
   const [cashOutNetwork, setCashOutNetwork] = useState("BTC");
+
+  // Per-plan trading mode selection
+  const [modeByPlan, setModeByPlan] = useState<Record<string, TradingMode>>({});
+  const getMode = (id: string): TradingMode => modeByPlan[id] ?? "auto";
+  const setMode = (id: string, m: TradingMode) =>
+    setModeByPlan((prev) => ({ ...prev, [id]: m }));
+
+  const openSupport = () => {
+    const w = window as any;
+    if (w?.Tawk_API?.maximize) {
+      w.Tawk_API.maximize();
+    } else {
+      window.location.href = "mailto:ctttradezone@caltexvault.com";
+    }
+  };
+
+  const scrollToId = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const goToDeposit = (plan: Plan) => {
+    const mode = getMode(plan.id);
+    navigate(`/wallet?plan=${encodeURIComponent(plan.id)}&mode=${mode}`);
+  };
 
   // Estimator
   const [estAmount, setEstAmount] = useState<string>("1000");
