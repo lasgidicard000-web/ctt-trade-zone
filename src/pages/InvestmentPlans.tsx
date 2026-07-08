@@ -881,16 +881,19 @@ const InvestmentPlans = () => {
                               </div>
                               <p className="font-semibold mt-0.5">{plan.riskLevel}</p>
                             </div>
-                            <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-2.5 py-2 text-yellow-400">
+                            <div className="rounded-lg border border-primary/30 bg-primary/10 px-2.5 py-2 text-primary">
                               <div className="flex items-center gap-1.5">
-                                <TrendingUp className="h-3.5 w-3.5" />
+                                <Activity className="h-3.5 w-3.5" />
                                 <span className="text-[10px] uppercase tracking-wider opacity-80">
-                                  Est. Projection
+                                  Market Trend
                                 </span>
                               </div>
-                              <p className="font-semibold mt-0.5">{plan.projection}</p>
+                              <p className="font-semibold mt-0.5">{plan.marketTrend}</p>
                             </div>
                           </div>
+
+                          {/* Dynamic performance metrics — market-based, NOT guaranteed */}
+                          <PerformanceMetrics plan={plan} />
 
                           <div className="rounded-xl border border-border/50 p-4 bg-muted/20">
                             <div className="flex items-baseline justify-between mb-2">
@@ -902,7 +905,6 @@ const InvestmentPlans = () => {
                               </span>
                             </div>
                             <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm mt-3">
-                              <Row label="Daily ROI" value={plan.dailyROI} />
                               <Row label="Duration" value={plan.duration} />
                               <Row label="Salary" value={plan.salary} />
                               <Row label="Min. Withdrawal" value={plan.minWithdrawal} />
@@ -910,6 +912,14 @@ const InvestmentPlans = () => {
                               {plan.bonus && <Row label="Bonus" value={plan.bonus} full />}
                             </div>
                           </div>
+
+                          {/* Trading mode selector */}
+                          <TradingModeSelector
+                            mode={getMode(plan.id)}
+                            onChange={(m) => setMode(plan.id, m)}
+                            onInfoAuto={() => scrollToId("ai-engine")}
+                            onInfoManual={() => scrollToId("manual-signals")}
+                          />
 
                           <div>
                             <h4 className="text-sm font-semibold text-foreground mb-2">
