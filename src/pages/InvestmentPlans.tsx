@@ -56,13 +56,15 @@ import {
   ArrowDownRight,
 } from "lucide-react";
 
+type TradingMode = "auto" | "manual";
+
 type Plan = {
   id: string;
   name: string;
   tagline: string;
   marketing: string;
   minDeposit: number;
-  dailyROI: string;
+  dailyROI: string; // internal only — never rendered
   duration: string;
   salary: string;
   minWithdrawal: string;
@@ -80,6 +82,13 @@ type Plan = {
   riskLevel: "Low" | "Moderate" | "Balanced" | "High" | "Aggressive";
   projection: string;
   recommended?: boolean;
+  // Dynamic performance indicators (market-based, illustrative)
+  todayPerf: number;
+  weekPerf: number;
+  monthPerf: number;
+  perfRange: [number, number]; // low/high % per day band
+  marketTrend: "Bullish" | "Neutral" | "Bearish";
+  aiConfidence: number; // 0-100
 };
 
 const plans: Plan[] = [
