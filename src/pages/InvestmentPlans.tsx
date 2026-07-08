@@ -692,13 +692,16 @@ const InvestmentPlans = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                        Portfolio Value
+                        AI Trading Engine
                       </p>
-                      <p className="text-3xl font-bold text-foreground">
-                        $<AnimatedCounter end={128473} decimals={0} />
+                      <p className="text-2xl font-bold text-foreground">
+                        Live Market Intelligence
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Sign in to view your portfolio in the dashboard.
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 shrink-0">
                       <span className="relative flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
