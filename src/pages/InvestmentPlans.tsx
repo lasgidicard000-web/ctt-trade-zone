@@ -1109,9 +1109,17 @@ const InvestmentPlans = () => {
                 </div>
                 <div className="p-6 bg-gradient-to-br from-primary/5 via-transparent to-yellow-500/5">
                   <div className="grid grid-cols-3 gap-3">
-                    <MiniStat label="Estimated Value" value={`$${finalVal.toFixed(2)}`} />
-                    <MiniStat label="Estimated Growth" value={`${growthPct.toFixed(1)}%`} accent />
-                    <MiniStat label="Estimated Earnings" value={`$${earnings.toFixed(2)}`} accent />
+                    <MiniStat label="Low Estimate" value={`$${lowVal.toFixed(2)}`} />
+                    <MiniStat label="Mid Estimate" value={`$${midVal.toFixed(2)}`} accent />
+                    <MiniStat label="High Estimate" value={`$${highVal.toFixed(2)}`} accent />
+                  </div>
+                  <div className="mt-3 rounded-xl border border-border/50 bg-background/40 p-3 text-xs text-muted-foreground">
+                    Estimated performance range:{" "}
+                    <span className="text-foreground font-medium">
+                      +{growthPct.toFixed(1)}% mid
+                    </span>{" "}
+                    · Earnings mid: ${earnings.toFixed(2)} · Range: {estPlan.perfRange[0]}–
+                    {estPlan.perfRange[1]}% /day
                   </div>
                   <GrowthChart amt={amt} dailyPct={dailyPct} days={days} />
                 </div>
