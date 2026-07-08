@@ -827,7 +827,8 @@ const InvestmentPlans = () => {
                   return (
                     <Reveal key={plan.id}>
                       <Card
-                        className={`relative flex flex-col border-border/50 bg-card/70 backdrop-blur-md overflow-hidden group transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.35)] ${
+                        id={`plan-${plan.id}`}
+                        className={`relative flex flex-col border-border/50 bg-card/70 backdrop-blur-md overflow-hidden group transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.35)] scroll-mt-24 ${
                           plan.recommended ? "ring-2 ring-primary/40" : ""
                         }`}
                       >
