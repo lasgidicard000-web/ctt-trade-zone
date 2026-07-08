@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,13 +56,15 @@ import {
   ArrowDownRight,
 } from "lucide-react";
 
+type TradingMode = "auto" | "manual";
+
 type Plan = {
   id: string;
   name: string;
   tagline: string;
   marketing: string;
   minDeposit: number;
-  dailyROI: string;
+  dailyROI: string; // internal only — never rendered
   duration: string;
   salary: string;
   minWithdrawal: string;
@@ -80,6 +82,13 @@ type Plan = {
   riskLevel: "Low" | "Moderate" | "Balanced" | "High" | "Aggressive";
   projection: string;
   recommended?: boolean;
+  // Dynamic performance indicators (market-based, illustrative)
+  todayPerf: number;
+  weekPerf: number;
+  monthPerf: number;
+  perfRange: [number, number]; // low/high % per day band
+  marketTrend: "Bullish" | "Neutral" | "Bearish";
+  aiConfidence: number; // 0-100
 };
 
 const plans: Plan[] = [
@@ -88,15 +97,21 @@ const plans: Plan[] = [
     name: "Recruit Plan",
     tagline: "Start Your Journey With Confidence",
     marketing:
-      "This beginner-friendly plan offers 1% daily ROI, a monthly $20 salary, and simple rules that help you grow steadily. Designed for new investors who want predictable progress without complexity.",
+      "A beginner-friendly entry tier with AI-guided market participation, a monthly $20 salary, and simple rules that help you grow steadily. Designed for new investors who want a predictable, low-complexity experience.",
     minDeposit: 200,
     dailyROI: "1%",
     duration: "30 days",
     salary: "$20 / month",
     minWithdrawal: "$50 profit",
     reinvestment: "Not allowed",
+    todayPerf: 0.42,
+    weekPerf: 2.8,
+    monthPerf: 11.4,
+    perfRange: [0.3, 1.2],
+    marketTrend: "Bullish",
+    aiConfidence: 68,
     dashboard: [
-      "Daily ROI tracker",
+      "Live performance tracker",
       "Salary countdown",
       "Withdrawal eligibility bar",
       "Basic transaction logs",
@@ -126,15 +141,21 @@ const plans: Plan[] = [
     name: "Inspectors Plan",
     tagline: "Step Up to Smarter Earnings",
     marketing:
-      "A strategic plan offering 1.5% daily ROI, better analytics, and controlled reinvestment. Perfect for users ready to take a more active and informed role in their financial growth.",
+      "A strategic tier with sharper AI signals, richer analytics, and controlled reinvestment. Perfect for users ready to take a more active and informed role in market participation.",
     minDeposit: 500,
     dailyROI: "1.5%",
     duration: "30 days",
     salary: "$35 / month",
     minWithdrawal: "$40",
     reinvestment: "1 per cycle",
+    todayPerf: 0.71,
+    weekPerf: 4.6,
+    monthPerf: 18.2,
+    perfRange: [0.6, 1.8],
+    marketTrend: "Bullish",
+    aiConfidence: 74,
     dashboard: [
-      "ROI projection graph",
+      "Performance projection graph",
       "Auto-compound toggle",
       "Earnings progression meter",
       "Monthly missions",
@@ -164,13 +185,19 @@ const plans: Plan[] = [
     name: "Superintendent Plan",
     tagline: "Advanced Growth, Elevated Benefits",
     marketing:
-      "With 2% daily ROI and full reinvest flexibility, this plan gives users access to advanced reporting tools and deeper insights. Ideal for structured investors who understand compounding.",
+      "Advanced AI portfolio management with deeper analytics and full reinvest flexibility. Ideal for structured investors who understand compounding and want more of the AI toolkit.",
     minDeposit: 1000,
     dailyROI: "2%",
     duration: "45 days",
     salary: "$50 / month",
     minWithdrawal: "$30",
     reinvestment: "Unlimited (monthly cap)",
+    todayPerf: 1.02,
+    weekPerf: 6.4,
+    monthPerf: 26.8,
+    perfRange: [0.9, 2.4],
+    marketTrend: "Bullish",
+    aiConfidence: 82,
     dashboard: [
       "Advanced analytics",
       "Auto reinvest scheduler",
@@ -203,13 +230,19 @@ const plans: Plan[] = [
     name: "Commissioners Plan",
     tagline: "Premium Rewards, High-Level Tools",
     marketing:
-      "Offering 2.5% daily ROI and premium dashboard utilities, this plan is crafted for high-level users who value efficiency, analytics, and exclusive opportunities.",
+      "Premium AI dashboard utilities and full reinvestment access, crafted for high-level users who value efficiency, sharper signals, and exclusive market opportunities.",
     minDeposit: 2000,
     dailyROI: "2.5%",
     duration: "60 days",
     salary: "$80 / month",
     minWithdrawal: "$20",
     reinvestment: "Fully allowed",
+    todayPerf: 1.38,
+    weekPerf: 8.9,
+    monthPerf: 34.5,
+    perfRange: [1.1, 3.0],
+    marketTrend: "Bullish",
+    aiConfidence: 87,
     dashboard: [
       "Portfolio simulation",
       "Auto-withdrawal scheduler",
@@ -247,7 +280,7 @@ const plans: Plan[] = [
     name: "General Plan",
     tagline: "The Flagship Tier for Maximum Advantage",
     marketing:
-      "Our top-tier experience with 3% daily ROI, reinvest freedom, analytic depth, and elite privileges. Designed for users who want maximum utility and complete platform access.",
+      "Our flagship experience — institutional-grade AI, full reinvest freedom, deepest analytics, and elite privileges. Designed for users who want maximum utility and complete platform access.",
     minDeposit: 5000,
     dailyROI: "3%",
     duration: "90 days",
@@ -255,6 +288,12 @@ const plans: Plan[] = [
     minWithdrawal: "$10",
     reinvestment: "Fully allowed",
     bonus: "Loyalty Bonus: 5% at cycle completion",
+    todayPerf: 1.72,
+    weekPerf: 11.4,
+    monthPerf: 42.6,
+    perfRange: [1.4, 3.6],
+    marketTrend: "Bullish",
+    aiConfidence: 91,
     dashboard: [
       "Enterprise-grade analytics",
       "API tracking access",
@@ -444,11 +483,36 @@ const Reveal = ({ children, className = "" }: { children: React.ReactNode; class
 };
 
 const InvestmentPlans = () => {
+  const navigate = useNavigate();
   const [depositPlan, setDepositPlan] = useState<Plan | null>(null);
   const [cashOutOpen, setCashOutOpen] = useState(false);
   const [cashOutAddress, setCashOutAddress] = useState("");
   const [cashOutAmount, setCashOutAmount] = useState("");
   const [cashOutNetwork, setCashOutNetwork] = useState("BTC");
+
+  // Per-plan trading mode selection
+  const [modeByPlan, setModeByPlan] = useState<Record<string, TradingMode>>({});
+  const getMode = (id: string): TradingMode => modeByPlan[id] ?? "auto";
+  const setMode = (id: string, m: TradingMode) =>
+    setModeByPlan((prev) => ({ ...prev, [id]: m }));
+
+  const openSupport = () => {
+    const w = window as any;
+    if (w?.Tawk_API?.maximize) {
+      w.Tawk_API.maximize();
+    } else {
+      window.location.href = "mailto:ctttradezone@caltexvault.com";
+    }
+  };
+
+  const scrollToId = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const goToDeposit = (plan: Plan) => {
+    const mode = getMode(plan.id);
+    navigate(`/wallet?plan=${encodeURIComponent(plan.id)}&mode=${mode}`);
+  };
 
   // Estimator
   const [estAmount, setEstAmount] = useState<string>("1000");
@@ -496,14 +560,20 @@ const InvestmentPlans = () => {
     }
   };
 
-  // Estimator calc — simple daily ROI compounding using plan's daily ROI %.
+  // Estimator — projects a low/mid/high range from the selected plan's dynamic performance band.
   const estPlan = plans.find((p) => p.id === estPlanId) ?? plans[0];
-  const dailyPct = parseFloat(estPlan.dailyROI) / 100 || 0;
+  const lowPct = estPlan.perfRange[0] / 100;
+  const highPct = estPlan.perfRange[1] / 100;
+  const midPct = (lowPct + highPct) / 2;
   const amt = parseFloat(estAmount) || 0;
   const days = parseInt(estDays) || 0;
-  const finalVal = amt * Math.pow(1 + dailyPct, days);
+  const lowVal = amt * Math.pow(1 + lowPct, days);
+  const midVal = amt * Math.pow(1 + midPct, days);
+  const highVal = amt * Math.pow(1 + highPct, days);
+  const finalVal = midVal;
   const earnings = finalVal - amt;
   const growthPct = amt > 0 ? (earnings / amt) * 100 : 0;
+  const dailyPct = midPct;
 
   const marketSymbols = ["BTC", "ETH", "BNB", "SOL", "XRP"];
   const marketCoins = marketSymbols.map((s) => ({
@@ -526,11 +596,11 @@ const InvestmentPlans = () => {
   const faqs = [
     {
       q: "How do investment plans work?",
-      a: "Each plan has a minimum deposit, daily ROI, and a fixed duration. Once activated, your dashboard tracks daily returns, salary, and cycle progress automatically.",
+      a: "Each plan has a minimum deposit, a fixed duration, and a set of dynamic market-based performance indicators (today's / 7-day / 30-day performance, AI confidence, market trend, risk level). Once activated, your dashboard tracks live performance and cycle progress automatically. Performance is market-driven and not guaranteed.",
     },
     {
       q: "How do I deposit funds?",
-      a: "Choose a plan and click Deposit & Activate. Send the plan's minimum in BTC to the address shown. Activation is automatic on confirmation.",
+      a: "Choose a plan, pick Automated AI Trading or Manual Trading Signals, then click Deposit & Activate. You'll be sent to the Wallet page where you can pay with Crypto, PayPal, or another supported method. Activation happens automatically once the deposit is confirmed.",
     },
     {
       q: "How are withdrawals processed?",
@@ -622,13 +692,16 @@ const InvestmentPlans = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                        Portfolio Value
+                        AI Trading Engine
                       </p>
-                      <p className="text-3xl font-bold text-foreground">
-                        $<AnimatedCounter end={128473} decimals={0} />
+                      <p className="text-2xl font-bold text-foreground">
+                        Live Market Intelligence
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Sign in to view your portfolio in the dashboard.
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 shrink-0">
                       <span className="relative flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
@@ -754,7 +827,8 @@ const InvestmentPlans = () => {
                   return (
                     <Reveal key={plan.id}>
                       <Card
-                        className={`relative flex flex-col border-border/50 bg-card/70 backdrop-blur-md overflow-hidden group transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.35)] ${
+                        id={`plan-${plan.id}`}
+                        className={`relative flex flex-col border-border/50 bg-card/70 backdrop-blur-md overflow-hidden group transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.35)] scroll-mt-24 ${
                           plan.recommended ? "ring-2 ring-primary/40" : ""
                         }`}
                       >
@@ -807,16 +881,19 @@ const InvestmentPlans = () => {
                               </div>
                               <p className="font-semibold mt-0.5">{plan.riskLevel}</p>
                             </div>
-                            <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-2.5 py-2 text-yellow-400">
+                            <div className="rounded-lg border border-primary/30 bg-primary/10 px-2.5 py-2 text-primary">
                               <div className="flex items-center gap-1.5">
-                                <TrendingUp className="h-3.5 w-3.5" />
+                                <Activity className="h-3.5 w-3.5" />
                                 <span className="text-[10px] uppercase tracking-wider opacity-80">
-                                  Est. Projection
+                                  Market Trend
                                 </span>
                               </div>
-                              <p className="font-semibold mt-0.5">{plan.projection}</p>
+                              <p className="font-semibold mt-0.5">{plan.marketTrend}</p>
                             </div>
                           </div>
+
+                          {/* Dynamic performance metrics — market-based, NOT guaranteed */}
+                          <PerformanceMetrics plan={plan} />
 
                           <div className="rounded-xl border border-border/50 p-4 bg-muted/20">
                             <div className="flex items-baseline justify-between mb-2">
@@ -828,7 +905,6 @@ const InvestmentPlans = () => {
                               </span>
                             </div>
                             <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm mt-3">
-                              <Row label="Daily ROI" value={plan.dailyROI} />
                               <Row label="Duration" value={plan.duration} />
                               <Row label="Salary" value={plan.salary} />
                               <Row label="Min. Withdrawal" value={plan.minWithdrawal} />
@@ -836,6 +912,14 @@ const InvestmentPlans = () => {
                               {plan.bonus && <Row label="Bonus" value={plan.bonus} full />}
                             </div>
                           </div>
+
+                          {/* Trading mode selector */}
+                          <TradingModeSelector
+                            mode={getMode(plan.id)}
+                            onChange={(m) => setMode(plan.id, m)}
+                            onInfoAuto={() => scrollToId("ai-engine")}
+                            onInfoManual={() => scrollToId("manual-signals")}
+                          />
 
                           <div>
                             <h4 className="text-sm font-semibold text-foreground mb-2">
@@ -883,15 +967,33 @@ const InvestmentPlans = () => {
                             <p className="text-xs text-muted-foreground">{plan.referral.extra}</p>
                           </div>
 
-                          <Button
-                            className="w-full mt-auto bg-gradient-to-r from-primary to-cyan-400 text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)] transition-all"
-                            onClick={() => setDepositPlan(plan)}
-                          >
-                            Deposit & Activate
-                          </Button>
-                          <p className="text-[10px] text-muted-foreground text-center -mt-1">
-                            Projections are illustrative estimates, not guaranteed returns.
-                          </p>
+                          <div className="mt-auto space-y-2">
+                            <Button
+                              className="w-full bg-gradient-to-r from-primary to-cyan-400 text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)] transition-all"
+                              onClick={() => setDepositPlan(plan)}
+                            >
+                              Deposit & Activate
+                            </Button>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => scrollToId(`plan-${plan.id}`)}
+                              >
+                                Plan Details
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                              >
+                                <Link to="/leaderboard">Referral Rewards</Link>
+                              </Button>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground text-center">
+                              Market-based performance metrics — not guaranteed returns.
+                            </p>
+                          </div>
                         </CardContent>
                       </Card>
                     </Reveal>
@@ -906,11 +1008,11 @@ const InvestmentPlans = () => {
 
         {/* ============ AI TRADING ENGINE ============ */}
         <Reveal>
-          <section className="mb-16">
+          <section id="ai-engine" className="mb-16 scroll-mt-24">
             <SectionHeading
               badge="AI Trading Engine"
-              title="Institutional-Grade AI Dashboard"
-              subtitle="Live view of the AI's status, focus, and confidence signals across markets."
+              title="Automated AI Trading Engine"
+              subtitle="When enabled on a plan, the AI engine executes trades on your behalf according to plan risk and strategy parameters. You retain full ownership of your capital."
             />
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard icon={Bot} label="AI Status" value="Active" accent="emerald" />
@@ -923,8 +1025,39 @@ const InvestmentPlans = () => {
               <RingCard label="Portfolio Health" value={91} color="hsl(142 76% 46%)" />
             </div>
             <p className="text-xs text-muted-foreground text-center mt-4">
-              Values shown are examples until connected to live services.
+              Values shown are illustrative until connected to your live account.
             </p>
+          </section>
+        </Reveal>
+
+        {/* ============ MANUAL TRADING SIGNALS ============ */}
+        <Reveal>
+          <section id="manual-signals" className="mb-16 scroll-mt-24">
+            <SectionHeading
+              badge="Manual Trading Signals"
+              title="Manual AI Signal Feed"
+              subtitle="Prefer to trade yourself? Receive AI-generated entry, exit, and risk signals and execute them manually from your dashboard."
+            />
+            <div className="grid md:grid-cols-3 gap-4">
+              {[
+                { icon: Radio, title: "Real-Time Signals", desc: "Entry, exit, and risk levels delivered as they trigger." },
+                { icon: Bot, title: "AI-Generated", desc: "Backed by the same engine that powers Automated Trading." },
+                { icon: ShieldCheck, title: "You Stay in Control", desc: "Every trade is executed manually by you — no auto-execution." },
+              ].map((s) => (
+                <Card
+                  key={s.title}
+                  className="border-border/50 bg-card/60 backdrop-blur-md hover:border-primary/40 transition-all"
+                >
+                  <CardContent className="p-5">
+                    <div className="p-2.5 inline-flex rounded-lg bg-primary/10 text-primary mb-3">
+                      <s.icon className="h-5 w-5" />
+                    </div>
+                    <h4 className="font-semibold text-foreground">{s.title}</h4>
+                    <p className="text-sm text-muted-foreground mt-1">{s.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </section>
         </Reveal>
 
@@ -956,7 +1089,7 @@ const InvestmentPlans = () => {
                       <SelectContent>
                         {plans.map((p) => (
                           <SelectItem key={p.id} value={p.id}>
-                            {p.name} ({p.dailyROI}/day)
+                            {p.name} ({p.perfRange[0]}–{p.perfRange[1]}% /day range)
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -976,9 +1109,17 @@ const InvestmentPlans = () => {
                 </div>
                 <div className="p-6 bg-gradient-to-br from-primary/5 via-transparent to-yellow-500/5">
                   <div className="grid grid-cols-3 gap-3">
-                    <MiniStat label="Estimated Value" value={`$${finalVal.toFixed(2)}`} />
-                    <MiniStat label="Estimated Growth" value={`${growthPct.toFixed(1)}%`} accent />
-                    <MiniStat label="Estimated Earnings" value={`$${earnings.toFixed(2)}`} accent />
+                    <MiniStat label="Low Estimate" value={`$${lowVal.toFixed(2)}`} />
+                    <MiniStat label="Mid Estimate" value={`$${midVal.toFixed(2)}`} accent />
+                    <MiniStat label="High Estimate" value={`$${highVal.toFixed(2)}`} accent />
+                  </div>
+                  <div className="mt-3 rounded-xl border border-border/50 bg-background/40 p-3 text-xs text-muted-foreground">
+                    Estimated performance range:{" "}
+                    <span className="text-foreground font-medium">
+                      +{growthPct.toFixed(1)}% mid
+                    </span>{" "}
+                    · Earnings mid: ${earnings.toFixed(2)} · Range: {estPlan.perfRange[0]}–
+                    {estPlan.perfRange[1]}% /day
                   </div>
                   <GrowthChart amt={amt} dailyPct={dailyPct} days={days} />
                 </div>
@@ -1139,7 +1280,7 @@ const InvestmentPlans = () => {
 
         {/* ============ FAQ ============ */}
         <Reveal>
-          <section className="mb-16">
+          <section id="faq" className="mb-16 scroll-mt-24">
             <SectionHeading badge="FAQ" title="Frequently Asked Questions" />
             <Card className="border-border/50 bg-card/60 backdrop-blur-md">
               <CardContent className="p-4 md:p-6">
@@ -1246,7 +1387,48 @@ const InvestmentPlans = () => {
             </CardHeader>
           </Card>
         </section>
+
+        {/* ============ QUICK LINKS ============ */}
+        <Reveal>
+          <section className="mb-16">
+            <Card className="border-border/50 bg-card/60 backdrop-blur-md">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <h3 className="text-lg font-semibold">Quick Links</h3>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <Button variant="outline" size="sm" onClick={() => scrollToId("plans")}>
+                    Plan Details
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => scrollToId("ai-engine")}>
+                    AI Trading Engine
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => scrollToId("manual-signals")}>
+                    Manual Signals
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/leaderboard">Referral Rewards</Link>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/">Dashboard</Link>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/wallet">Deposit Page</Link>
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => scrollToId("faq")}>
+                    FAQ
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={openSupport}>
+                    Support
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        </Reveal>
       </div>
+
 
       {/* Deposit & Activate dialog */}
       <Dialog open={!!depositPlan} onOpenChange={(o) => !o && setDepositPlan(null)}>
@@ -1257,34 +1439,49 @@ const InvestmentPlans = () => {
               Activate {depositPlan?.name ?? "Plan"}
             </DialogTitle>
             <DialogDescription>
-              Send the equivalent of your plan's minimum deposit
-              {depositPlan ? ` ($${depositPlan.minDeposit.toLocaleString()})` : ""} in BTC to the
-              address below. Your plan activates automatically once the deposit is confirmed.
+              You'll be redirected to the deposit page where you can pay with your preferred
+              method (Crypto, PayPal, and more). Minimum for this plan:
+              {depositPlan ? ` $${depositPlan.minDeposit.toLocaleString()}` : ""}. Trading mode:{" "}
+              <span className="font-medium text-foreground">
+                {depositPlan
+                  ? getMode(depositPlan.id) === "auto"
+                    ? "Automated AI Trading Engine"
+                    : "Manual Trading Signals"
+                  : ""}
+              </span>
+              . Plan activates automatically once your deposit is confirmed.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3">
             <div className="rounded-lg border border-border bg-muted/40 p-3">
               <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
-                BTC Deposit Address
+                Quick BTC Deposit Address
               </p>
-              <p className="font-mono text-sm break-all text-foreground">{FIXED_BTC_ADDRESS}</p>
+              <p className="font-mono text-xs break-all text-foreground">{FIXED_BTC_ADDRESS}</p>
             </div>
             <Button variant="outline" className="w-full" onClick={copyBtcAddress}>
               <Copy className="h-4 w-4 mr-2" />
               Copy BTC Address
             </Button>
-            <p className="text-xs text-amber-600 dark:text-amber-400">
-              Send BTC only. Deposits on any other network will not be credited.
+            <p className="text-xs text-muted-foreground">
+              Prefer another method? Continue to the deposit page to choose Crypto, PayPal, and
+              more.
             </p>
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-2">
-            <Button variant="ghost" onClick={() => setDepositPlan(null)}>
-              Close
+          <DialogFooter className="gap-2 sm:gap-2 flex-col sm:flex-row">
+            <Button variant="ghost" asChild>
+              <Link to="/">Go to Dashboard</Link>
             </Button>
-            <Button asChild>
-              <Link to="/wallet">Go to Wallet</Link>
+            <Button
+              className="bg-gradient-to-r from-primary to-cyan-400 text-primary-foreground"
+              onClick={() => {
+                if (depositPlan) goToDeposit(depositPlan);
+                setDepositPlan(null);
+              }}
+            >
+              Continue to Deposit
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1362,6 +1559,146 @@ const InvestmentPlans = () => {
 };
 
 /* ============ Sub-components ============ */
+
+const trendColor = (t: Plan["marketTrend"]) =>
+  t === "Bullish"
+    ? "text-emerald-400"
+    : t === "Bearish"
+    ? "text-rose-400"
+    : "text-muted-foreground";
+
+const perfColor = (v: number) => (v >= 0 ? "text-emerald-400" : "text-rose-400");
+
+const PerformanceMetrics = ({ plan }: { plan: Plan }) => (
+  <div className="rounded-xl border border-border/50 p-4 bg-background/30">
+    <div className="flex items-center justify-between mb-3">
+      <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+        <LineChart className="h-4 w-4 text-primary" />
+        Live Performance
+      </h4>
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+        Market-based · not guaranteed
+      </span>
+    </div>
+    <div className="grid grid-cols-3 gap-2 text-center">
+      <div className="rounded-lg border border-border/40 bg-background/50 p-2">
+        <p className="text-[10px] uppercase text-muted-foreground">Today</p>
+        <p className={`text-sm font-semibold flex items-center justify-center gap-0.5 ${perfColor(plan.todayPerf)}`}>
+          {plan.todayPerf >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+          {plan.todayPerf >= 0 ? "+" : ""}
+          {plan.todayPerf.toFixed(2)}%
+        </p>
+      </div>
+      <div className="rounded-lg border border-border/40 bg-background/50 p-2">
+        <p className="text-[10px] uppercase text-muted-foreground">7-Day</p>
+        <p className={`text-sm font-semibold ${perfColor(plan.weekPerf)}`}>
+          {plan.weekPerf >= 0 ? "+" : ""}
+          {plan.weekPerf.toFixed(2)}%
+        </p>
+      </div>
+      <div className="rounded-lg border border-border/40 bg-background/50 p-2">
+        <p className="text-[10px] uppercase text-muted-foreground">30-Day</p>
+        <p className={`text-sm font-semibold ${perfColor(plan.monthPerf)}`}>
+          {plan.monthPerf >= 0 ? "+" : ""}
+          {plan.monthPerf.toFixed(2)}%
+        </p>
+      </div>
+    </div>
+    <div className="mt-3 space-y-2">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">Estimated Range</span>
+        <span className="font-medium text-foreground">
+          {plan.perfRange[0]}% – {plan.perfRange[1]}% /day
+        </span>
+      </div>
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">Market Trend</span>
+        <span className={`font-medium ${trendColor(plan.marketTrend)}`}>{plan.marketTrend}</span>
+      </div>
+      <div>
+        <div className="flex items-center justify-between text-xs mb-1">
+          <span className="text-muted-foreground">AI Confidence</span>
+          <span className="font-medium text-foreground">{plan.aiConfidence}%</span>
+        </div>
+        <Progress value={plan.aiConfidence} className="h-1.5" />
+      </div>
+    </div>
+  </div>
+);
+
+const TradingModeSelector = ({
+  mode,
+  onChange,
+  onInfoAuto,
+  onInfoManual,
+}: {
+  mode: TradingMode;
+  onChange: (m: TradingMode) => void;
+  onInfoAuto: () => void;
+  onInfoManual: () => void;
+}) => (
+  <div className="rounded-xl border border-border/50 p-3 bg-background/30">
+    <div className="flex items-center justify-between mb-2">
+      <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+        <Bot className="h-4 w-4 text-primary" />
+        Trading Mode
+      </h4>
+    </div>
+    <div className="grid grid-cols-2 gap-2">
+      <button
+        type="button"
+        onClick={() => onChange("auto")}
+        className={`text-left rounded-lg border p-2.5 text-xs transition-all ${
+          mode === "auto"
+            ? "border-primary bg-primary/10 text-foreground"
+            : "border-border/50 bg-background/40 text-muted-foreground hover:border-primary/40"
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">Automated AI</span>
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              onInfoAuto();
+            }}
+            className="text-[10px] underline text-primary"
+          >
+            info
+          </span>
+        </div>
+        <p className="mt-1 text-[10px] leading-tight">AI engine executes trades for you.</p>
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange("manual")}
+        className={`text-left rounded-lg border p-2.5 text-xs transition-all ${
+          mode === "manual"
+            ? "border-primary bg-primary/10 text-foreground"
+            : "border-border/50 bg-background/40 text-muted-foreground hover:border-primary/40"
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">Manual Signals</span>
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              onInfoManual();
+            }}
+            className="text-[10px] underline text-primary"
+          >
+            info
+          </span>
+        </div>
+        <p className="mt-1 text-[10px] leading-tight">You receive AI signals, execute manually.</p>
+      </button>
+    </div>
+  </div>
+);
+
 
 const Row = ({ label, value, full }: { label: string; value: string; full?: boolean }) => (
   <div className={full ? "col-span-2 flex justify-between" : "flex justify-between"}>
