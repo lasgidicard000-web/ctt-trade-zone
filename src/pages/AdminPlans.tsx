@@ -50,6 +50,7 @@ import {
   Trash2,
   UserPlus,
 } from "lucide-react";
+import { RoiRegulator } from "@/components/admin/RoiRegulator";
 
 type PlanTemplate = {
   id: string;
