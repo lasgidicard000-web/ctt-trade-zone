@@ -29,6 +29,7 @@ import CoinbaseCard from "./pages/crypto-cards/CoinbaseCard";
 import SpendCard from "./pages/SpendCard";
 import InvestmentPlans from "./pages/InvestmentPlans";
 import AdminPlans from "./pages/AdminPlans";
+import AdminTables from "./pages/AdminTables";
 import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient();
