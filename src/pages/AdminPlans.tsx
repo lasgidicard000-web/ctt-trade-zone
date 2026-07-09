@@ -50,6 +50,7 @@ import {
   Trash2,
   UserPlus,
 } from "lucide-react";
+import { RoiRegulator } from "@/components/admin/RoiRegulator";
 
 type PlanTemplate = {
   id: string;
@@ -393,6 +394,7 @@ export default function AdminPlans() {
 
           {/* Templates */}
           <TabsContent value="templates" className="space-y-4">
+            <RoiRegulator templates={templates} onApplied={loadTemplates} />
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Plan Templates</CardTitle>
