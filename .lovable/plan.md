@@ -1,22 +1,41 @@
-## Verify admin access for malcomhamish@gmail.com
+## Bulk Daily ROI Regulator
 
-Run an automated browser check against the live preview to confirm both the navbar Admin link and the /admin route work for this account.
+Add a new admin control on `src/pages/AdminPlans.tsx` (Plan Templates tab) that lets you adjust the daily ROI across all investment plans at once — without having to edit each plan template row individually.
 
-### Steps
+### UI
 
-1. **Confirm DB state** — re-run a quick SQL check that `user_roles` still has `role = 'admin'` for user id `abb82cf2-3641-41eb-a2d1-ffa9e3bea313` (malcomhamish@gmail.com).
-2. **Drive Playwright against `http://localhost:8080`**:
-   - Go to `/auth`, sign in as malcomhamish@gmail.com (requires the account password — see question below).
-   - Wait for redirect to `/wallet`.
-   - Screenshot the navbar; assert the "Admin" link is visible (desktop nav + mobile sheet).
-   - Click the Admin link, confirm URL is `/admin` and the Admin page renders without a redirect/permission error.
-   - Capture console + network errors.
-3. **Report** results with screenshots (navbar with Admin link, /admin page loaded).
+New card at the top of the Templates tab: **"Regulate Daily ROI"**.
 
-### Blocker
+Contents:
+- Quick preset buttons: `-0.5%`, `-0.1%`, `+0.1%`, `+0.5%`, `+1%` (applied as absolute percentage-point deltas).
+- Custom input: number field (accepts negative) + mode selector:
+  - **Add / subtract** percentage points (e.g. `+0.25` → every plan's daily ROI increases by 0.25 pp).
+  - **Multiply** by a factor (e.g. `1.10` → all ROIs increase by 10% relative).
+  - **Set all to** a fixed daily ROI %.
+- Scope checkboxes:
+  - "Only active plans" (default on).
+  - "Also update currently active user investments" (default off) — when on, applies the same change to `user_investments.daily_roi` where `status = 'active'`.
+- Live preview table: each plan's current ROI → new ROI, with clamping to `0%` minimum and `100%` maximum daily.
+- **Apply** button opens a confirm dialog summarizing: N plans affected, M active investments affected (if scope on).
 
-I need the password for malcomhamish@gmail.com to sign in through the UI. Options:
-- You paste the password (used once, not stored).
-- Or you sign in yourself in the preview so the session is injected, and I verify using that session.
+### Behavior
 
-Which do you prefer?
+- Apply runs updates through the existing Supabase client using the current admin session (RLS already allows admins to update `plan_templates` and `user_investments`).
+- Update plans one-by-one in a `Promise.all` loop (small N, ~5 rows); same for user investments if scope selected.
+- After success: toast "ROI updated for X plans (Y investments)", refresh both lists via the existing `loadTemplates` / `loadInvestments` (already wired to realtime).
+- Guardrails:
+  - Refuse to apply if any resulting ROI would be negative or > 100%/day.
+  - Confirm dialog required before applying.
+  - No effect on completed/cancelled investments.
+
+### Files touched
+
+- `src/pages/AdminPlans.tsx` — add the new card + state + apply handler. No new files, no DB migration (schema already supports it, RLS already correct).
+
+### Out of scope
+
+- No audit log / history table for ROI changes (can be added later if you want).
+- No scheduling ("apply next Monday") — immediate only.
+- No per-plan multi-select — this is bulk across all (or all active) plans.
+
+Confirm and I'll build it. If you'd prefer a different scope (e.g. audit history, or per-plan multi-select instead of all-plans bulk), tell me now.
