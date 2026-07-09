@@ -576,6 +576,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_investments: {
+        Row: {
+          amount: number
+          created_at: string
+          daily_roi: number
+          duration_days: number
+          ends_at: string
+          id: string
+          plan_id: string
+          plan_name: string
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          daily_roi: number
+          duration_days: number
+          ends_at: string
+          id?: string
+          plan_id: string
+          plan_name: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          daily_roi?: number
+          duration_days?: number
+          ends_at?: string
+          id?: string
+          plan_id?: string
+          plan_name?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_milestones: {
         Row: {
           completed: boolean

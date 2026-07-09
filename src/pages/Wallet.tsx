@@ -14,6 +14,7 @@ import { RewardsSection } from "@/components/RewardsSection";
 import { WalletAddresses } from "@/components/WalletAddresses";
 import { DepositHistory } from "@/components/DepositHistory";
 import { WalletStatusCard } from "@/components/WalletStatusCard";
+import { ActiveInvestmentCard } from "@/components/ActiveInvestmentCard";
 import { GiftCardApprovalTracker } from "@/components/GiftCardApprovalTracker";
 import { GlobalBankConversion } from "@/components/GlobalBankConversion";
 import { AGCSBCreditBadge } from "@/components/AGCSBCreditBadge";
@@ -679,6 +680,9 @@ const Wallet = () => {
 
         {user && <div className="mb-6"><PriceAlerts user={user} coins={coinPrices} /></div>}
 
+        {/* Active Investment */}
+        {user && <ActiveInvestmentCard userId={user.id} />}
+
         {/* Wallet Status and Activation Requirements */}
         {user && (
           <WalletStatusCard
@@ -686,6 +690,7 @@ const Wallet = () => {
             btcPrice={coinPrices.find(c => c.symbol === 'BTC')?.price || 0}
           />
         )}
+
 
         {user && <AGCSBCreditBadge userId={user.id} />}
         {user && <GiftCardApprovalTracker userId={user.id} />}
