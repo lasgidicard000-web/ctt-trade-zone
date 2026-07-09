@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_transaction_log: {
+        Row: {
+          action: string
+          admin_user_id: string
+          after: Json | null
+          before: Json | null
+          created_at: string
+          id: string
+          reason: string | null
+          target_id: string | null
+          target_table: string
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id: string
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          target_id?: string | null
+          target_table: string
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          target_id?: string | null
+          target_table?: string
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       alert_notifications: {
         Row: {
           actual_price: number
@@ -912,6 +951,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_apply_transaction_action: {
+        Args: { _action: string; _admin_id: string; _payload: Json }
+        Returns: Json
+      }
       admin_list_tables: {
         Args: never
         Returns: {
