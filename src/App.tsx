@@ -30,6 +30,7 @@ import CoinbaseCard from "./pages/crypto-cards/CoinbaseCard";
 import SpendCard from "./pages/SpendCard";
 import InvestmentPlans from "./pages/InvestmentPlans";
 import AdminPlans from "./pages/AdminPlans";
+import AdminRoiAudit from "./pages/AdminRoiAudit";
 import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient();
@@ -74,6 +75,7 @@ const App = () => (
             <Route path="/spend-card" element={<SpendCard />} />
             <Route path="/investment-plans" element={<InvestmentPlans />} />
             <Route path="/admin/plans" element={<AdminPlans />} />
+            <Route path="/admin/roi-audit" element={<AdminRoiAudit />} />
             <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
             <Route path="*" element={<NotFound />} />
           </Route>

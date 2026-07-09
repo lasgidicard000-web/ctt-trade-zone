@@ -355,6 +355,9 @@ const Admin = () => {
             <Button onClick={() => navigate("/admin/plans")} variant="outline" size="sm">
               Plans
             </Button>
+            <Button onClick={() => navigate("/admin/roi-audit")} variant="outline" size="sm">
+              ROI Audit
+            </Button>
             <Button onClick={handleSignOut} variant="outline" size="sm">
               <LogOut className="mr-2 h-4 w-4" />
               Sign Out
