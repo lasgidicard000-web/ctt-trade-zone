@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import Navbar from "@/components/Navbar";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
@@ -33,6 +34,13 @@ import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient();
 
+const Layout = () => (
+  <>
+    <Navbar />
+    <Outlet />
+  </>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -40,33 +48,35 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/redeem" element={<Redeem />} />
-          <Route path="/redemption-history" element={<RedemptionHistory />} />
-          <Route path="/trade" element={<Trade />} />
-          <Route path="/wallet" element={<Wallet />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/simulator" element={<TradingSimulator />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/transactions" element={<TransactionHistory />} />
-          <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
-          <Route path="/admin/redemptions" element={<AdminRedemptions />} />
-          <Route path="/crypto-cards" element={<CryptoCards />} />
-          <Route path="/crypto-cards/nexo" element={<NexoCard />} />
-          <Route path="/crypto-cards/gemini" element={<GeminiCard />} />
-          <Route path="/crypto-cards/binance" element={<BinanceCard />} />
-          <Route path="/crypto-cards/bybit" element={<BybitCard />} />
-          <Route path="/crypto-cards/caltex" element={<CaltexCard />} />
-          <Route path="/crypto-cards/crypto-com" element={<CryptoComCard />} />
-          <Route path="/crypto-cards/mexc" element={<MexcCard />} />
-          <Route path="/crypto-cards/coinbase" element={<CoinbaseCard />} />
-          <Route path="/spend-card" element={<SpendCard />} />
-          <Route path="/investment-plans" element={<InvestmentPlans />} />
-          <Route path="/admin/plans" element={<AdminPlans />} />
-          <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
-          <Route path="*" element={<NotFound />} />
+          <Route element={<Layout />}>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/redeem" element={<Redeem />} />
+            <Route path="/redemption-history" element={<RedemptionHistory />} />
+            <Route path="/trade" element={<Trade />} />
+            <Route path="/wallet" element={<Wallet />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/simulator" element={<TradingSimulator />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/transactions" element={<TransactionHistory />} />
+            <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+            <Route path="/admin/redemptions" element={<AdminRedemptions />} />
+            <Route path="/crypto-cards" element={<CryptoCards />} />
+            <Route path="/crypto-cards/nexo" element={<NexoCard />} />
+            <Route path="/crypto-cards/gemini" element={<GeminiCard />} />
+            <Route path="/crypto-cards/binance" element={<BinanceCard />} />
+            <Route path="/crypto-cards/bybit" element={<BybitCard />} />
+            <Route path="/crypto-cards/caltex" element={<CaltexCard />} />
+            <Route path="/crypto-cards/crypto-com" element={<CryptoComCard />} />
+            <Route path="/crypto-cards/mexc" element={<MexcCard />} />
+            <Route path="/crypto-cards/coinbase" element={<CoinbaseCard />} />
+            <Route path="/spend-card" element={<SpendCard />} />
+            <Route path="/investment-plans" element={<InvestmentPlans />} />
+            <Route path="/admin/plans" element={<AdminPlans />} />
+            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

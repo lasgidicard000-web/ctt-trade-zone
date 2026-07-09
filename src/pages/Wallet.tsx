@@ -53,7 +53,7 @@ const Wallet = () => {
   
   // Enable real-time transaction notifications
   useTransactionNotifications(user);
-  const [isAdmin, setIsAdmin] = useState(false);
+  
   const [tradeDialogOpen, setTradeDialogOpen] = useState(false);
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [selectedCoin, setSelectedCoin] = useState<string>('');
@@ -171,18 +171,6 @@ const Wallet = () => {
   }, [toast]);
 
   const fetchData = async () => {
-    // Check if user is admin
-    if (user?.id) {
-      const { data: roleData } = await supabase
-        .from("user_roles" as any)
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      
-      setIsAdmin(!!roleData);
-    }
-
     // Fetch user wallet balances
     const { data: balances, error: balancesError } = await supabase
       .from("wallet_balances")
@@ -633,12 +621,6 @@ const Wallet = () => {
               <MessageCircle className="mr-2 h-4 w-4" />
               AI Advisor
             </Button>
-            {isAdmin && (
-              <Button onClick={() => navigate("/admin")} variant="default" size="sm">
-                <Shield className="mr-2 h-4 w-4" />
-                Admin Panel
-              </Button>
-            )}
             <Button onClick={handleSignOut} variant="outline" size="sm">
               <LogOut className="mr-2 h-4 w-4" />
               Sign Out
