@@ -1,51 +1,26 @@
-# Admin ROI Audit Page
+## Why debit/credit is failing
 
-Add a read-only page that shows the history of ROI regulation actions logged in `roi_regulation_log`.
+The `admin-transactions` edge function logs show every call rejected with `Error: not authenticated` at line 32 (`auth.getUser()`). That's why the Manual Balance Adjustment (and every Edit / Set-status / Reverse / Delete action in Admin Transactions) fails — the request never gets past the auth check to run `admin_apply_transaction_action`.
 
-## UI
+Root cause: the function builds a Supabase client with `SUPABASE_ANON_KEY` and forwards the browser's `Authorization` header to `auth.getUser()`. On this project the anon/publishable + signing-keys setup means that legacy path doesn't validate the JWT reliably from inside the function, so `getUser()` returns no user and we throw.
 
-New route `/admin/roi-audit` (page `src/pages/AdminRoiAudit.tsx`), gated by admin role like other admin pages.
+## Fix plan
 
-Layout:
+1. **Rewrite auth in `supabase/functions/admin-transactions/index.ts`:**
+   - Strip the `Bearer ` prefix from the incoming `Authorization` header to get the raw access token.
+   - Build the admin (service role) client first, then call `admin.auth.getUser(token)` to resolve the user from the token directly — this is the pattern that works with signing keys and doesn't depend on the anon client.
+   - Keep the `has_role(user.id, 'admin')` check and the rest of the flow unchanged.
+   - Return a 401 (instead of 400) with a clear message when the token is missing/invalid, so the UI toast is accurate.
 
-```text
-[ Header: ROI Regulation Audit | Refresh | Export CSV ]
-[ Filters: date range | mode (delta/multiply/set) | propagate yes/no ]
-[ Table:
-  Timestamp | Admin email | Mode | Value | Scope (active only) |
-  Plans updated | Investments updated | Propagated | Details ▸
-]
-[ Expandable row → JSON diff of `changes` (plan name, oldRoi → newRoi) ]
-```
+2. **Redeploy the `admin-transactions` edge function** and re-test:
+   - Manual Balance Adjustment (credit + debit)
+   - Edit amount/hash/notes, Set status, Reverse, Delete from `/admin/transactions`
 
-- Empty state when no rows.
-- Newest first, paginated (25/page).
-- Click a row to expand and see the per-plan `changes` array in a readable list, not raw JSON.
+3. **No database, RLS, or frontend changes.** The SQL function, grants, and client `supabase.functions.invoke(...)` calls are already correct — this is purely an edge-function auth bug.
 
-## Data
+### Files touched
+- `supabase/functions/admin-transactions/index.ts` (edit)
 
-Read from existing `roi_regulation_log` (already populated by `regulate_daily_roi`). Columns used: `created_at`, `admin_user_id`, `mode`, `value`, `active_only`, `propagate`, `plans_updated`, `investments_updated`, `changes`.
-
-Admin email is not stored on the log. Two options — I'll go with **A** unless you prefer B:
-
-- **A (default):** New edge function `admin-roi-audit` (JWT + `has_role(admin)` gate) that joins log rows to `auth.users.email` server-side and returns the enriched list. Keeps `auth.users` off the client.
-- B: Add `admin_email` column to `roi_regulation_log` and backfill; simpler client, schema change.
-
-## Navigation
-
-- Add a "ROI Audit" link/tab in `src/pages/Admin.tsx` next to the existing ROI regulator, linking to `/admin/roi-audit`.
-- Register the route in `src/App.tsx`.
-
-## Files
-
-- **New:** `src/pages/AdminRoiAudit.tsx`
-- **New:** `supabase/functions/admin-roi-audit/index.ts` (option A)
-- **Edited:** `src/App.tsx` — add route
-- **Edited:** `src/pages/Admin.tsx` — add link to audit page
-
-## Out of scope
-
-- Editing/deleting log entries (audit is immutable).
-- Reverting a past ROI regulation (separate feature).
-
-Confirm and I'll build it.
+### Out of scope
+- Any UI/UX changes to the Admin Transactions page.
+- Changes to `admin-roi-audit` or other edge functions (they use their own auth code and aren't reporting this error).
