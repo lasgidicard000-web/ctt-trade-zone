@@ -1,50 +1,58 @@
 ## Goal
-Show each user's **currently running investment** on their dashboard (Wallet page), so they can see which plan they're on, how much they invested, days elapsed / remaining, and accrued profit.
+Give admins a single place to (1) manage recruit plan templates and (2) assign plans to users.
 
-## What needs to change
-
-### 1. New table: `user_investments`
-Tracks an activated plan per user.
-
-Columns (domain-specific):
-- `plan_id` — one of `recruit`, `inspectors`, `superintendent`, `commissioners`, `general`
-- `plan_name`
-- `amount` — USD principal
-- `daily_roi` — numeric (e.g. 0.01 for 1%)
+## 1. New table: `plan_templates`
+Columns:
+- `name` (e.g. "Recruit Plan", "Inspectors Plan")
+- `coin` — payout/deposit coin: `BTC` | `ETH` | `USDT` | `USDC` | `BNB` | `SOL`
+- `principal_min`, `principal_max` — allowed principal range (USD)
+- `daily_roi` — e.g. `0.01` for 1% / day
 - `duration_days`
-- `status` — `active` | `completed` | `cancelled`
-- `started_at`, `ends_at`
+- `is_active` — inactive plans hidden from assignment dropdowns but preserved on existing investments
+- `sort_order`, `description`
 
-Access rules:
-- Users can view their own active investments.
-- Users cannot create/edit directly — only admins can (activation happens after admin verifies deposit, same pattern as manual deposits).
-- Admins can view, create, update, delete any.
+Access:
+- Anyone authenticated can read active templates (used by `/investment-plans`).
+- Only admins can insert / update / delete.
 
-### 2. Admin activation UI
-In `AdminDepositManagement` (or a new small section next to it), add an "Activate plan" action per user: pick plan + amount + start date → inserts a row into `user_investments`.
+Seed the 5 existing tiers (Recruit, Inspectors, Superintendent, Commissioners, General) so nothing regresses.
 
-### 3. Dashboard card: `ActiveInvestmentCard`
-New component shown on the Wallet page (top of the page, above balances).
+## 2. Link `user_investments` → `plan_templates`
+Add nullable `template_id uuid references plan_templates(id)`. Keep existing `plan_id` / `plan_name` / `daily_roi` / `duration_days` columns as a snapshot so past investments stay correct if a template is edited later.
 
-Shows for each active investment:
-- Plan name + tier badge (Bronze/Silver/Gold/…)
-- Principal invested (e.g. `$200.00`)
-- Live accrued profit = `principal × daily_roi × days_elapsed` (ticks every second)
-- Progress bar: `days_elapsed / duration_days`
-- Days remaining + end date
-- "Running" status pill with a pulsing dot
+## 3. Admin page: `/admin/plans`
+New route, admin-guarded (same pattern as `/admin`). Two tabs:
 
-If no active investment → small empty state with a link to `/investment-plans`.
+### Tab A — Plan Templates
+Table: Name · Coin · Principal range · Daily ROI · Duration · Status · Actions.
+- "New plan" button → dialog (name, coin select, min/max principal, daily ROI %, duration days, active toggle, description).
+- Row actions: Edit, Toggle active/inactive, Delete (confirm; blocked with toast if any `user_investments` reference it — offer deactivate instead).
 
-### 4. Jeremy Element seed
-After the table exists, insert one active `Recruit Plan` row for Jeremy: `amount=200`, `daily_roi=0.01`, `duration_days=30`, `started_at=now()`. This matches the earlier $200 BTC approval so his dashboard immediately shows the running investment.
+### Tab B — User Assignments
+Table of all `user_investments` joined with profile display name: User · Plan · Principal · Daily ROI · Started · Ends · Status · Actions.
+- "Assign plan" button → dialog:
+  - User search (reuses profile lookup pattern from `AdminUserManagement`)
+  - Plan template select (active only) — auto-fills coin/ROI/duration
+  - Principal amount (validated against template min/max)
+  - Start date (shadcn date picker, defaults today) → `ends_at` computed
+  - Submit inserts a row into `user_investments` with snapshotted fields + `template_id`.
+- Row actions: mark Completed, Cancel, Delete.
+
+Add "Plans" link to the existing admin nav.
+
+## 4. Deposit approval integration
+In `AdminDepositManagement`, when approving a deposit add an optional "Also activate a plan" section: plan template select + principal (prefilled with deposit amount). On approve, if selected, insert the matching `user_investments` row in the same action.
+
+## 5. UX / realtime
+- Realtime subscription on `plan_templates` and `user_investments` so the admin page updates live.
+- `/investment-plans` (user-facing) switches to read from `plan_templates` instead of hardcoded array so admin edits show up immediately.
+- `ActiveInvestmentCard` unchanged — it already reads from `user_investments`.
 
 ## Technical notes
-- Table lives in `public.user_investments`, RLS enabled, GRANTs for `authenticated` (select) and `service_role` (all). No `anon` access.
-- Compute accrued profit client-side from `started_at` + `daily_roi` — no cron needed for display.
-- Wallet page fetches with `.eq('user_id', user.id).eq('status','active')`.
-- Realtime subscription so admin activation appears instantly on the user's dashboard.
+- Migration: `CREATE TABLE public.plan_templates`, GRANTs for `authenticated` (select) and `service_role` (all), RLS with `has_role(auth.uid(),'admin')` for write, `is_active = true` for public select. `ALTER TABLE user_investments ADD COLUMN template_id uuid REFERENCES plan_templates(id)`. Update trigger for `updated_at`. Seed 5 tiers.
+- Files: `src/pages/AdminPlans.tsx`, `src/components/admin/PlanTemplatesTable.tsx`, `src/components/admin/PlanTemplateDialog.tsx`, `src/components/admin/UserInvestmentsTable.tsx`, `src/components/admin/AssignPlanDialog.tsx`. Route in `App.tsx`. Small edit to `AdminDepositManagement.tsx` and `InvestmentPlans.tsx`.
+- All admin mutations gated by `has_role` RLS — no client-side trust.
 
 ## Out of scope
-- Auto-payout / auto-completion when `ends_at` passes (can be added later via edge function).
-- Withdrawing profit from an investment (existing withdrawal flow stays as-is).
+- Auto-payout when `ends_at` passes.
+- Editing an already-assigned investment's principal/ROI (admin can cancel + reassign).
