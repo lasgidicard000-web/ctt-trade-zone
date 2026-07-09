@@ -53,7 +53,7 @@ const Wallet = () => {
   
   // Enable real-time transaction notifications
   useTransactionNotifications(user);
-  const [isAdmin, setIsAdmin] = useState(false);
+  
   const [tradeDialogOpen, setTradeDialogOpen] = useState(false);
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [selectedCoin, setSelectedCoin] = useState<string>('');
