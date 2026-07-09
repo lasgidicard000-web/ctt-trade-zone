@@ -80,7 +80,7 @@ const Auth = () => {
 
     setLoading(true);
     
-    const redirectUrl = `${window.location.origin}/wallet`;
+    const redirectUrl = `${window.location.origin}${safeNext}`;
     
     const { error } = await supabase.auth.signUp({
       email,
