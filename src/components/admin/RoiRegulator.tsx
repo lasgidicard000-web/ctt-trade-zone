@@ -109,51 +109,34 @@ export function RoiRegulator({ templates, onApplied }: Props) {
   const apply = async () => {
     setSaving(true);
     try {
-      // Update plan templates
-      const results = await Promise.all(
-        preview.map((p) =>
-          supabase
-            .from("plan_templates")
-            .update({ daily_roi: p.next })
-            .eq("id", p.id)
-        )
+      const { data, error } = await supabase.functions.invoke(
+        "admin-regulate-roi",
+        {
+          body: {
+            mode,
+            value: numericValue,
+            activeOnly,
+            propagateToActive: propagate,
+          },
+        }
       );
-      const failed = results.find((r) => r.error);
-      if (failed?.error) throw failed.error;
-
-      let investmentsUpdated = 0;
-      if (propagate) {
-        // Update matching active user_investments per template
-        const invResults = await Promise.all(
-          preview
-            .filter((p) => Math.abs(p.next - p.daily_roi) > 1e-9)
-            .map((p) =>
-              supabase
-                .from("user_investments")
-                .update({ daily_roi: p.next })
-                .eq("template_id", p.id)
-                .eq("status", "active")
-                .select("id")
-            )
-        );
-        const invFailed = invResults.find((r) => r.error);
-        if (invFailed?.error) throw invFailed.error;
-        investmentsUpdated = invResults.reduce(
-          (sum, r) => sum + (r.data?.length ?? 0),
-          0
-        );
-      }
+      if (error) throw error;
+      const plansUpdated = (data as any)?.plansUpdated ?? 0;
+      const investmentsUpdated = (data as any)?.investmentsUpdated ?? 0;
 
       toast({
         title: "ROI updated",
-        description: `${preview.length} plan${preview.length === 1 ? "" : "s"}${
-          propagate ? ` · ${investmentsUpdated} active investment${investmentsUpdated === 1 ? "" : "s"}` : ""
+        description: `${plansUpdated} plan${plansUpdated === 1 ? "" : "s"}${
+          propagate
+            ? ` · ${investmentsUpdated} active investment${investmentsUpdated === 1 ? "" : "s"}`
+            : ""
         }`,
       });
       setConfirmOpen(false);
       setValue("");
       onApplied?.();
     } catch (e: any) {
+
       toast({
         title: "Update failed",
         description: e.message ?? "Unknown error",
