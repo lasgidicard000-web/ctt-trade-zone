@@ -1,37 +1,22 @@
-## Goal
-Give admins a dedicated, obvious way to grant and revoke the **admin** role from the User Management tab in the Admin Panel.
+## Verify admin access for malcomhamish@gmail.com
 
-## What exists today
-The Admin Panel already has a "User Management" tab (`src/components/AdminUserManagement.tsx`) that lists profiles and lets you add/remove any role via dialogs. It works but:
-- The admin action is buried behind a generic "Add Role" → select → confirm flow.
-- You can only search by display name or partial user id — no email lookup.
-- There's no clear visual distinction for who is currently an admin.
+Run an automated browser check against the live preview to confirm both the navbar Admin link and the /admin route work for this account.
 
-## Changes
+### Steps
 
-### 1. Dedicated "Grant/Revoke Admin" control
-In `AdminUserManagement.tsx`, add a prominent per-row action:
-- If the user is NOT an admin → **"Make Admin"** button (shield icon, primary style).
-- If the user IS an admin → **"Revoke Admin"** button (destructive style).
-- Clicking opens a small confirm dialog naming the user and the action.
-- Keep the existing generic Add/Remove Role controls for moderator/user roles (secondary placement).
-- Preserve the existing safeguard: an admin cannot revoke their own admin role (button disabled with tooltip).
+1. **Confirm DB state** — re-run a quick SQL check that `user_roles` still has `role = 'admin'` for user id `abb82cf2-3641-41eb-a2d1-ffa9e3bea313` (malcomhamish@gmail.com).
+2. **Drive Playwright against `http://localhost:8080`**:
+   - Go to `/auth`, sign in as malcomhamish@gmail.com (requires the account password — see question below).
+   - Wait for redirect to `/wallet`.
+   - Screenshot the navbar; assert the "Admin" link is visible (desktop nav + mobile sheet).
+   - Click the Admin link, confirm URL is `/admin` and the Admin page renders without a redirect/permission error.
+   - Capture console + network errors.
+3. **Report** results with screenshots (navbar with Admin link, /admin page loaded).
 
-### 2. Better identification of users
-- Add an **Admin** column/badge so admins are visually distinct at a glance.
-- Add a filter toggle: **All / Admins only**.
-- Extend search to also match email. Because `profiles` does not store email, add a small Edge Function `admin-list-users` (service-role) that returns `{ user_id, email, display_name, is_admin }` for all users. The tab will call this function instead of querying `profiles` + `user_roles` directly. Access is gated by `has_role(auth.uid(), 'admin')` inside the function.
+### Blocker
 
-### 3. Navigation
-The Admin tab is already reachable from the navbar for admins. No routing changes; this remains inside `/admin` under the "User Management" tab. Optionally surface a shortcut card on the Admin landing that deep-links to that tab.
+I need the password for malcomhamish@gmail.com to sign in through the UI. Options:
+- You paste the password (used once, not stored).
+- Or you sign in yourself in the preview so the session is injected, and I verify using that session.
 
-## Technical notes
-- New Edge Function: `supabase/functions/admin-list-users/index.ts` — verifies caller is admin, then uses `supabase.auth.admin.listUsers()` + a join on `user_roles` to return the enriched list. No DB migration needed.
-- Grant/revoke still writes directly to `public.user_roles` via the client (existing RLS policies already allow admins to manage roles).
-- React Query cache key `usersWithRoles` is invalidated after each mutation so the UI reflects role changes immediately.
-- No schema changes, no new dependencies.
-
-## Out of scope
-- Creating/deleting user accounts.
-- Editing profile fields (display name, avatar, etc.).
-- Bulk role operations.
+Which do you prefer?
