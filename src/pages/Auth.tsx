@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,19 @@ import type { User, Session } from "@supabase/supabase-js";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+
+  // Preserve a same-origin ?next=... so OAuth consent (and other deep links)
+  // return the user to where they came from after sign-in/sign-up.
+  const rawNext = searchParams.get("next");
+  const safeNext =
+    rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")
+      ? rawNext
+      : "/wallet";
 
   // Email/password state
   const [email, setEmail] = useState("");
@@ -28,9 +37,9 @@ const Auth = () => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
-          navigate("/wallet");
+          navigate(safeNext);
         }
       }
     );
@@ -39,14 +48,14 @@ const Auth = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
-        navigate("/wallet");
+        navigate(safeNext);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, safeNext]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
