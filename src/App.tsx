@@ -28,6 +28,7 @@ import MexcCard from "./pages/crypto-cards/MexcCard";
 import CoinbaseCard from "./pages/crypto-cards/CoinbaseCard";
 import SpendCard from "./pages/SpendCard";
 import InvestmentPlans from "./pages/InvestmentPlans";
+import AdminPlans from "./pages/AdminPlans";
 import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient();
@@ -63,6 +64,7 @@ const App = () => (
           <Route path="/crypto-cards/coinbase" element={<CoinbaseCard />} />
           <Route path="/spend-card" element={<SpendCard />} />
           <Route path="/investment-plans" element={<InvestmentPlans />} />
+          <Route path="/admin/plans" element={<AdminPlans />} />
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
