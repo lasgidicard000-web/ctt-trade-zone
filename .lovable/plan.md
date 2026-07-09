@@ -1,26 +1,50 @@
 ## Goal
-Credit Jeremy Element's account with $200 worth of BTC so his dashboard shows the activation deposit as received.
+Show each user's **currently running investment** on their dashboard (Wallet page), so they can see which plan they're on, how much they invested, days elapsed / remaining, and accrued profit.
 
-## Steps
+## What needs to change
 
-1. **Locate Jeremy's user account** — Query `profiles` + `auth.users` for the most recent signup matching "Jeremy Element" to get his `user_id`.
+### 1. New table: `user_investments`
+Tracks an activated plan per user.
 
-2. **Compute BTC amount** — Read the current BTC price from `coin_prices` and calculate `200 / btc_price` (e.g. ~0.00175 BTC at $114k).
+Columns (domain-specific):
+- `plan_id` — one of `recruit`, `inspectors`, `superintendent`, `commissioners`, `general`
+- `plan_name`
+- `amount` — USD principal
+- `daily_roi` — numeric (e.g. 0.01 for 1%)
+- `duration_days`
+- `status` — `active` | `completed` | `cancelled`
+- `started_at`, `ends_at`
 
-3. **Update `wallet_balances`** — Upsert a row for `(user_id, coin_symbol='BTC')` adding the computed BTC amount to his existing balance.
+Access rules:
+- Users can view their own active investments.
+- Users cannot create/edit directly — only admins can (activation happens after admin verifies deposit, same pattern as manual deposits).
+- Admins can view, create, update, delete any.
 
-4. **Insert a `deposit_history` record** — Add a confirmed deposit entry:
-   - `coin_symbol`: BTC
-   - `wallet_address`: `bc1q76qphckpcegrj3qc5y57qr4vvs8p9hprlypsrk`
-   - `amount`: computed BTC amount
-   - `confirmation_status`: `confirmed`
-   - `confirmations`: 6
-   - `confirmed_at`: now()
-   - `notes`: "Manual admin credit — $200 activation deposit"
+### 2. Admin activation UI
+In `AdminDepositManagement` (or a new small section next to it), add an "Activate plan" action per user: pick plan + amount + start date → inserts a row into `user_investments`.
 
-5. **Insert a `transactions` record** — Type `deposit`, amount 200 (USD equivalent), status `completed`, so it appears in his transaction history.
+### 3. Dashboard card: `ActiveInvestmentCard`
+New component shown on the Wallet page (top of the page, above balances).
 
-## Result
-Jeremy's dashboard will show the BTC balance credited, wallet status flips to ACTIVE (≥$200 BTC threshold met per `WalletStatusCard`), and the deposit appears in his Deposit History and Transaction History.
+Shows for each active investment:
+- Plan name + tier badge (Bronze/Silver/Gold/…)
+- Principal invested (e.g. `$200.00`)
+- Live accrued profit = `principal × daily_roi × days_elapsed` (ticks every second)
+- Progress bar: `days_elapsed / duration_days`
+- Days remaining + end date
+- "Running" status pill with a pulsing dot
 
-No code or schema changes — data-only inserts/updates against existing tables.
+If no active investment → small empty state with a link to `/investment-plans`.
+
+### 4. Jeremy Element seed
+After the table exists, insert one active `Recruit Plan` row for Jeremy: `amount=200`, `daily_roi=0.01`, `duration_days=30`, `started_at=now()`. This matches the earlier $200 BTC approval so his dashboard immediately shows the running investment.
+
+## Technical notes
+- Table lives in `public.user_investments`, RLS enabled, GRANTs for `authenticated` (select) and `service_role` (all). No `anon` access.
+- Compute accrued profit client-side from `started_at` + `daily_roi` — no cron needed for display.
+- Wallet page fetches with `.eq('user_id', user.id).eq('status','active')`.
+- Realtime subscription so admin activation appears instantly on the user's dashboard.
+
+## Out of scope
+- Auto-payout / auto-completion when `ends_at` passes (can be added later via edge function).
+- Withdrawing profit from an investment (existing withdrawal flow stays as-is).
