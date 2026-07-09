@@ -348,6 +348,51 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_templates: {
+        Row: {
+          coin: string
+          created_at: string
+          daily_roi: number
+          description: string | null
+          duration_days: number
+          id: string
+          is_active: boolean
+          name: string
+          principal_max: number
+          principal_min: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          coin?: string
+          created_at?: string
+          daily_roi?: number
+          description?: string | null
+          duration_days?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          principal_max?: number
+          principal_min?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          coin?: string
+          created_at?: string
+          daily_roi?: number
+          description?: string | null
+          duration_days?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          principal_max?: number
+          principal_min?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       portfolio_snapshots: {
         Row: {
           balances: Json
@@ -588,6 +633,7 @@ export type Database = {
           plan_name: string
           started_at: string
           status: string
+          template_id: string | null
           updated_at: string
           user_id: string
         }
@@ -602,6 +648,7 @@ export type Database = {
           plan_name: string
           started_at?: string
           status?: string
+          template_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -616,10 +663,19 @@ export type Database = {
           plan_name?: string
           started_at?: string
           status?: string
+          template_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_investments_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "plan_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_milestones: {
         Row: {
