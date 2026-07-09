@@ -350,10 +350,15 @@ const Admin = () => {
             <h1 className="mb-2 text-4xl font-bold">Admin Panel</h1>
             <p className="text-muted-foreground">Manage coin prices and view transactions</p>
           </div>
-          <Button onClick={handleSignOut} variant="outline" size="sm">
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => navigate("/admin/plans")} variant="outline" size="sm">
+              Plans
+            </Button>
+            <Button onClick={handleSignOut} variant="outline" size="sm">
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="prices" className="w-full">
