@@ -4,7 +4,7 @@ import QRCode from "qrcode";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wallet as WalletIcon, TrendingUp, TrendingDown, LogOut, Shield, MessageCircle, Gamepad2, ShoppingCart, Coins, Plus, Trophy, Radio, FileText } from "lucide-react";
+import { Wallet as WalletIcon, TrendingUp, TrendingDown, LogOut, MessageCircle, Gamepad2, ShoppingCart, Coins, Plus, Trophy, Radio, FileText } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import type { User, Session } from "@supabase/supabase-js";
