@@ -171,18 +171,6 @@ const Wallet = () => {
   }, [toast]);
 
   const fetchData = async () => {
-    // Check if user is admin
-    if (user?.id) {
-      const { data: roleData } = await supabase
-        .from("user_roles" as any)
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      
-      setIsAdmin(!!roleData);
-    }
-
     // Fetch user wallet balances
     const { data: balances, error: balancesError } = await supabase
       .from("wallet_balances")
