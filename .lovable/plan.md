@@ -1,41 +1,65 @@
-## Bulk Daily ROI Regulator
+## Secure Admin ROI Regulation Endpoint
 
-Add a new admin control on `src/pages/AdminPlans.tsx` (Plan Templates tab) that lets you adjust the daily ROI across all investment plans at once — without having to edit each plan template row individually.
+Replace the client-side multi-update loop currently used by `RoiRegulator` with a single admin-only edge function that applies ROI changes atomically in one DB transaction.
 
-### UI
+### Why
 
-New card at the top of the Templates tab: **"Regulate Daily ROI"**.
+Today the component fires N `UPDATE` statements from the browser via the anon-key client. Each row change is a separate request, so a mid-way failure leaves plans in a mixed state, and the operation relies purely on RLS (`has_role(auth.uid(),'admin')`) — with no server-side audit trail or invariant checks.
 
-Contents:
-- Quick preset buttons: `-0.5%`, `-0.1%`, `+0.1%`, `+0.5%`, `+1%` (applied as absolute percentage-point deltas).
-- Custom input: number field (accepts negative) + mode selector:
-  - **Add / subtract** percentage points (e.g. `+0.25` → every plan's daily ROI increases by 0.25 pp).
-  - **Multiply** by a factor (e.g. `1.10` → all ROIs increase by 10% relative).
-  - **Set all to** a fixed daily ROI %.
-- Scope checkboxes:
-  - "Only active plans" (default on).
-  - "Also update currently active user investments" (default off) — when on, applies the same change to `user_investments.daily_roi` where `status = 'active'`.
-- Live preview table: each plan's current ROI → new ROI, with clamping to `0%` minimum and `100%` maximum daily.
-- **Apply** button opens a confirm dialog summarizing: N plans affected, M active investments affected (if scope on).
+### New edge function: `admin-regulate-roi`
 
-### Behavior
+Path: `supabase/functions/admin-regulate-roi/index.ts`
+- CORS + OPTIONS handler using `npm:@supabase/supabase-js@2/cors`.
+- JWT validation via `getClaims(token)` (default `verify_jwt=false`, checked in code).
+- Server-side admin check by calling the existing `has_role(_user_id, _role)` function with the service-role client. Non-admins → 403.
+- Zod validation of body:
+  ```ts
+  { mode: "delta" | "multiply" | "set",
+    value: number,
+    activeOnly: boolean,
+    propagateToActive: boolean }
+  ```
+- Atomic apply via a new SECURITY DEFINER Postgres function `public.regulate_daily_roi(...)` (see migration below) invoked with `supabase.rpc(...)`. All plan + investment updates happen in one transaction; on any error the whole thing rolls back.
+- Response: `{ plansUpdated, investmentsUpdated, changes: [{id, name, oldRoi, newRoi}] }`.
+- All responses (success + error) include `corsHeaders`.
 
-- Apply runs updates through the existing Supabase client using the current admin session (RLS already allows admins to update `plan_templates` and `user_investments`).
-- Update plans one-by-one in a `Promise.all` loop (small N, ~5 rows); same for user investments if scope selected.
-- After success: toast "ROI updated for X plans (Y investments)", refresh both lists via the existing `loadTemplates` / `loadInvestments` (already wired to realtime).
-- Guardrails:
-  - Refuse to apply if any resulting ROI would be negative or > 100%/day.
-  - Confirm dialog required before applying.
-  - No effect on completed/cancelled investments.
+### DB migration
+
+New security-definer function `public.regulate_daily_roi(_mode text, _value numeric, _active_only boolean, _propagate boolean)`:
+- `SECURITY DEFINER`, `SET search_path = public`.
+- Re-checks `public.has_role(auth.uid(), 'admin')` — raises `exception 'not authorized'` otherwise (defense in depth even though the edge function already gates).
+- Computes each plan's new ROI according to mode.
+- Enforces invariants: `new_roi >= 0 AND new_roi <= 1`; raises on violation → aborts the whole transaction.
+- Updates `plan_templates.daily_roi` for scoped rows.
+- If `_propagate`, updates `user_investments.daily_roi` where `status='active'` and `template_id` in the scoped set.
+- Returns JSON `{ plans_updated, investments_updated, changes }`.
+- `GRANT EXECUTE ... TO authenticated;` so the JWT-scoped edge function call carries admin identity.
+
+New audit table `public.roi_regulation_log` (small, admin-only):
+- Columns (domain-specific): `admin_user_id`, `mode`, `value`, `active_only`, `propagate`, `plans_updated`, `investments_updated`, `changes` (jsonb).
+- Standard `id`, `created_at`.
+- GRANTs: `SELECT` to `authenticated` (readable by admins via policy), `ALL` to `service_role`.
+- RLS enabled. Policies: `SELECT` for `has_role(auth.uid(),'admin')`; `INSERT` only via the security-definer function (no direct client insert policy).
+- The `regulate_daily_roi` function inserts one row per successful invocation.
+
+### Frontend changes (`src/components/admin/RoiRegulator.tsx`)
+
+- Replace the two `Promise.all` update loops with a single `supabase.functions.invoke("admin-regulate-roi", { body: {...} })` call.
+- Use the response's `plansUpdated` / `investmentsUpdated` in the success toast.
+- Keep the existing preview UI, presets, confirm dialog, and 0–100% client-side guardrails (server also enforces).
+- No change to how templates list is refreshed (realtime + `onApplied`).
 
 ### Files touched
 
-- `src/pages/AdminPlans.tsx` — add the new card + state + apply handler. No new files, no DB migration (schema already supports it, RLS already correct).
+- New: `supabase/functions/admin-regulate-roi/index.ts`
+- New migration: adds `regulate_daily_roi` function + `roi_regulation_log` table with grants, RLS, policies.
+- Edited: `src/components/admin/RoiRegulator.tsx` — swap direct DB writes for edge-function call.
+- No changes to `AdminPlans.tsx`, `supabase/config.toml`, or other components.
 
 ### Out of scope
 
-- No audit log / history table for ROI changes (can be added later if you want).
-- No scheduling ("apply next Monday") — immediate only.
-- No per-plan multi-select — this is bulk across all (or all active) plans.
+- No UI to browse the audit log (data is captured; a viewer can come later).
+- No scheduled/deferred application.
+- No changes to per-plan edit dialogs — those keep writing directly (already admin-gated by RLS).
 
-Confirm and I'll build it. If you'd prefer a different scope (e.g. audit history, or per-plan multi-select instead of all-plans bulk), tell me now.
+Approve and I'll implement.
