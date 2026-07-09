@@ -621,12 +621,6 @@ const Wallet = () => {
               <MessageCircle className="mr-2 h-4 w-4" />
               AI Advisor
             </Button>
-            {isAdmin && (
-              <Button onClick={() => navigate("/admin")} variant="default" size="sm">
-                <Shield className="mr-2 h-4 w-4" />
-                Admin Panel
-              </Button>
-            )}
             <Button onClick={handleSignOut} variant="outline" size="sm">
               <LogOut className="mr-2 h-4 w-4" />
               Sign Out
