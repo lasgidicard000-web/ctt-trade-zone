@@ -935,6 +935,7 @@ export type Database = {
       regulate_daily_roi: {
         Args: {
           _active_only: boolean
+          _admin_id: string
           _mode: string
           _propagate: boolean
           _value: number
