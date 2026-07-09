@@ -1,42 +1,58 @@
-## Admin Table Viewer
+## Goal
+Give admins a single place to (1) manage recruit plan templates and (2) assign plans to users.
 
-A new admin-only page inside the app that lists every table in the `public` schema and lets admins browse and edit rows — like a lightweight Supabase Table Editor built into your app.
+## 1. New table: `plan_templates`
+Columns:
+- `name` (e.g. "Recruit Plan", "Inspectors Plan")
+- `coin` — payout/deposit coin: `BTC` | `ETH` | `USDT` | `USDC` | `BNB` | `SOL`
+- `principal_min`, `principal_max` — allowed principal range (USD)
+- `daily_roi` — e.g. `0.01` for 1% / day
+- `duration_days`
+- `is_active` — inactive plans hidden from assignment dropdowns but preserved on existing investments
+- `sort_order`, `description`
 
-### Access
-- Route: `/admin/tables`
-- Gated by existing `has_role(auth.uid(), 'admin')`. Non-admins get redirected.
-- Link added inside the existing Admin navigation area (not the public navbar).
+Access:
+- Anyone authenticated can read active templates (used by `/investment-plans`).
+- Only admins can insert / update / delete.
 
-### Layout
-- Left sidebar: alphabetical list of all `public` tables (auto-discovered), with a filter box.
-- Main area: selected table shown as a data grid.
-  - Column headers with type hints (text, uuid, int, jsonb, timestamp, bool).
-  - Pagination (50 rows/page) with page number + total count.
-  - Sort by any column (asc/desc).
-  - Simple per-column filter row (equals / contains / is null).
-  - Refresh button.
+Seed the 5 existing tiers (Recruit, Inspectors, Superintendent, Commissioners, General) so nothing regresses.
 
-### Editing
-- **Edit row**: click a row → side drawer with a form field per column. Primary key and `created_at` are read-only. `updated_at` auto-updates via existing triggers where present.
-- **Insert row**: "New row" button opens the same drawer empty; nullable/default columns can be left blank.
-- **Delete row**: row action with a typed confirmation ("delete") to avoid accidents.
-- JSON/JSONB columns edited in a monospace textarea with parse validation.
-- All writes go through the standard Supabase JS client, so **existing RLS policies apply**. Admins already have broad policies on most tables via `has_role`; anything the policies forbid will surface as an error toast — no policy changes in this plan.
+## 2. Link `user_investments` → `plan_templates`
+Add nullable `template_id uuid references plan_templates(id)`. Keep existing `plan_id` / `plan_name` / `daily_roi` / `duration_days` columns as a snapshot so past investments stay correct if a template is edited later.
 
-### How table discovery works
-- A new SECURITY DEFINER RPC `admin_list_tables()` returns table names + columns (name, data_type, is_nullable, is_identity, default) from `information_schema`, filtered to schema `public`. The function itself checks `has_role(auth.uid(), 'admin')` and returns empty otherwise. No `information_schema` exposure to non-admins.
-- No new tables. No policy changes. One new function + grant to `authenticated`.
+## 3. Admin page: `/admin/plans`
+New route, admin-guarded (same pattern as `/admin`). Two tabs:
 
-### Out of scope (say if you want them added)
-- Custom SQL runner
-- Audit log of admin edits
-- Foreign-key aware pickers (you'll edit FK columns as raw UUIDs/text)
-- Bulk import/export from this page (use existing Cloud export for full dumps)
+### Tab A — Plan Templates
+Table: Name · Coin · Principal range · Daily ROI · Duration · Status · Actions.
+- "New plan" button → dialog (name, coin select, min/max principal, daily ROI %, duration days, active toggle, description).
+- Row actions: Edit, Toggle active/inactive, Delete (confirm; blocked with toast if any `user_investments` reference it — offer deactivate instead).
 
-### Files (technical)
-- Migration: `admin_list_tables()` function + `GRANT EXECUTE ... TO authenticated`.
-- `src/pages/admin/AdminTables.tsx` — page shell, sidebar, grid.
-- `src/components/admin/tables/TableGrid.tsx` — data grid + pagination/sort/filter.
-- `src/components/admin/tables/RowDrawer.tsx` — edit/insert form.
-- `src/hooks/useAdminTable.ts` — fetch rows, mutate row, list tables.
-- Route registered in the existing admin route group; nav link added to the admin menu.
+### Tab B — User Assignments
+Table of all `user_investments` joined with profile display name: User · Plan · Principal · Daily ROI · Started · Ends · Status · Actions.
+- "Assign plan" button → dialog:
+  - User search (reuses profile lookup pattern from `AdminUserManagement`)
+  - Plan template select (active only) — auto-fills coin/ROI/duration
+  - Principal amount (validated against template min/max)
+  - Start date (shadcn date picker, defaults today) → `ends_at` computed
+  - Submit inserts a row into `user_investments` with snapshotted fields + `template_id`.
+- Row actions: mark Completed, Cancel, Delete.
+
+Add "Plans" link to the existing admin nav.
+
+## 4. Deposit approval integration
+In `AdminDepositManagement`, when approving a deposit add an optional "Also activate a plan" section: plan template select + principal (prefilled with deposit amount). On approve, if selected, insert the matching `user_investments` row in the same action.
+
+## 5. UX / realtime
+- Realtime subscription on `plan_templates` and `user_investments` so the admin page updates live.
+- `/investment-plans` (user-facing) switches to read from `plan_templates` instead of hardcoded array so admin edits show up immediately.
+- `ActiveInvestmentCard` unchanged — it already reads from `user_investments`.
+
+## Technical notes
+- Migration: `CREATE TABLE public.plan_templates`, GRANTs for `authenticated` (select) and `service_role` (all), RLS with `has_role(auth.uid(),'admin')` for write, `is_active = true` for public select. `ALTER TABLE user_investments ADD COLUMN template_id uuid REFERENCES plan_templates(id)`. Update trigger for `updated_at`. Seed 5 tiers.
+- Files: `src/pages/AdminPlans.tsx`, `src/components/admin/PlanTemplatesTable.tsx`, `src/components/admin/PlanTemplateDialog.tsx`, `src/components/admin/UserInvestmentsTable.tsx`, `src/components/admin/AssignPlanDialog.tsx`. Route in `App.tsx`. Small edit to `AdminDepositManagement.tsx` and `InvestmentPlans.tsx`.
+- All admin mutations gated by `has_role` RLS — no client-side trust.
+
+## Out of scope
+- Auto-payout when `ends_at` passes.
+- Editing an already-assigned investment's principal/ROI (admin can cancel + reassign).

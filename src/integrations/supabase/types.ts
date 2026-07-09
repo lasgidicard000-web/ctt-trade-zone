@@ -873,19 +873,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_list_tables: {
-        Args: never
-        Returns: {
-          column_default: string
-          column_name: string
-          data_type: string
-          is_identity: string
-          is_nullable: string
-          ordinal_position: number
-          table_name: string
-          udt_name: string
-        }[]
-      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
