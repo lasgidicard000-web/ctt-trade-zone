@@ -1,5 +1,6 @@
 import AdminUserManagement from "@/components/AdminUserManagement";
 import AdminDepositManagement from "@/components/AdminDepositManagement";
+import AdminTransactions from "@/pages/AdminTransactions";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -422,61 +423,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="transactions">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Transactions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>User ID</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>From</TableHead>
-                      <TableHead>To</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {transactions.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground">
-                          No transactions found
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      transactions.map((txn) => (
-                        <TableRow key={txn.id}>
-                          <TableCell>
-                            {new Date(txn.created_at).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="font-mono text-xs">
-                            {txn.user_id.slice(0, 8)}...
-                          </TableCell>
-                          <TableCell className="capitalize">{txn.type}</TableCell>
-                          <TableCell>{txn.from_symbol || "-"}</TableCell>
-                          <TableCell>{txn.to_symbol || "-"}</TableCell>
-                          <TableCell>{txn.amount.toLocaleString()}</TableCell>
-                          <TableCell>
-                            <span
-                              className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                                txn.status === "completed"
-                                  ? "bg-accent/10 text-accent"
-                                  : "bg-muted text-muted-foreground"
-                              }`}
-                            >
-                              {txn.status}
-                            </span>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+            <AdminTransactions />
           </TabsContent>
 
           <TabsContent value="withdrawals">
