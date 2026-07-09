@@ -585,6 +585,45 @@ export type Database = {
         }
         Relationships: []
       }
+      roi_regulation_log: {
+        Row: {
+          active_only: boolean
+          admin_user_id: string
+          changes: Json
+          created_at: string
+          id: string
+          investments_updated: number
+          mode: string
+          plans_updated: number
+          propagate: boolean
+          value: number
+        }
+        Insert: {
+          active_only: boolean
+          admin_user_id: string
+          changes?: Json
+          created_at?: string
+          id?: string
+          investments_updated: number
+          mode: string
+          plans_updated: number
+          propagate: boolean
+          value: number
+        }
+        Update: {
+          active_only?: boolean
+          admin_user_id?: string
+          changes?: Json
+          created_at?: string
+          id?: string
+          investments_updated?: number
+          mode?: string
+          plans_updated?: number
+          propagate?: boolean
+          value?: number
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -892,6 +931,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      regulate_daily_roi: {
+        Args: {
+          _active_only: boolean
+          _mode: string
+          _propagate: boolean
+          _value: number
+        }
+        Returns: Json
       }
     }
     Enums: {
