@@ -394,6 +394,7 @@ export default function AdminPlans() {
 
           {/* Templates */}
           <TabsContent value="templates" className="space-y-4">
+            <RoiRegulator templates={templates} onApplied={loadTemplates} />
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Plan Templates</CardTitle>
