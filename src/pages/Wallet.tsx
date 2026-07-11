@@ -1093,7 +1093,7 @@ const Wallet = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Withdrawal Fee:</span>
-                  <span className="font-medium">1% (min $1)</span>
+                  <span className="font-medium">{(entitlements.withdrawal_fee_pct * 100).toFixed(2)}% (min $1) · {entitlements.plan_name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Minimum Amount:</span>
