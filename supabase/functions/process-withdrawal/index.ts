@@ -6,8 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Withdrawal fee structure
-const WITHDRAWAL_FEE_PERCENTAGE = 0.01; // 1%
+// Withdrawal fee structure — fee % now sourced from plan_entitlements
 const MIN_WITHDRAWAL_FEE = 1; // $1 minimum fee
 const MIN_WITHDRAWAL_AMOUNT = 10; // $10 minimum withdrawal
 
@@ -67,8 +66,37 @@ serve(async (req) => {
         throw new Error('Invalid wallet address format');
       }
 
+      // Load entitlements for this user (tier-based fee + daily cap)
+      const { data: ent, error: entError } = await supabaseClient
+        .rpc('get_user_entitlements', { _user_id: user.id });
+      if (entError) throw entError;
+
+      const feePct = Number(ent?.withdrawal_fee_pct ?? 0.01);
+      const dailyCap = Number(ent?.daily_withdrawal_cap ?? 2000);
+      const tierName = ent?.plan_name ?? 'No Active Plan';
+
+      // Enforce daily cap (sum of today's withdrawals for this user, excluding rejected/cancelled)
+      const startOfDay = new Date();
+      startOfDay.setUTCHours(0, 0, 0, 0);
+      const { data: todays, error: todaysErr } = await supabaseClient
+        .from('withdrawals')
+        .select('amount, status')
+        .eq('user_id', user.id)
+        .gte('created_at', startOfDay.toISOString());
+      if (todaysErr) throw todaysErr;
+
+      const usedToday = (todays ?? [])
+        .filter((w: any) => !['rejected', 'cancelled'].includes(w.status))
+        .reduce((sum: number, w: any) => sum + Number(w.amount), 0);
+
+      if (usedToday + Number(amount) > dailyCap) {
+        throw new Error(
+          `Daily withdrawal cap of $${dailyCap.toLocaleString()} for ${tierName} exceeded. Used today: $${usedToday.toLocaleString()}.`
+        );
+      }
+
       // Calculate fee
-      const calculatedFee = Math.max(amount * WITHDRAWAL_FEE_PERCENTAGE, MIN_WITHDRAWAL_FEE);
+      const calculatedFee = Math.max(amount * feePct, MIN_WITHDRAWAL_FEE);
       const totalDeduction = amount + calculatedFee;
 
       // Check user's USDT balance

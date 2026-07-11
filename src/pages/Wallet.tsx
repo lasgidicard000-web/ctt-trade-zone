@@ -15,6 +15,8 @@ import { WalletAddresses } from "@/components/WalletAddresses";
 import { DepositHistory } from "@/components/DepositHistory";
 import { WalletStatusCard } from "@/components/WalletStatusCard";
 import { ActiveInvestmentCard } from "@/components/ActiveInvestmentCard";
+import { EntitlementsCard } from "@/components/EntitlementsCard";
+import { useEntitlements } from "@/hooks/useEntitlements";
 import { GiftCardApprovalTracker } from "@/components/GiftCardApprovalTracker";
 import { GlobalBankConversion } from "@/components/GlobalBankConversion";
 import { AGCSBCreditBadge } from "@/components/AGCSBCreditBadge";
@@ -53,6 +55,7 @@ const Wallet = () => {
   
   // Enable real-time transaction notifications
   useTransactionNotifications(user);
+  const { entitlements } = useEntitlements(user?.id);
   
   const [tradeDialogOpen, setTradeDialogOpen] = useState(false);
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
@@ -512,16 +515,16 @@ const Wallet = () => {
     }
   };
 
-  // Calculate withdrawal fee when amount changes
+  // Calculate withdrawal fee based on active plan entitlements
   useEffect(() => {
     const amount = parseFloat(withdrawAmount);
     if (amount && amount > 0) {
-      const fee = Math.max(amount * 0.01, 1); // 1% or $1 minimum
+      const fee = Math.max(amount * entitlements.withdrawal_fee_pct, 1);
       setWithdrawalFee(fee);
     } else {
       setWithdrawalFee(0);
     }
-  }, [withdrawAmount]);
+  }, [withdrawAmount, entitlements.withdrawal_fee_pct]);
 
   const handleWithdrawal = async () => {
     const amount = parseFloat(withdrawAmount);
@@ -663,6 +666,7 @@ const Wallet = () => {
         {user && <div className="mb-6"><PriceAlerts user={user} coins={coinPrices} /></div>}
 
         {/* Active Investment */}
+        {user && <EntitlementsCard userId={user.id} />}
         {user && <ActiveInvestmentCard userId={user.id} />}
 
         {/* Wallet Status and Activation Requirements */}
@@ -1089,7 +1093,7 @@ const Wallet = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Withdrawal Fee:</span>
-                  <span className="font-medium">1% (min $1)</span>
+                  <span className="font-medium">{(entitlements.withdrawal_fee_pct * 100).toFixed(2)}% (min $1) · {entitlements.plan_name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Minimum Amount:</span>
