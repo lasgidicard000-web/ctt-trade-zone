@@ -1,26 +1,15 @@
-## Update Jeremy Element's Wallet Balance
+## Verify Jeremy Element's Wallet Balance
 
-**Target account:** Jeremy Element — `b12f35e2-9d19-4fb9-b572-a3c8d9dbc4c5` (the one with the active Inspectors Plan)
+**Goal:** Confirm the wallet section reflects the consolidated $500 BTC deposit for Jeremy Element (`b12f35e2-9d19-4fb9-b572-a3c8d9dbc4c5`).
 
-**Goal:** Portfolio shows a single BTC balance worth $719 (existing $219 value + newly deposited $500 BTC).
+### Steps
 
-### Conversion
-- Live BTC price (from `coin_prices`): **$63,496.12 / BTC**
-- $719 ÷ $63,496.12 = **0.01132353 BTC**
+1. **DB check** — Query `wallet_balances` for Jeremy's user_id and confirm:
+   - BTC balance ≈ `0.01132353`
+   - USDT balance = `0`
+2. **Price check** — Read current BTC price from `coin_prices` and compute USD value (BTC balance × price). Expect ≈ $719.
+3. **History check** — Verify the `$500` `deposit_history` row and the two `transactions` rows (deposit + admin_adjustment) exist.
+4. **UI check** — Launch Playwright headless against `http://localhost:8080`, restore Jeremy's Supabase session, navigate to `/wallet`, and screenshot the portfolio total, BTC row, and USDT row. Confirm the rendered numbers match the DB values.
+5. **Report** — Post the DB numbers, computed USD, and screenshot evidence. Flag any mismatch (e.g., stale cache, rounding, wrong price source in UI).
 
-### Changes
-1. **Update `wallet_balances`** for user `b12f35e2…`:
-   - Set `BTC` balance → `0.01132353`
-   - Set `USDT` balance → `0` (consolidated into BTC per your choice)
-2. **Insert audit records in `transactions`** so the change is visible in transaction history:
-   - `deposit` / BTC / `0.00787373` BTC (the $500 top-up) / status `completed`
-   - `admin_adjustment` note for the USDT → BTC consolidation
-3. **Insert a `deposit_history` row** for the $500 BTC deposit so it appears as a confirmed deposit.
-
-No schema changes and no changes to the other Jeremy account (`a929…`).
-
-### After apply
-Wallet section for Jeremy will show:
-- BTC: 0.01132353 (≈ $719.00)
-- USDT: 0
-- Portfolio total: ≈ $719
+No code or data changes will be made — verification only.
