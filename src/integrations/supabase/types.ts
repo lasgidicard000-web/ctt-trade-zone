@@ -387,6 +387,48 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_entitlements: {
+        Row: {
+          badge_color: string
+          community_access: boolean
+          created_at: string
+          daily_withdrawal_cap: number
+          plan_id: string
+          plan_name: string
+          premium_features: boolean
+          priority_support: boolean
+          tier_rank: number
+          updated_at: string
+          withdrawal_fee_pct: number
+        }
+        Insert: {
+          badge_color?: string
+          community_access?: boolean
+          created_at?: string
+          daily_withdrawal_cap?: number
+          plan_id: string
+          plan_name: string
+          premium_features?: boolean
+          priority_support?: boolean
+          tier_rank: number
+          updated_at?: string
+          withdrawal_fee_pct?: number
+        }
+        Update: {
+          badge_color?: string
+          community_access?: boolean
+          created_at?: string
+          daily_withdrawal_cap?: number
+          plan_id?: string
+          plan_name?: string
+          premium_features?: boolean
+          priority_support?: boolean
+          tier_rank?: number
+          updated_at?: string
+          withdrawal_fee_pct?: number
+        }
+        Relationships: []
+      }
       plan_templates: {
         Row: {
           coin: string
@@ -967,6 +1009,32 @@ export type Database = {
           table_name: string
           udt_name: string
         }[]
+      }
+      get_user_entitlements: {
+        Args: { _user_id: string }
+        Returns: {
+          badge_color: string
+          community_access: boolean
+          created_at: string
+          daily_withdrawal_cap: number
+          plan_id: string
+          plan_name: string
+          premium_features: boolean
+          priority_support: boolean
+          tier_rank: number
+          updated_at: string
+          withdrawal_fee_pct: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "plan_entitlements"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      has_active_plan: {
+        Args: { _plan_id: string; _user_id: string }
+        Returns: boolean
       }
       has_role: {
         Args: {
