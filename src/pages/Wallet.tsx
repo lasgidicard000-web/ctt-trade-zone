@@ -55,6 +55,7 @@ const Wallet = () => {
   
   // Enable real-time transaction notifications
   useTransactionNotifications(user);
+  const { entitlements } = useEntitlements(user?.id);
   
   const [tradeDialogOpen, setTradeDialogOpen] = useState(false);
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
@@ -514,16 +515,16 @@ const Wallet = () => {
     }
   };
 
-  // Calculate withdrawal fee when amount changes
+  // Calculate withdrawal fee based on active plan entitlements
   useEffect(() => {
     const amount = parseFloat(withdrawAmount);
     if (amount && amount > 0) {
-      const fee = Math.max(amount * 0.01, 1); // 1% or $1 minimum
+      const fee = Math.max(amount * entitlements.withdrawal_fee_pct, 1);
       setWithdrawalFee(fee);
     } else {
       setWithdrawalFee(0);
     }
-  }, [withdrawAmount]);
+  }, [withdrawAmount, entitlements.withdrawal_fee_pct]);
 
   const handleWithdrawal = async () => {
     const amount = parseFloat(withdrawAmount);
@@ -665,6 +666,7 @@ const Wallet = () => {
         {user && <div className="mb-6"><PriceAlerts user={user} coins={coinPrices} /></div>}
 
         {/* Active Investment */}
+        {user && <EntitlementsCard userId={user.id} />}
         {user && <ActiveInvestmentCard userId={user.id} />}
 
         {/* Wallet Status and Activation Requirements */}
