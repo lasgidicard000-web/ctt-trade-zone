@@ -15,6 +15,7 @@ import { WalletAddresses } from "@/components/WalletAddresses";
 import { DepositHistory } from "@/components/DepositHistory";
 import { WalletStatusCard } from "@/components/WalletStatusCard";
 import { ActiveInvestmentCard } from "@/components/ActiveInvestmentCard";
+import { PurchasePlanDialog } from "@/components/PurchasePlanDialog";
 import { EntitlementsCard } from "@/components/EntitlementsCard";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { GiftCardApprovalTracker } from "@/components/GiftCardApprovalTracker";
