@@ -213,10 +213,22 @@ const Wallet = () => {
     });
   };
 
-  const totalPortfolioValue = getCoinData().reduce(
+  // Walletable (unused) balances in USD — locked principal is NOT included
+  // because it was debited from wallet_balances when the plan was purchased.
+  const walletUsd = getCoinData().reduce(
     (acc, coin) => acc + coin.price * coin.balance,
     0
   );
+
+  // Live accrued profit from all active investments (excludes principal).
+  void profitTick; // triggers re-render every second
+  const accruedProfitUsd = activeInvestments.reduce((acc, inv) => {
+    const elapsedMs = Math.max(0, Date.now() - new Date(inv.started_at).getTime());
+    const elapsedDays = elapsedMs / (1000 * 60 * 60 * 24);
+    return acc + Number(inv.amount) * Number(inv.daily_roi) * elapsedDays;
+  }, 0);
+
+  const totalPortfolioValue = walletUsd + accruedProfitUsd;
 
   const openTradeDialog = (type: 'buy' | 'sell', coinSymbol: string) => {
     setTradeType(type);
