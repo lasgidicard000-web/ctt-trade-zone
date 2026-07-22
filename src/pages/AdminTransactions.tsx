@@ -304,7 +304,7 @@ export const AdminTransactions = () => {
                           const dir = a.direction as string | undefined;
                           const isOpen = !!expanded[r.id];
                           return (
-                            <>
+                            <Fragment key={r.id}>
                               <TableRow
                                 key={r.id}
                                 className="cursor-pointer"
