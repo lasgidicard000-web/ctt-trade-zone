@@ -160,6 +160,26 @@ export const AdminTransactions = () => {
   };
 
   const exportCsv = () => {
+    if (tab === "audit") {
+      const header = ["date", "admin_user_id", "target_user_id", "coin", "direction", "amount", "btc_before", "btc_after", "usdt_before", "usdt_after", "reason"];
+      const lines = [header.join(",")].concat(
+        filteredAudit.map((r) => {
+          const b = r.before ?? {}; const a = r.after ?? {};
+          return [
+            r.created_at, r.admin_user_id, r.target_user_id ?? "",
+            a.coin ?? "", a.direction ?? "", a.amount ?? "",
+            b.btc ?? "", a.btc ?? "", b.usdt ?? "", a.usdt ?? "",
+            (r.reason ?? "").replace(/[\n,]/g, " "),
+          ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",");
+        }),
+      );
+      const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `audit-log-${Date.now()}.csv`; a.click();
+      URL.revokeObjectURL(url);
+      return;
+    }
     const header = ["date", "kind", "id", "user_id", "type", "coin", "amount", "status", "hash", "notes"];
     const lines = [header.join(",")].concat(
       filtered.map((r) => [
@@ -173,6 +193,11 @@ export const AdminTransactions = () => {
     a.href = url; a.download = `transactions-${Date.now()}.csv`; a.click();
     URL.revokeObjectURL(url);
   };
+
+  const doRefresh = () => { load(); if (tab === "audit") loadAudit(); };
+
+  const fmtBtc = (v: any) => (v == null || v === "" ? "—" : Number(v).toFixed(8));
+  const fmtUsdt = (v: any) => (v == null || v === "" ? "—" : Number(v).toFixed(2));
 
   return (
     <div className="space-y-4">
