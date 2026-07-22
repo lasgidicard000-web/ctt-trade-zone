@@ -1,31 +1,25 @@
 ## Goal
 
-Restore Jeremy Element's wallet to a spendable $1,031 total portfolio balance and log the recent $532 deposit as a 40‑minute‑old transaction.
+Debit $1,000 from Jeremy Element's total portfolio and activate a Superintendent Plan, keeping his remaining balance accurate and logging the transaction in history.
 
 ## Steps
 
-1. **Reset Jeremy's wallet balance** (`wallet_balances`)
-   - Set his BTC balance to the equivalent of $1,031 USD using the current BTC price in `coin_prices`.
-   - Zero out any USDT balance so the portfolio total reflects exactly $1,031 from BTC.
-   - Leave his active plans (`user_investments` Recruit + Inspectors) untouched — their principal stays locked inside those investments, unrelated to this wallet total.
+1. **Debit BTC wallet** (`wallet_balances`)
+   - Current: 0.01623720 BTC (~$1,031 @ $63,496.12/BTC).
+   - Deduct 1000/63496.12 ≈ 0.01574905 BTC.
+   - New balance: ~0.00048815 BTC (~$31 remaining unused).
 
-2. **Insert a deposit record for the $532** (`deposit_history`)
-   - Coin: BTC, amount: BTC equivalent of $532 at current price.
-   - `wallet_address`: `bc1q76qphckpcegrj3qc5y57qr4vvs8p9hprlypsrk` (project's fixed BTC address).
-   - `confirmation_status`: `confirmed`, `confirmations`: 6.
-   - `created_at` and `confirmed_at`: `now() - interval '40 minutes'`.
+2. **Create Superintendent Plan investment** (`user_investments`)
+   - `template_id`: d08c4a99-8a00-4100-818f-5ffb1b75fa25
+   - `plan_id`: `superintendent`, `plan_name`: `Superintendent Plan`
+   - `amount`: 1000, `daily_roi`: 0.032, `duration_days`: 60
+   - `status`: active, `started_at`: now(), `ends_at`: now() + 60 days.
 
-3. **Insert a matching transaction** (`transactions`)
-   - `type`: `deposit`, `to_symbol`: `BTC`, `amount`: BTC equivalent of $532.
-   - `status`: `completed`.
-   - `created_at`: `now() - interval '40 minutes'`.
+3. **Log transaction** (`transactions`)
+   - `type`: `plan_purchase`, `from_symbol`: `BTC`, `amount`: 1000, `status`: `completed`, `created_at`: now().
 
-4. **Result on his dashboard**
-   - Total Portfolio Value = wallet ($1,031) + live accrued profits from his two active plans.
-   - The full $1,031 sits in his BTC wallet and is available for withdrawal or for the Purchase Plan flow.
-   - Transaction History shows the $532 BTC deposit dated 40 minutes ago.
+## Result
 
-## Technical details
-
-- Pure data operation via the insert tool — no schema changes, no code changes.
-- Use the current `coin_prices` BTC price at execution time to compute both the $1,031 wallet balance and the $532 deposit amount, so the USD equivalents match what the dashboard renders.
+- Portfolio Balance shows ~$31 unused BTC plus live daily ROI from Recruit, Inspectors, and the new Superintendent plans.
+- Transaction History includes the $1,000 Superintendent plan purchase.
+- $1,000 locked as Superintendent principal for 60 days at 3.2% daily ROI.
