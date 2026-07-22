@@ -75,6 +75,9 @@ const Wallet = () => {
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
   const [withdrawalFee, setWithdrawalFee] = useState(0);
+  const [purchasePlanOpen, setPurchasePlanOpen] = useState(false);
+  const [activeInvestments, setActiveInvestments] = useState<Array<{ amount: number; daily_roi: number; started_at: string }>>([]);
+  const [profitTick, setProfitTick] = useState(0);
   const paypalButtonsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
