@@ -208,7 +208,7 @@ export const AdminTransactions = () => {
           <CardTitle className="flex items-center justify-between">
             <span>All Transactions</span>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={load}>
+              <Button variant="outline" size="sm" onClick={doRefresh}>
                 <RefreshCw className="mr-1 h-3 w-3" /> Refresh
               </Button>
               <Button variant="outline" size="sm" onClick={exportCsv}>
