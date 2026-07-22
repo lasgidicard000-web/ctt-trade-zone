@@ -44,10 +44,20 @@ const StatusBadge = ({ s }: { s: string }) => (
   <Badge variant="outline" className={statusVariants[s] ?? ""}>{s}</Badge>
 );
 
+interface AuditRow {
+  id: string;
+  created_at: string;
+  admin_user_id: string;
+  target_user_id: string | null;
+  before: any;
+  after: any;
+  reason: string | null;
+}
+
 export const AdminTransactions = () => {
   const [rows, setRows] = useState<UnifiedRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"all" | Kind>("all");
+  const [tab, setTab] = useState<"all" | Kind | "audit">("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [coinFilter, setCoinFilter] = useState("all");
   const [userFilter, setUserFilter] = useState("");
@@ -57,6 +67,11 @@ export const AdminTransactions = () => {
   const [statusRow, setStatusRow] = useState<UnifiedRow | null>(null);
   const [reverseRow, setReverseRow] = useState<UnifiedRow | null>(null);
   const [deleteRow, setDeleteRow] = useState<UnifiedRow | null>(null);
+  const [auditRows, setAuditRows] = useState<AuditRow[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditLoaded, setAuditLoaded] = useState(false);
+  const [directionFilter, setDirectionFilter] = useState<"all" | "credit" | "debit">("all");
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const load = async () => {
     setLoading(true);
