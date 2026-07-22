@@ -725,6 +725,9 @@ const Wallet = () => {
           </div>
         </Card>
 
+        <PortfolioBreakdown depositsUsd={walletUsd} investments={activeInvestments as any} />
+
+
         {user && (
           <PurchasePlanDialog
             open={purchasePlanOpen}
