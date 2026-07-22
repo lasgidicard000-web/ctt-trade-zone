@@ -194,6 +194,36 @@ const Wallet = () => {
     }
   };
 
+  // Load active investments for portfolio total (profit only) and keep in sync.
+  useEffect(() => {
+    if (!user?.id) return;
+    let alive = true;
+    const load = async () => {
+      const { data } = await supabase
+        .from("user_investments" as any)
+        .select("amount, daily_roi, started_at")
+        .eq("user_id", user.id)
+        .eq("status", "active");
+      if (!alive) return;
+      setActiveInvestments(((data as any) ?? []) as any);
+    };
+    load();
+    const channel = supabase
+      .channel(`wallet_investments_${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "user_investments", filter: `user_id=eq.${user.id}` },
+        () => load()
+      )
+      .subscribe();
+    const interval = setInterval(() => setProfitTick((t) => t + 1), 1000);
+    return () => {
+      alive = false;
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [user?.id]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast({
