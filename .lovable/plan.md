@@ -1,64 +1,58 @@
+
 ## Goal
 
-Add an **Audit** tab inside `src/pages/AdminTransactions.tsx` that lists every manual wallet adjustment (`admin_transaction_log` where `action = 'adjust-balance'`) with the target user's BTC and USDT balance **before** and **after** the change, plus the reason.
+Let users buy investment plans directly from their dashboard using wallet funds, and redefine "Total Portfolio Value" so it shows **only unused external deposits + accrued daily-ROI profits from active plans** — never locked principal.
 
-## Current state (verified)
+## 1. Redefine Total Portfolio Value (Wallet.tsx)
 
-- `admin_transaction_log` already captures every `adjust-balance` call with `admin_user_id`, `target_user_id`, `before`, `after`, `reason`, `created_at`.
-- Today the log's `before` is only `{balance}` (of the adjusted coin) and `after` is `{balance, direction, coin, amount}`. It does **not** currently include the other coin's balance, so a pure viewer cannot show both BTC and USDT for historical rows.
-- Fix: extend the DB function so future adjustments snapshot both BTC and USDT, then build the viewer.
+Currently `totalPortfolioValue = Σ(coin.balance × coin.price)`. This already excludes locked capital *if* we make sure the principal is debited from `wallet_balances` when a plan is purchased.
 
-## What to build
+Change the displayed total to:
 
-### 1. Migration — enrich the snapshot
-Update `public.admin_apply_transaction_action` so the `adjust-balance` branch snapshots both BTC and USDT balances (in addition to the existing per-coin balance):
+```
+Total Portfolio Value = (wallet balances in USD) + (Σ accrued profit of active user_investments)
+```
 
-- Before write: read the target user's current BTC and USDT balances from `wallet_balances`.
-- After write: compute post-change BTC and USDT (only the adjusted coin changes; the other is unchanged).
-- Store:
-  - `before = { btc, usdt, coin, coin_balance }`
-  - `after  = { btc, usdt, coin, coin_balance, direction, amount }`
-- All other actions (`edit`, `set-status`, `reverse`, `delete`) stay exactly as they are.
+- Wallet balances = external unused funds (any coin).
+- Accrued profit per investment = `amount × daily_roi × elapsed_days` (same formula already used in `ActiveInvestmentCard`).
+- Locked principal is **never** added.
 
-For rows written before this migration, the viewer falls back to showing the single `balance` field it has and marks the missing side as "—".
+Fetch active investments in Wallet.tsx (same query the card uses) and compute a live-ticking total (1s interval like the card).
 
-### 2. UI — new "Audit" tab in `AdminTransactions.tsx`
+## 2. Purchase Plan flow
 
-- Add a 6th `TabsTrigger value="audit"` to the existing `TabsList` (grid becomes `grid-cols-6`).
-- Inside a `TabsContent value="audit"`, render a separate loader/state (`auditRows`, `auditLoading`) that queries:
-  ```
-  supabase.from("admin_transaction_log")
-    .select("*")
-    .eq("action", "adjust-balance")
-    .order("created_at", { ascending: false })
-    .limit(500)
-  ```
-- Reuse the existing filter bar for **user id contains** and **date range**; hide the Status/Coin filters while on this tab (they don't apply). Optionally add a `Direction` filter (all / credit / debit) sourced from `after.direction`.
-- Table columns:
-  1. Date
-  2. Admin (short `admin_user_id`, monospace)
-  3. Target user (short `target_user_id`, monospace)
-  4. Coin (`after.coin`)
-  5. Direction badge (green "credit" / red "debit")
-  6. Amount (`after.amount`)
-  7. BTC before → BTC after
-  8. USDT before → USDT after
-  9. Reason (truncated with tooltip / full text on row expand)
-- CSV export: when the Audit tab is active, "Export CSV" exports these audit columns instead of the transactions columns.
-- Empty state: "No manual adjustments recorded."
+Add a **"Purchase Plan"** button next to Add Funds / Withdraw on the portfolio card. Opens a dialog:
 
-### 3. No changes to
-- `admin-transactions` edge function
-- `ManualBalanceAdjustment.tsx`
-- Any other page or route
+- Dropdown of active `plan_templates` (name, min amount, daily ROI, duration).
+- Principal input (validated against min/max and available USDT-equivalent wallet balance).
+- Payment source: USDT balance (default). If insufficient USDT, allow BTC → auto-convert at current `coin_prices` rate.
+- Confirm button:
+  1. Debit `wallet_balances` (USDT, or BTC converted).
+  2. Insert row into `user_investments` (status=active, started_at=now, ends_at=now+duration, daily_roi + amount copied from template).
+  3. Insert a `transactions` row (`type='plan_purchase'`, `from_symbol='USDT'`, amount).
+  4. Toast + refresh.
+
+All done client-side with existing RLS (user owns their `wallet_balances`, `user_investments`, `transactions`).
+
+## 3. Jeremy Element data cleanup
+
+Jeremy's existing Recruit ($200 principal) and Inspectors ($500 principal) rows were created by admin seed while his wallet balances still contain that capital. To match the new rule "no capital in portfolio after purchase":
+
+- Debit 0.01132353 BTC-equivalent of principal ($700 total) from his `wallet_balances` (deduct proportionally from BTC).
+- Insert two `transactions` rows recording the plan purchases retroactively.
+
+His portfolio will then show: remaining wallet ($315 from the $294+$21 leftover) + live accrued profits from both active plans.
+
+## 4. Files to change
+
+- `src/pages/Wallet.tsx` — new portfolio calc using active investments + accrued profit, new "Purchase Plan" button + dialog, updated `totalPortfolioValue`.
+- `src/components/PurchasePlanDialog.tsx` — new component encapsulating the dialog.
+- Data migration (insert tool) — Jeremy's wallet debit + `transactions` rows.
+
+No schema changes, no new edge functions.
 
 ## Technical details
 
-- The admin-only RLS policy already on `admin_transaction_log` gates client reads to admins, matching how `AdminTransactions.tsx` reads other tables directly.
-- Numeric formatting: BTC to 8 decimals, USDT to 2 decimals; render `—` when a side is missing (older rows).
-- Keep the tab lazy: only fetch audit rows the first time the user opens the Audit tab, then cache in state and refresh via the existing Refresh button.
-
-## Out of scope
-
-- Backfilling BTC/USDT snapshots into pre-existing log rows.
-- Auditing non-`adjust-balance` actions in this tab (they remain accessible via each row's existing Edit/Status/Reverse/Delete flow, which already writes to the same log table).
+- Plan purchase is atomic-enough at the client level: sequential inserts within try/catch, roll back the debit if the investment insert fails.
+- The ActiveInvestmentCard already renders per-plan principal + accrued profit, so users still see their locked capital there — it just no longer inflates the top-level "Total Portfolio Value".
+- Realtime subscription on `user_investments` (already in ActiveInvestmentCard) can be reused via a shared hook or duplicated for the header total.

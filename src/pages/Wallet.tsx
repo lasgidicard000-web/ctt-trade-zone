@@ -15,6 +15,7 @@ import { WalletAddresses } from "@/components/WalletAddresses";
 import { DepositHistory } from "@/components/DepositHistory";
 import { WalletStatusCard } from "@/components/WalletStatusCard";
 import { ActiveInvestmentCard } from "@/components/ActiveInvestmentCard";
+import { PurchasePlanDialog } from "@/components/PurchasePlanDialog";
 import { EntitlementsCard } from "@/components/EntitlementsCard";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { GiftCardApprovalTracker } from "@/components/GiftCardApprovalTracker";
@@ -74,6 +75,9 @@ const Wallet = () => {
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
   const [withdrawalFee, setWithdrawalFee] = useState(0);
+  const [purchasePlanOpen, setPurchasePlanOpen] = useState(false);
+  const [activeInvestments, setActiveInvestments] = useState<Array<{ amount: number; daily_roi: number; started_at: string }>>([]);
+  const [profitTick, setProfitTick] = useState(0);
   const paypalButtonsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -190,6 +194,36 @@ const Wallet = () => {
     }
   };
 
+  // Load active investments for portfolio total (profit only) and keep in sync.
+  useEffect(() => {
+    if (!user?.id) return;
+    let alive = true;
+    const load = async () => {
+      const { data } = await supabase
+        .from("user_investments" as any)
+        .select("amount, daily_roi, started_at")
+        .eq("user_id", user.id)
+        .eq("status", "active");
+      if (!alive) return;
+      setActiveInvestments(((data as any) ?? []) as any);
+    };
+    load();
+    const channel = supabase
+      .channel(`wallet_investments_${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "user_investments", filter: `user_id=eq.${user.id}` },
+        () => load()
+      )
+      .subscribe();
+    const interval = setInterval(() => setProfitTick((t) => t + 1), 1000);
+    return () => {
+      alive = false;
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [user?.id]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast({
@@ -209,10 +243,22 @@ const Wallet = () => {
     });
   };
 
-  const totalPortfolioValue = getCoinData().reduce(
+  // Walletable (unused) balances in USD — locked principal is NOT included
+  // because it was debited from wallet_balances when the plan was purchased.
+  const walletUsd = getCoinData().reduce(
     (acc, coin) => acc + coin.price * coin.balance,
     0
   );
+
+  // Live accrued profit from all active investments (excludes principal).
+  void profitTick; // triggers re-render every second
+  const accruedProfitUsd = activeInvestments.reduce((acc, inv) => {
+    const elapsedMs = Math.max(0, Date.now() - new Date(inv.started_at).getTime());
+    const elapsedDays = elapsedMs / (1000 * 60 * 60 * 24);
+    return acc + Number(inv.amount) * Number(inv.daily_roi) * elapsedDays;
+  }, 0);
+
+  const totalPortfolioValue = walletUsd + accruedProfitUsd;
 
   const openTradeDialog = (type: 'buy' | 'sell', coinSymbol: string) => {
     setTradeType(type);
@@ -634,25 +680,40 @@ const Wallet = () => {
         <Card className="mb-6 border-border bg-gradient-to-br from-primary/10 to-accent/10 p-6">
           <div className="text-center">
             <p className="mb-2 text-sm text-muted-foreground">Total Portfolio Value</p>
-            <p className="text-4xl font-bold text-foreground">
+            <p className="text-4xl font-bold text-foreground tabular-nums">
               ${totalPortfolioValue.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}
             </p>
-            <div className="flex gap-2 justify-center">
-              <Button 
-                onClick={() => setAddFundsDialogOpen(true)} 
-                variant="default" 
+            <p className="mt-1 text-xs text-muted-foreground">
+              Unused deposits ${walletUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {" · "}
+              <span className="text-emerald-500">Profits ${accruedProfitUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              {activeInvestments.length > 0 && " · principal locked in active plans"}
+            </p>
+            <div className="flex gap-2 justify-center flex-wrap">
+              <Button
+                onClick={() => setAddFundsDialogOpen(true)}
+                variant="default"
                 size="sm"
                 className="mt-4"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Funds
               </Button>
-              <Button 
-                onClick={() => setWithdrawDialogOpen(true)} 
-                variant="outline" 
+              <Button
+                onClick={() => setPurchasePlanOpen(true)}
+                variant="secondary"
+                size="sm"
+                className="mt-4"
+              >
+                <TrendingUp className="mr-2 h-4 w-4" />
+                Purchase Plan
+              </Button>
+              <Button
+                onClick={() => setWithdrawDialogOpen(true)}
+                variant="outline"
                 size="sm"
                 className="mt-4"
               >
@@ -662,6 +723,18 @@ const Wallet = () => {
             </div>
           </div>
         </Card>
+
+        {user && (
+          <PurchasePlanDialog
+            open={purchasePlanOpen}
+            onOpenChange={setPurchasePlanOpen}
+            userId={user.id}
+            btcBalance={walletBalances.find((b) => b.coin_symbol === "BTC")?.balance || 0}
+            usdtBalance={walletBalances.find((b) => b.coin_symbol === "USDT")?.balance || 0}
+            btcPrice={coinPrices.find((c) => c.symbol === "BTC")?.price || 0}
+            onPurchased={fetchData}
+          />
+        )}
 
         {user && <div className="mb-6"><PriceAlerts user={user} coins={coinPrices} /></div>}
 
