@@ -108,7 +108,36 @@ export const AdminTransactions = () => {
     setLoading(false);
   };
 
+  const loadAudit = async () => {
+    setAuditLoading(true);
+    const { data, error } = await supabase
+      .from("admin_transaction_log" as any)
+      .select("*")
+      .eq("action", "adjust-balance")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setAuditRows((data as any) ?? []);
+      setAuditLoaded(true);
+    }
+    setAuditLoading(false);
+  };
+
   useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (tab === "audit" && !auditLoaded) loadAudit();
+  }, [tab, auditLoaded]);
+
+  const filteredAudit = useMemo(() => auditRows.filter((r) => {
+    const dir = r.after?.direction as string | undefined;
+    if (directionFilter !== "all" && dir !== directionFilter) return false;
+    if (userFilter && !(r.target_user_id ?? "").toLowerCase().includes(userFilter.toLowerCase())) return false;
+    if (from && new Date(r.created_at) < new Date(from)) return false;
+    if (to && new Date(r.created_at) > new Date(to + "T23:59:59")) return false;
+    return true;
+  }), [auditRows, directionFilter, userFilter, from, to]);
 
   const filtered = useMemo(() => rows.filter((r) => {
     if (tab !== "all" && r.kind !== tab) return false;
