@@ -355,7 +355,7 @@ export const AdminTransactions = () => {
                                   </TableCell>
                                 </TableRow>
                               )}
-                            </>
+                            </Fragment>
                           );
                         })}
                       </TableBody>
