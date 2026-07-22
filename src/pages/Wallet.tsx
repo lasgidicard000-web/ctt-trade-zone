@@ -680,25 +680,40 @@ const Wallet = () => {
         <Card className="mb-6 border-border bg-gradient-to-br from-primary/10 to-accent/10 p-6">
           <div className="text-center">
             <p className="mb-2 text-sm text-muted-foreground">Total Portfolio Value</p>
-            <p className="text-4xl font-bold text-foreground">
+            <p className="text-4xl font-bold text-foreground tabular-nums">
               ${totalPortfolioValue.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}
             </p>
-            <div className="flex gap-2 justify-center">
-              <Button 
-                onClick={() => setAddFundsDialogOpen(true)} 
-                variant="default" 
+            <p className="mt-1 text-xs text-muted-foreground">
+              Unused deposits ${walletUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {" · "}
+              <span className="text-emerald-500">Profits ${accruedProfitUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              {activeInvestments.length > 0 && " · principal locked in active plans"}
+            </p>
+            <div className="flex gap-2 justify-center flex-wrap">
+              <Button
+                onClick={() => setAddFundsDialogOpen(true)}
+                variant="default"
                 size="sm"
                 className="mt-4"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Funds
               </Button>
-              <Button 
-                onClick={() => setWithdrawDialogOpen(true)} 
-                variant="outline" 
+              <Button
+                onClick={() => setPurchasePlanOpen(true)}
+                variant="secondary"
+                size="sm"
+                className="mt-4"
+              >
+                <TrendingUp className="mr-2 h-4 w-4" />
+                Purchase Plan
+              </Button>
+              <Button
+                onClick={() => setWithdrawDialogOpen(true)}
+                variant="outline"
                 size="sm"
                 className="mt-4"
               >
@@ -708,6 +723,18 @@ const Wallet = () => {
             </div>
           </div>
         </Card>
+
+        {user && (
+          <PurchasePlanDialog
+            open={purchasePlanOpen}
+            onOpenChange={setPurchasePlanOpen}
+            userId={user.id}
+            btcBalance={walletBalances.find((b) => b.coin_symbol === "BTC")?.balance || 0}
+            usdtBalance={walletBalances.find((b) => b.coin_symbol === "USDT")?.balance || 0}
+            btcPrice={coinPrices.find((c) => c.symbol === "BTC")?.price || 0}
+            onPurchased={fetchData}
+          />
+        )}
 
         {user && <div className="mb-6"><PriceAlerts user={user} coins={coinPrices} /></div>}
 
