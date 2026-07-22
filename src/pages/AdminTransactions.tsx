@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,10 +44,20 @@ const StatusBadge = ({ s }: { s: string }) => (
   <Badge variant="outline" className={statusVariants[s] ?? ""}>{s}</Badge>
 );
 
+interface AuditRow {
+  id: string;
+  created_at: string;
+  admin_user_id: string;
+  target_user_id: string | null;
+  before: any;
+  after: any;
+  reason: string | null;
+}
+
 export const AdminTransactions = () => {
   const [rows, setRows] = useState<UnifiedRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"all" | Kind>("all");
+  const [tab, setTab] = useState<"all" | Kind | "audit">("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [coinFilter, setCoinFilter] = useState("all");
   const [userFilter, setUserFilter] = useState("");
@@ -57,6 +67,11 @@ export const AdminTransactions = () => {
   const [statusRow, setStatusRow] = useState<UnifiedRow | null>(null);
   const [reverseRow, setReverseRow] = useState<UnifiedRow | null>(null);
   const [deleteRow, setDeleteRow] = useState<UnifiedRow | null>(null);
+  const [auditRows, setAuditRows] = useState<AuditRow[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditLoaded, setAuditLoaded] = useState(false);
+  const [directionFilter, setDirectionFilter] = useState<"all" | "credit" | "debit">("all");
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const load = async () => {
     setLoading(true);
@@ -93,7 +108,36 @@ export const AdminTransactions = () => {
     setLoading(false);
   };
 
+  const loadAudit = async () => {
+    setAuditLoading(true);
+    const { data, error } = await supabase
+      .from("admin_transaction_log" as any)
+      .select("*")
+      .eq("action", "adjust-balance")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setAuditRows((data as any) ?? []);
+      setAuditLoaded(true);
+    }
+    setAuditLoading(false);
+  };
+
   useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (tab === "audit" && !auditLoaded) loadAudit();
+  }, [tab, auditLoaded]);
+
+  const filteredAudit = useMemo(() => auditRows.filter((r) => {
+    const dir = r.after?.direction as string | undefined;
+    if (directionFilter !== "all" && dir !== directionFilter) return false;
+    if (userFilter && !(r.target_user_id ?? "").toLowerCase().includes(userFilter.toLowerCase())) return false;
+    if (from && new Date(r.created_at) < new Date(from)) return false;
+    if (to && new Date(r.created_at) > new Date(to + "T23:59:59")) return false;
+    return true;
+  }), [auditRows, directionFilter, userFilter, from, to]);
 
   const filtered = useMemo(() => rows.filter((r) => {
     if (tab !== "all" && r.kind !== tab) return false;
@@ -116,6 +160,26 @@ export const AdminTransactions = () => {
   };
 
   const exportCsv = () => {
+    if (tab === "audit") {
+      const header = ["date", "admin_user_id", "target_user_id", "coin", "direction", "amount", "btc_before", "btc_after", "usdt_before", "usdt_after", "reason"];
+      const lines = [header.join(",")].concat(
+        filteredAudit.map((r) => {
+          const b = r.before ?? {}; const a = r.after ?? {};
+          return [
+            r.created_at, r.admin_user_id, r.target_user_id ?? "",
+            a.coin ?? "", a.direction ?? "", a.amount ?? "",
+            b.btc ?? "", a.btc ?? "", b.usdt ?? "", a.usdt ?? "",
+            (r.reason ?? "").replace(/[\n,]/g, " "),
+          ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",");
+        }),
+      );
+      const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `audit-log-${Date.now()}.csv`; a.click();
+      URL.revokeObjectURL(url);
+      return;
+    }
     const header = ["date", "kind", "id", "user_id", "type", "coin", "amount", "status", "hash", "notes"];
     const lines = [header.join(",")].concat(
       filtered.map((r) => [
@@ -130,6 +194,11 @@ export const AdminTransactions = () => {
     URL.revokeObjectURL(url);
   };
 
+  const doRefresh = () => { load(); if (tab === "audit") loadAudit(); };
+
+  const fmtBtc = (v: any) => (v == null || v === "" ? "—" : Number(v).toFixed(8));
+  const fmtUsdt = (v: any) => (v == null || v === "" ? "—" : Number(v).toFixed(2));
+
   return (
     <div className="space-y-4">
       <ManualBalanceAdjustment onDone={load} />
@@ -139,7 +208,7 @@ export const AdminTransactions = () => {
           <CardTitle className="flex items-center justify-between">
             <span>All Transactions</span>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={load}>
+              <Button variant="outline" size="sm" onClick={doRefresh}>
                 <RefreshCw className="mr-1 h-3 w-3" /> Refresh
               </Button>
               <Button variant="outline" size="sm" onClick={exportCsv}>
@@ -150,24 +219,39 @@ export const AdminTransactions = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-3 md:grid-cols-5">
-            <div><Label className="text-xs">Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  {uniqueStatuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div><Label className="text-xs">Coin</Label>
-              <Select value={coinFilter} onValueChange={setCoinFilter}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  {uniqueCoins.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            {tab !== "audit" ? (
+              <>
+                <div><Label className="text-xs">Status</Label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      {uniqueStatuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div><Label className="text-xs">Coin</Label>
+                  <Select value={coinFilter} onValueChange={setCoinFilter}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      {uniqueCoins.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            ) : (
+              <div><Label className="text-xs">Direction</Label>
+                <Select value={directionFilter} onValueChange={(v) => setDirectionFilter(v as any)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="credit">Credit</SelectItem>
+                    <SelectItem value="debit">Debit</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div><Label className="text-xs">User ID contains</Label>
               <Input value={userFilter} onChange={(e) => setUserFilter(e.target.value)} placeholder="uuid fragment" />
             </div>
@@ -180,65 +264,158 @@ export const AdminTransactions = () => {
           </div>
 
           <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-            <TabsList className="grid grid-cols-5 w-full">
+            <TabsList className="grid grid-cols-6 w-full">
               <TabsTrigger value="all">All ({rows.length})</TabsTrigger>
               <TabsTrigger value="deposit_history">Deposits</TabsTrigger>
               <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
               <TabsTrigger value="transactions">Internal</TabsTrigger>
               <TabsTrigger value="crypto_payments">Crypto Pay</TabsTrigger>
+              <TabsTrigger value="audit">Audit</TabsTrigger>
             </TabsList>
 
             <TabsContent value={tab} className="mt-4">
-              <div className="text-xs text-muted-foreground mb-2">{filtered.length} rows</div>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Source</TableHead>
-                      <TableHead>User</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Coin</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {loading ? (
-                      <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">Loading…</TableCell></TableRow>
-                    ) : filtered.length === 0 ? (
-                      <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">No rows</TableCell></TableRow>
-                    ) : filtered.map((r) => (
-                      <TableRow key={`${r.kind}-${r.id}`}>
-                        <TableCell className="text-xs whitespace-nowrap">{new Date(r.created_at).toLocaleString()}</TableCell>
-                        <TableCell className="text-xs">{r.kind}</TableCell>
-                        <TableCell className="font-mono text-xs">{r.user_id.slice(0, 8)}…</TableCell>
-                        <TableCell className="capitalize text-xs">{r.type}</TableCell>
-                        <TableCell>{r.coin}</TableCell>
-                        <TableCell className="font-mono">{r.amount}</TableCell>
-                        <TableCell><StatusBadge s={r.status} /></TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            <Button size="sm" variant="outline" onClick={() => setEditRow(r)}>
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={() => setStatusRow(r)}>
-                              Status
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={() => setReverseRow(r)}>
-                              <Undo2 className="h-3 w-3" />
-                            </Button>
-                            <Button size="sm" variant="destructive" onClick={() => setDeleteRow(r)}>
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              {tab === "audit" ? (
+                <>
+                  <div className="text-xs text-muted-foreground mb-2">
+                    {filteredAudit.length} manual adjustment{filteredAudit.length === 1 ? "" : "s"}
+                  </div>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Admin</TableHead>
+                          <TableHead>Target user</TableHead>
+                          <TableHead>Coin</TableHead>
+                          <TableHead>Direction</TableHead>
+                          <TableHead>Amount</TableHead>
+                          <TableHead>BTC before → after</TableHead>
+                          <TableHead>USDT before → after</TableHead>
+                          <TableHead>Reason</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {auditLoading ? (
+                          <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">Loading…</TableCell></TableRow>
+                        ) : filteredAudit.length === 0 ? (
+                          <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">No manual adjustments recorded.</TableCell></TableRow>
+                        ) : filteredAudit.map((r) => {
+                          const b = r.before ?? {}; const a = r.after ?? {};
+                          const dir = a.direction as string | undefined;
+                          const isOpen = !!expanded[r.id];
+                          return (
+                            <Fragment key={r.id}>
+                              <TableRow
+                                key={r.id}
+                                className="cursor-pointer"
+                                onClick={() => setExpanded((s) => ({ ...s, [r.id]: !s[r.id] }))}
+                              >
+                                <TableCell className="text-xs whitespace-nowrap">{new Date(r.created_at).toLocaleString()}</TableCell>
+                                <TableCell className="font-mono text-xs">{r.admin_user_id?.slice(0, 8)}…</TableCell>
+                                <TableCell className="font-mono text-xs">{r.target_user_id?.slice(0, 8) ?? "—"}…</TableCell>
+                                <TableCell>{a.coin ?? "—"}</TableCell>
+                                <TableCell>
+                                  {dir === "credit" ? (
+                                    <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">credit</Badge>
+                                  ) : dir === "debit" ? (
+                                    <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20">debit</Badge>
+                                  ) : "—"}
+                                </TableCell>
+                                <TableCell className="font-mono">{a.amount ?? "—"}</TableCell>
+                                <TableCell className="font-mono text-xs whitespace-nowrap">
+                                  {fmtBtc(b.btc)} → {fmtBtc(a.btc)}
+                                </TableCell>
+                                <TableCell className="font-mono text-xs whitespace-nowrap">
+                                  {fmtUsdt(b.usdt)} → {fmtUsdt(a.usdt)}
+                                </TableCell>
+                                <TableCell className="max-w-[240px] truncate text-xs" title={r.reason ?? ""}>
+                                  {r.reason ?? "—"}
+                                </TableCell>
+                              </TableRow>
+                              {isOpen && (
+                                <TableRow key={`${r.id}-detail`}>
+                                  <TableCell colSpan={9} className="bg-muted/40">
+                                    <div className="grid gap-3 md:grid-cols-2 text-xs">
+                                      <div>
+                                        <div className="font-semibold mb-1">Before</div>
+                                        <pre className="whitespace-pre-wrap font-mono">{JSON.stringify(b, null, 2)}</pre>
+                                      </div>
+                                      <div>
+                                        <div className="font-semibold mb-1">After</div>
+                                        <pre className="whitespace-pre-wrap font-mono">{JSON.stringify(a, null, 2)}</pre>
+                                      </div>
+                                      <div className="md:col-span-2">
+                                        <div className="font-semibold mb-1">Full reason</div>
+                                        <div className="whitespace-pre-wrap">{r.reason ?? "—"}</div>
+                                      </div>
+                                      <div className="md:col-span-2 text-muted-foreground">
+                                        Admin: <span className="font-mono">{r.admin_user_id}</span> · Target: <span className="font-mono">{r.target_user_id ?? "—"}</span>
+                                      </div>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </Fragment>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-xs text-muted-foreground mb-2">{filtered.length} rows</div>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Source</TableHead>
+                          <TableHead>User</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Coin</TableHead>
+                          <TableHead>Amount</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {loading ? (
+                          <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">Loading…</TableCell></TableRow>
+                        ) : filtered.length === 0 ? (
+                          <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">No rows</TableCell></TableRow>
+                        ) : filtered.map((r) => (
+                          <TableRow key={`${r.kind}-${r.id}`}>
+                            <TableCell className="text-xs whitespace-nowrap">{new Date(r.created_at).toLocaleString()}</TableCell>
+                            <TableCell className="text-xs">{r.kind}</TableCell>
+                            <TableCell className="font-mono text-xs">{r.user_id.slice(0, 8)}…</TableCell>
+                            <TableCell className="capitalize text-xs">{r.type}</TableCell>
+                            <TableCell>{r.coin}</TableCell>
+                            <TableCell className="font-mono">{r.amount}</TableCell>
+                            <TableCell><StatusBadge s={r.status} /></TableCell>
+                            <TableCell>
+                              <div className="flex flex-wrap gap-1">
+                                <Button size="sm" variant="outline" onClick={() => setEditRow(r)}>
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => setStatusRow(r)}>
+                                  Status
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => setReverseRow(r)}>
+                                  <Undo2 className="h-3 w-3" />
+                                </Button>
+                                <Button size="sm" variant="destructive" onClick={() => setDeleteRow(r)}>
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>
