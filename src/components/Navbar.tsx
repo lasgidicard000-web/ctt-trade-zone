@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import logoAsset from "@/assets/ctttradezone-logo.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import {
@@ -102,10 +103,12 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2 font-bold text-foreground">
-          <span className="inline-flex rounded-lg bg-primary/10 p-2">
-            <Wallet className="h-5 w-5 text-primary" />
-          </span>
-          <span className="hidden sm:inline">Caltex</span>
+          <img
+            src={logoAsset.url}
+            alt="CTT Trade Zone"
+            className="h-9 w-9 rounded-md object-cover ring-1 ring-primary/40"
+          />
+          <span className="hidden sm:inline tracking-tight">CTT Trade Zone</span>
         </Link>
 
         {/* Desktop navigation */}
