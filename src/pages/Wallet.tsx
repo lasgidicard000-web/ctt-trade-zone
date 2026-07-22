@@ -201,7 +201,7 @@ const Wallet = () => {
     const load = async () => {
       const { data } = await supabase
         .from("user_investments" as any)
-        .select("amount, daily_roi, started_at")
+        .select("amount, daily_roi, started_at, ends_at, duration_days, plan_name")
         .eq("user_id", user.id)
         .eq("status", "active");
       if (!alive) return;
