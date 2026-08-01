@@ -897,6 +897,53 @@ export default function AdminPlans() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Daily ROI history */}
+      <Dialog open={roiOpen} onOpenChange={setRoiOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Daily ROI history</DialogTitle>
+            <DialogDescription>
+              {roiInvestment
+                ? `${roiInvestment.plan_name} · ${nameFor(roiInvestment.user_id)} · one randomized rate per day`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[50vh] overflow-y-auto space-y-2">
+            {roiLoading ? (
+              <p className="text-sm text-muted-foreground">Loading…</p>
+            ) : roiRows.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No rates rolled yet. Use “Roll now” to generate today’s rate.
+              </p>
+            ) : (
+              roiRows.map((r) => (
+                <div key={r.id} className="flex items-center gap-3 rounded-md border border-border p-2">
+                  <span className="w-28 text-sm">{format(new Date(r.roi_date), "MMM d, yyyy")}</span>
+                  <Input
+                    className="h-8 w-24"
+                    type="number"
+                    step="0.01"
+                    defaultValue={(Number(r.roi) * 100).toFixed(2)}
+                    onBlur={(e) => {
+                      if (Number(e.target.value) / 100 !== Number(r.roi)) {
+                        saveRoiDay(r.id, e.target.value);
+                      }
+                    }}
+                  />
+                  <span className="text-sm text-muted-foreground">% / day</span>
+                </div>
+              ))
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={rollRoiNow}>Roll now</Button>
+            <Button onClick={() => setRoiOpen(false)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
