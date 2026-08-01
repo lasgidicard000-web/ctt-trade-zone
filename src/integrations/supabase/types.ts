@@ -351,6 +351,47 @@ export type Database = {
         }
         Relationships: []
       }
+      investment_daily_roi: {
+        Row: {
+          created_at: string
+          id: string
+          investment_id: string
+          roi: number
+          roi_date: string
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          investment_id: string
+          roi: number
+          roi_date: string
+          source?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          investment_id?: string
+          roi?: number
+          roi_date?: string
+          source?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_daily_roi_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "user_investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       milestones: {
         Row: {
           created_at: string
@@ -441,6 +482,8 @@ export type Database = {
           name: string
           principal_max: number
           principal_min: number
+          roi_max: number
+          roi_min: number
           sort_order: number
           updated_at: string
         }
@@ -455,6 +498,8 @@ export type Database = {
           name: string
           principal_max?: number
           principal_min?: number
+          roi_max: number
+          roi_min: number
           sort_order?: number
           updated_at?: string
         }
@@ -469,6 +514,8 @@ export type Database = {
           name?: string
           principal_max?: number
           principal_min?: number
+          roi_max?: number
+          roi_min?: number
           sort_order?: number
           updated_at?: string
         }
@@ -1010,6 +1057,17 @@ export type Database = {
           udt_name: string
         }[]
       }
+      get_investment_roi_summary: {
+        Args: { _investment_id: string }
+        Returns: {
+          accrued: number
+          avg_roi: number
+          days_counted: number
+          roi_max: number
+          roi_min: number
+          today_roi: number
+        }[]
+      }
       get_user_entitlements: {
         Args: { _user_id: string }
         Returns: {
@@ -1053,6 +1111,7 @@ export type Database = {
         }
         Returns: Json
       }
+      roll_investment_daily_roi: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user"

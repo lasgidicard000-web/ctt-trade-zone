@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Wallet as WalletIcon, TrendingUp, Lock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import type { RoiStats } from "@/hooks/useDailyRoi";
 
 interface Investment {
+  id?: string;
   plan_name?: string | null;
   amount: number | string;
   daily_roi: number | string;
@@ -15,12 +17,13 @@ interface Investment {
 interface Props {
   depositsUsd: number;
   investments: Investment[];
+  dailyRoi?: Record<string, RoiStats>;
 }
 
 const fmt = (n: number) =>
   `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-export const PortfolioBreakdown = ({ depositsUsd, investments }: Props) => {
+export const PortfolioBreakdown = ({ depositsUsd, investments, dailyRoi }: Props) => {
   const [, setTick] = useState(0);
   useEffect(() => {
     const i = setInterval(() => setTick((t) => t + 1), 1000);
@@ -32,7 +35,10 @@ export const PortfolioBreakdown = ({ depositsUsd, investments }: Props) => {
     const roi = Number(inv.daily_roi);
     const started = new Date(inv.started_at).getTime();
     const elapsedDays = Math.max(0, (Date.now() - started) / 86400000);
-    const earned = principal * roi * elapsedDays;
+    const stats = inv.id ? dailyRoi?.[inv.id] : undefined;
+    const earned = stats
+      ? principal * stats.effectiveSum
+      : principal * roi * elapsedDays;
     const duration = Number(inv.duration_days || 0);
     const progress = duration > 0 ? Math.min(100, (elapsedDays / duration) * 100) : 0;
     return {
@@ -40,9 +46,11 @@ export const PortfolioBreakdown = ({ depositsUsd, investments }: Props) => {
       principal,
       earned,
       progress,
-      dailyPct: roi * 100,
+      todayPct: stats?.todayRoi != null ? stats.todayRoi * 100 : null,
+      avgPct: (stats?.avgRoi ?? roi) * 100,
     };
   });
+
 
   const lockedTotal = rows.reduce((a, r) => a + r.principal, 0);
   const earnedTotal = rows.reduce((a, r) => a + r.earned, 0);
@@ -100,7 +108,9 @@ export const PortfolioBreakdown = ({ depositsUsd, investments }: Props) => {
                 <div>
                   <p className="font-medium">{r.name}</p>
                   <p className="text-[11px] text-muted-foreground">
-                    {r.dailyPct.toFixed(2)}% daily ROI
+                    {r.todayPct != null
+                      ? `${r.todayPct.toFixed(2)}% today · avg ${r.avgPct.toFixed(2)}%`
+                      : `avg ${r.avgPct.toFixed(2)}% daily`}
                   </p>
                 </div>
                 <div className="text-right">

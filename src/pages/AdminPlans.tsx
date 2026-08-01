@@ -59,6 +59,8 @@ type PlanTemplate = {
   principal_min: number;
   principal_max: number;
   daily_roi: number;
+  roi_min: number;
+  roi_max: number;
   duration_days: number;
   is_active: boolean;
   sort_order: number;
@@ -90,6 +92,8 @@ const emptyTemplate = {
   principal_min: "",
   principal_max: "",
   daily_roi_pct: "", // percent, e.g. 1.5
+  roi_min_pct: "",
+  roi_max_pct: "",
   duration_days: "30",
   is_active: true,
   sort_order: "0",
@@ -122,6 +126,56 @@ export default function AdminPlans() {
   });
   const [userSearch, setUserSearch] = useState("");
   const [assignSaving, setAssignSaving] = useState(false);
+
+  // Daily ROI history dialog
+  const [roiOpen, setRoiOpen] = useState(false);
+  const [roiInvestment, setRoiInvestment] = useState<UserInvestment | null>(null);
+  const [roiRows, setRoiRows] = useState<{ id: string; roi_date: string; roi: number }[]>([]);
+  const [roiLoading, setRoiLoading] = useState(false);
+
+  const openRoiHistory = async (inv: UserInvestment) => {
+    setRoiInvestment(inv);
+    setRoiOpen(true);
+    setRoiLoading(true);
+    const { data, error } = await supabase
+      .from("investment_daily_roi")
+      .select("id, roi_date, roi")
+      .eq("investment_id", inv.id)
+      .order("roi_date", { ascending: false });
+    if (error) {
+      toast({ title: "Failed to load ROI history", description: error.message, variant: "destructive" });
+    }
+    setRoiRows((data ?? []) as any);
+    setRoiLoading(false);
+  };
+
+  const saveRoiDay = async (rowId: string, pct: string) => {
+    const value = Number(pct) / 100;
+    if (!isFinite(value) || value < 0 || value > 1) {
+      toast({ title: "Invalid ROI", description: "Enter 0–100%", variant: "destructive" });
+      return;
+    }
+    const { error } = await supabase
+      .from("investment_daily_roi")
+      .update({ roi: value })
+      .eq("id", rowId);
+    if (error) {
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    setRoiRows((rows) => rows.map((r) => (r.id === rowId ? { ...r, roi: value } : r)));
+    toast({ title: "Daily ROI updated" });
+  };
+
+  const rollRoiNow = async () => {
+    const { error } = await supabase.rpc("roll_investment_daily_roi" as any);
+    if (error) {
+      toast({ title: "Roll failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (roiInvestment) await openRoiHistory(roiInvestment);
+    toast({ title: "Daily ROI rolled" });
+  };
 
   useEffect(() => {
     (async () => {
@@ -214,6 +268,8 @@ export default function AdminPlans() {
       principal_min: String(t.principal_min),
       principal_max: String(t.principal_max),
       daily_roi_pct: String(t.daily_roi * 100),
+      roi_min_pct: String(Number(t.roi_min ?? t.daily_roi * 0.6) * 100),
+      roi_max_pct: String(Number(t.roi_max ?? t.daily_roi * 1.4) * 100),
       duration_days: String(t.duration_days),
       is_active: t.is_active,
       sort_order: String(t.sort_order),
@@ -237,6 +293,15 @@ export default function AdminPlans() {
     if (!Number.isFinite(dur) || dur <= 0)
       return toast({ title: "Invalid duration", variant: "destructive" });
 
+    const roiMinPct = Number.isFinite(parseFloat(tplForm.roi_min_pct))
+      ? parseFloat(tplForm.roi_min_pct)
+      : roiPct * 0.6;
+    const roiMaxPct = Number.isFinite(parseFloat(tplForm.roi_max_pct))
+      ? parseFloat(tplForm.roi_max_pct)
+      : roiPct * 1.4;
+    if (roiMinPct < 0 || roiMaxPct < roiMinPct)
+      return toast({ title: "Max ROI must be ≥ min ROI", variant: "destructive" });
+
     setTplSaving(true);
     const payload = {
       name: tplForm.name.trim(),
@@ -244,6 +309,8 @@ export default function AdminPlans() {
       principal_min: min,
       principal_max: max,
       daily_roi: roiPct / 100,
+      roi_min: roiMinPct / 100,
+      roi_max: roiMaxPct / 100,
       duration_days: dur,
       is_active: tplForm.is_active,
       sort_order: sort,
@@ -432,7 +499,13 @@ export default function AdminPlans() {
                           <TableCell>
                             ${t.principal_min.toLocaleString()} – ${t.principal_max.toLocaleString()}
                           </TableCell>
-                          <TableCell>{(t.daily_roi * 100).toFixed(2)}%</TableCell>
+                          <TableCell>
+                            {(Number(t.roi_min ?? t.daily_roi * 0.6) * 100).toFixed(2)}% –{" "}
+                            {(Number(t.roi_max ?? t.daily_roi * 1.4) * 100).toFixed(2)}%
+                            <span className="block text-[11px] text-muted-foreground">
+                              avg {(t.daily_roi * 100).toFixed(2)}%
+                            </span>
+                          </TableCell>
                           <TableCell>{t.duration_days}d</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
@@ -483,7 +556,7 @@ export default function AdminPlans() {
                       <TableHead>User</TableHead>
                       <TableHead>Plan</TableHead>
                       <TableHead>Principal</TableHead>
-                      <TableHead>Daily ROI</TableHead>
+                      <TableHead>Avg daily ROI</TableHead>
                       <TableHead>Started</TableHead>
                       <TableHead>Ends</TableHead>
                       <TableHead>Status</TableHead>
@@ -521,6 +594,14 @@ export default function AdminPlans() {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="mr-1"
+                              onClick={() => openRoiHistory(i)}
+                            >
+                              Daily ROI
+                            </Button>
                             {i.status === "active" && (
                               <>
                                 <Button
@@ -622,7 +703,7 @@ export default function AdminPlans() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Daily ROI (%)</Label>
+                <Label>Average daily ROI (%)</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -630,6 +711,9 @@ export default function AdminPlans() {
                   onChange={(e) => setTplForm({ ...tplForm, daily_roi_pct: e.target.value })}
                   placeholder="1.5"
                 />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Reference average — actual daily rates are rolled inside the band below.
+                </p>
               </div>
               <div>
                 <Label>Duration (days)</Label>
@@ -637,6 +721,28 @@ export default function AdminPlans() {
                   type="number"
                   value={tplForm.duration_days}
                   onChange={(e) => setTplForm({ ...tplForm, duration_days: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Min daily ROI (%)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={tplForm.roi_min_pct}
+                  onChange={(e) => setTplForm({ ...tplForm, roi_min_pct: e.target.value })}
+                  placeholder="0.9"
+                />
+              </div>
+              <div>
+                <Label>Max daily ROI (%)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={tplForm.roi_max_pct}
+                  onChange={(e) => setTplForm({ ...tplForm, roi_max_pct: e.target.value })}
+                  placeholder="2.1"
                 />
               </div>
             </div>
@@ -788,6 +894,53 @@ export default function AdminPlans() {
             <Button onClick={submitAssign} disabled={assignSaving}>
               {assignSaving ? "Assigning…" : "Assign plan"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Daily ROI history */}
+      <Dialog open={roiOpen} onOpenChange={setRoiOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Daily ROI history</DialogTitle>
+            <DialogDescription>
+              {roiInvestment
+                ? `${roiInvestment.plan_name} · ${nameFor(roiInvestment.user_id)} · one randomized rate per day`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[50vh] overflow-y-auto space-y-2">
+            {roiLoading ? (
+              <p className="text-sm text-muted-foreground">Loading…</p>
+            ) : roiRows.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No rates rolled yet. Use “Roll now” to generate today’s rate.
+              </p>
+            ) : (
+              roiRows.map((r) => (
+                <div key={r.id} className="flex items-center gap-3 rounded-md border border-border p-2">
+                  <span className="w-28 text-sm">{format(new Date(r.roi_date), "MMM d, yyyy")}</span>
+                  <Input
+                    className="h-8 w-24"
+                    type="number"
+                    step="0.01"
+                    defaultValue={(Number(r.roi) * 100).toFixed(2)}
+                    onBlur={(e) => {
+                      if (Number(e.target.value) / 100 !== Number(r.roi)) {
+                        saveRoiDay(r.id, e.target.value);
+                      }
+                    }}
+                  />
+                  <span className="text-sm text-muted-foreground">% / day</span>
+                </div>
+              ))
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={rollRoiNow}>Roll now</Button>
+            <Button onClick={() => setRoiOpen(false)}>Done</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
