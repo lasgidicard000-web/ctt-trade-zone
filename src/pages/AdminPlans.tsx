@@ -130,7 +130,7 @@ export default function AdminPlans() {
   // Daily ROI history dialog
   const [roiOpen, setRoiOpen] = useState(false);
   const [roiInvestment, setRoiInvestment] = useState<UserInvestment | null>(null);
-  const [roiRows, setRoiRows] = useState<{ id: string; roi_date: string; daily_roi: number }[]>([]);
+  const [roiRows, setRoiRows] = useState<{ id: string; roi_date: string; roi: number }[]>([]);
   const [roiLoading, setRoiLoading] = useState(false);
 
   const openRoiHistory = async (inv: UserInvestment) => {
@@ -139,7 +139,7 @@ export default function AdminPlans() {
     setRoiLoading(true);
     const { data, error } = await supabase
       .from("investment_daily_roi")
-      .select("id, roi_date, daily_roi")
+      .select("id, roi_date, roi")
       .eq("investment_id", inv.id)
       .order("roi_date", { ascending: false });
     if (error) {
@@ -157,13 +157,13 @@ export default function AdminPlans() {
     }
     const { error } = await supabase
       .from("investment_daily_roi")
-      .update({ daily_roi: value })
+      .update({ roi: value })
       .eq("id", rowId);
     if (error) {
       toast({ title: "Update failed", description: error.message, variant: "destructive" });
       return;
     }
-    setRoiRows((rows) => rows.map((r) => (r.id === rowId ? { ...r, daily_roi: value } : r)));
+    setRoiRows((rows) => rows.map((r) => (r.id === rowId ? { ...r, roi: value } : r)));
     toast({ title: "Daily ROI updated" });
   };
 
