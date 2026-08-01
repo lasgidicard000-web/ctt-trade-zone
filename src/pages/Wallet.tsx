@@ -680,7 +680,19 @@ const Wallet = () => {
           </div>
         </div>
 
+        {user && (
+          <CommissionersTopUpBanner
+            userId={user.id}
+            portfolioUsd={totalPortfolioValue}
+            onTopUp={() => setAddFundsDialogOpen(true)}
+            onActivate={() => setPurchasePlanOpen(true)}
+          />
+        )}
+
+        {user && <CttDebitCard userId={user.id} portfolioUsd={totalPortfolioValue} />}
+
         <Card className="mb-6 border-border bg-gradient-to-br from-primary/10 to-accent/10 p-6">
+
           <div className="text-center">
             <p className="mb-2 text-sm text-muted-foreground">Total Portfolio Value</p>
             <p className="text-4xl font-bold text-foreground tabular-nums">
