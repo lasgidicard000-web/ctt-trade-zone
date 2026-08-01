@@ -17,6 +17,7 @@ import { WalletStatusCard } from "@/components/WalletStatusCard";
 import { ActiveInvestmentCard } from "@/components/ActiveInvestmentCard";
 import { PurchasePlanDialog } from "@/components/PurchasePlanDialog";
 import { PortfolioBreakdown } from "@/components/PortfolioBreakdown";
+import { useDailyRoi } from "@/hooks/useDailyRoi";
 import { CommissionersTopUpBanner } from "@/components/CommissionersTopUpBanner";
 import { CttDebitCard } from "@/components/CttDebitCard";
 import { EntitlementsCard } from "@/components/EntitlementsCard";
@@ -81,6 +82,7 @@ const Wallet = () => {
   const [purchasePlanOpen, setPurchasePlanOpen] = useState(false);
   const [activeInvestments, setActiveInvestments] = useState<Array<{ amount: number; daily_roi: number; started_at: string }>>([]);
   const [profitTick, setProfitTick] = useState(0);
+  const { byInvestment: dailyRoiByInvestment } = useDailyRoi(user?.id);
   const paypalButtonsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -204,7 +206,7 @@ const Wallet = () => {
     const load = async () => {
       const { data } = await supabase
         .from("user_investments" as any)
-        .select("amount, daily_roi, started_at, ends_at, duration_days, plan_name")
+        .select("id, amount, daily_roi, started_at, ends_at, duration_days, plan_name")
         .eq("user_id", user.id)
         .eq("status", "active");
       if (!alive) return;
@@ -254,8 +256,11 @@ const Wallet = () => {
   );
 
   // Live accrued profit from all active investments (excludes principal).
+  // Uses the per-day rolled ROI history when available, so earnings vary daily.
   void profitTick; // triggers re-render every second
   const accruedProfitUsd = activeInvestments.reduce((acc, inv) => {
+    const stats = dailyRoiByInvestment[(inv as any).id];
+    if (stats) return acc + Number(inv.amount) * stats.effectiveSum;
     const elapsedMs = Math.max(0, Date.now() - new Date(inv.started_at).getTime());
     const elapsedDays = elapsedMs / (1000 * 60 * 60 * 24);
     return acc + Number(inv.amount) * Number(inv.daily_roi) * elapsedDays;
@@ -739,7 +744,11 @@ const Wallet = () => {
           </div>
         </Card>
 
-        <PortfolioBreakdown depositsUsd={walletUsd} investments={activeInvestments as any} />
+        <PortfolioBreakdown
+          depositsUsd={walletUsd}
+          investments={activeInvestments as any}
+          dailyRoi={dailyRoiByInvestment}
+        />
 
 
         {user && (

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { TrendingUp, Sparkles, Clock, ArrowUpRight } from "lucide-react";
+import { useDailyRoi } from "@/hooks/useDailyRoi";
 
 interface Investment {
   id: string;
@@ -17,7 +18,14 @@ interface Investment {
   status: string;
   started_at: string;
   ends_at: string;
+  template_id: string | null;
 }
+
+interface Band {
+  roi_min: number;
+  roi_max: number;
+}
+
 
 const badgeStyle = (planId: string) => {
   switch (planId) {
@@ -46,8 +54,10 @@ const formatUSD = (n: number) =>
 
 export const ActiveInvestmentCard = ({ userId }: { userId: string }) => {
   const [investments, setInvestments] = useState<Investment[]>([]);
+  const [bands, setBands] = useState<Record<string, Band>>({});
   const [loading, setLoading] = useState(true);
   const [tick, setTick] = useState(0);
+  const { byInvestment } = useDailyRoi(userId);
 
   useEffect(() => {
     let alive = true;
@@ -61,6 +71,16 @@ export const ActiveInvestmentCard = ({ userId }: { userId: string }) => {
       if (!alive) return;
       setInvestments((data ?? []) as Investment[]);
       setLoading(false);
+
+      const { data: tpl } = await supabase
+        .from("plan_templates")
+        .select("id, roi_min, roi_max");
+      if (!alive) return;
+      const map: Record<string, Band> = {};
+      (tpl ?? []).forEach((t: any) => {
+        map[t.id] = { roi_min: Number(t.roi_min), roi_max: Number(t.roi_max) };
+      });
+      setBands(map);
     };
     load();
 
@@ -81,6 +101,7 @@ export const ActiveInvestmentCard = ({ userId }: { userId: string }) => {
       clearInterval(interval);
     };
   }, [userId]);
+
 
   if (loading) return null;
 
@@ -119,7 +140,17 @@ export const ActiveInvestmentCard = ({ userId }: { userId: string }) => {
         const elapsedDays = elapsedMs / (1000 * 60 * 60 * 24);
         const progressPct = Math.min(100, (elapsedMs / totalMs) * 100);
         const daysRemaining = Math.max(0, Math.ceil((endsMs - Date.now()) / (1000 * 60 * 60 * 24)));
-        const accrued = Number(inv.amount) * Number(inv.daily_roi) * elapsedDays;
+
+        const stats = byInvestment[inv.id];
+        const band = inv.template_id ? bands[inv.template_id] : undefined;
+        const roiMin = band?.roi_min ?? Number(inv.daily_roi) * 0.6;
+        const roiMax = band?.roi_max ?? Number(inv.daily_roi) * 1.4;
+        const todayRoi = stats?.todayRoi ?? null;
+        const avgRoi = stats?.avgRoi ?? Number(inv.daily_roi);
+        const accrued = stats
+          ? Number(inv.amount) * stats.effectiveSum
+          : Number(inv.amount) * Number(inv.daily_roi) * elapsedDays;
+
 
         return (
           <Card
@@ -157,8 +188,14 @@ export const ActiveInvestmentCard = ({ userId }: { userId: string }) => {
                   <p className="font-semibold text-lg">{formatUSD(Number(inv.amount))}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Daily ROI</p>
-                  <p className="font-semibold text-lg">{(Number(inv.daily_roi) * 100).toFixed(2)}%</p>
+                  <p className="text-xs text-muted-foreground">Today's ROI</p>
+                  <p className="font-semibold text-lg tabular-nums">
+                    {todayRoi !== null ? `${(todayRoi * 100).toFixed(2)}%` : "Rolling…"}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Band {(roiMin * 100).toFixed(2)}–{(roiMax * 100).toFixed(2)}% · avg{" "}
+                    {(avgRoi * 100).toFixed(2)}%
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Accrued Profit</p>

@@ -27,6 +27,8 @@ interface PlanTemplate {
   principal_min: number;
   principal_max: number;
   daily_roi: number;
+  roi_min: number;
+  roi_max: number;
   duration_days: number;
   is_active: boolean;
 }
@@ -166,6 +168,9 @@ export const PurchasePlanDialog = ({
         status: "completed",
       });
 
+      // Roll today's random daily ROI immediately so the dashboard shows a rate
+      await supabase.rpc("roll_investment_daily_roi" as any);
+
       toast.success(`${selected.name} activated`, {
         description: `Locked $${amtNum.toLocaleString()} for ${selected.duration_days} days`,
       });
@@ -204,7 +209,9 @@ export const PurchasePlanDialog = ({
               <SelectContent>
                 {templates.map((t) => (
                   <SelectItem key={t.id} value={t.id}>
-                    {t.name} · {(Number(t.daily_roi) * 100).toFixed(2)}%/day ·{" "}
+                    {t.name} ·{" "}
+                    {(Number(t.roi_min ?? t.daily_roi * 0.6) * 100).toFixed(2)}–
+                    {(Number(t.roi_max ?? t.daily_roi * 1.4) * 100).toFixed(2)}%/day ·{" "}
                     {t.duration_days}d
                   </SelectItem>
                 ))}
