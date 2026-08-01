@@ -17,6 +17,8 @@ import { WalletStatusCard } from "@/components/WalletStatusCard";
 import { ActiveInvestmentCard } from "@/components/ActiveInvestmentCard";
 import { PurchasePlanDialog } from "@/components/PurchasePlanDialog";
 import { PortfolioBreakdown } from "@/components/PortfolioBreakdown";
+import { CommissionersTopUpBanner } from "@/components/CommissionersTopUpBanner";
+import { CttDebitCard } from "@/components/CttDebitCard";
 import { EntitlementsCard } from "@/components/EntitlementsCard";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { GiftCardApprovalTracker } from "@/components/GiftCardApprovalTracker";
