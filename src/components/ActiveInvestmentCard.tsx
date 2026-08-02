@@ -5,7 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { TrendingUp, Sparkles, Clock, ArrowUpRight } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { TrendingUp, Sparkles, Clock, ArrowUpRight, History, ChevronDown } from "lucide-react";
 import { useDailyRoi } from "@/hooks/useDailyRoi";
 
 interface Investment {
@@ -226,6 +231,45 @@ export const ActiveInvestmentCard = ({ userId }: { userId: string }) => {
                   Ends {new Date(inv.ends_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
                 </p>
               </div>
+
+              {stats && stats.rows.length > 0 && (
+                <Collapsible className="mt-4">
+                  <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border border-border/60 bg-background/40 px-3 py-2 text-xs font-medium hover:bg-background/60">
+                    <span className="flex items-center gap-1.5">
+                      <History className="h-3.5 w-3.5" />
+                      ROI history ({stats.rows.length} day{stats.rows.length === 1 ? "" : "s"})
+                    </span>
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2">
+                    <div className="max-h-52 overflow-y-auto rounded-md border border-border/60 divide-y divide-border/50">
+                      {[...stats.rows]
+                        .sort((a, b) => (a.roi_date < b.roi_date ? 1 : -1))
+                        .map((r) => (
+                          <div
+                            key={r.roi_date}
+                            className="flex items-center justify-between px-3 py-1.5 text-xs"
+                          >
+                            <span className="text-muted-foreground">
+                              {new Date(`${r.roi_date}T00:00:00Z`).toLocaleDateString(undefined, {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                                timeZone: "UTC",
+                              })}
+                            </span>
+                            <span className="flex items-center gap-3 tabular-nums">
+                              <span className="font-medium">{(Number(r.roi) * 100).toFixed(2)}%</span>
+                              <span className="text-emerald-500">
+                                +{formatUSD(Number(inv.amount) * Number(r.roi))}
+                              </span>
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
             </div>
           </Card>
         );
