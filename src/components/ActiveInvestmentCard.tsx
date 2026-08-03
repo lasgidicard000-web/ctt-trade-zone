@@ -181,6 +181,39 @@ export const ActiveInvestmentCard = ({ userId }: { userId: string }) => {
           ? Number(inv.amount) * stats.effectiveSum
           : Number(inv.amount) * Number(inv.daily_roi) * elapsedDays;
 
+        const downloadReceipt = () => {
+          try {
+            generatePlanActivationReceipt({
+              investmentId: inv.id,
+              templateId: inv.template_id,
+              userId,
+              accountName: account.name,
+              accountEmail: account.email,
+              planName: inv.plan_name,
+              planId: inv.plan_id,
+              tierRank: entitlements.tier_rank,
+              principal: Number(inv.amount),
+              durationDays: inv.duration_days,
+              startedAt: inv.started_at,
+              endsAt: inv.ends_at,
+              todayRoi,
+              avgRoi,
+              roiMin,
+              roiMax,
+              accrued,
+              withdrawalFeePct: entitlements.withdrawal_fee_pct,
+              dailyWithdrawalCap: entitlements.daily_withdrawal_cap,
+              prioritySupport: entitlements.priority_support,
+              premiumFeatures: entitlements.premium_features,
+              communityAccess: entitlements.community_access,
+            });
+            toast.success("Activation receipt downloaded");
+          } catch (error) {
+            console.error("Activation receipt failed:", error);
+            toast.error("Could not generate receipt");
+          }
+        };
+
 
         return (
           <Card
