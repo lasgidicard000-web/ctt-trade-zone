@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -11,8 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
-import { ExternalLink, Copy, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { ExternalLink, Copy, CheckCircle2, Clock, XCircle, Download } from "lucide-react";
 import { toast } from "sonner";
+import { useRealtimePrices } from "@/hooks/useRealtimePrices";
+import { generateDepositReceipt } from "@/lib/depositReceipt";
 
 interface DepositRecord {
   id: string;
@@ -26,6 +29,7 @@ interface DepositRecord {
   confirmed_at: string | null;
   notes: string | null;
 }
+
 
 export const DepositHistory = () => {
   const [deposits, setDeposits] = useState<DepositRecord[]>([]);
