@@ -66,9 +66,30 @@ export const ActiveInvestmentCard = ({ userId }: { userId: string }) => {
   const [bands, setBands] = useState<Record<string, Band>>({});
   const [loading, setLoading] = useState(true);
   const [tick, setTick] = useState(0);
+  const [account, setAccount] = useState({ name: "", email: "" });
   const { byInvestment } = useDailyRoi(userId);
+  const { entitlements } = useEntitlements(userId);
 
   useEffect(() => {
+    let alive = true;
+    (async () => {
+      const [{ data: profile }, { data: auth }] = await Promise.all([
+        supabase.from("profiles").select("display_name").eq("user_id", userId).maybeSingle(),
+        supabase.auth.getUser(),
+      ]);
+      if (!alive) return;
+      setAccount({
+        name: profile?.display_name ?? "",
+        email: auth?.user?.email ?? "",
+      });
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [userId]);
+
+  useEffect(() => {
+
     let alive = true;
     const load = async () => {
       const { data } = await supabase
