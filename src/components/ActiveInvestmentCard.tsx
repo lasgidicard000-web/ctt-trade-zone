@@ -290,6 +290,18 @@ export const ActiveInvestmentCard = ({ userId }: { userId: string }) => {
                 </p>
               </div>
 
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4 w-full bg-background/50"
+                onClick={downloadReceipt}
+              >
+                <FileDown className="mr-2 h-4 w-4" />
+                Download activation receipt
+              </Button>
+
+
+
               {stats && stats.rows.length > 0 && (
                 <Collapsible className="mt-4">
                   <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border border-border/60 bg-background/40 px-3 py-2 text-xs font-medium hover:bg-background/60">
