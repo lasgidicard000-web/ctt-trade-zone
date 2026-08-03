@@ -140,6 +140,8 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
 
   const pan = details ? groupPan(details.card_number) : `•••• •••• •••• ${card?.last4 ?? "0000"}`;
   const expiry = card ? `${String(card.expiry_month).padStart(2, "0")}/${String(card.expiry_year).slice(-2)}` : "••/••";
+  const cvv = details?.cvv ?? secure?.cvv ?? "•••";
+
 
   return (
     <Card className="mb-6 border-border p-4">
