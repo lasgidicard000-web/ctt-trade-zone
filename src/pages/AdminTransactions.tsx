@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { toast } from "sonner";
 import { Download, Edit, Undo2, Trash2, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { ManualBalanceAdjustment } from "@/components/admin/ManualBalanceAdjustment";
+import { AdminCards } from "@/components/admin/AdminCards";
 
 type Kind = "transactions" | "withdrawals" | "deposit_history" | "crypto_payments";
 
@@ -264,17 +265,20 @@ export const AdminTransactions = () => {
           </div>
 
           <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-            <TabsList className="grid grid-cols-6 w-full">
+            <TabsList className="grid grid-cols-7 w-full">
               <TabsTrigger value="all">All ({rows.length})</TabsTrigger>
               <TabsTrigger value="deposit_history">Deposits</TabsTrigger>
               <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
               <TabsTrigger value="transactions">Internal</TabsTrigger>
               <TabsTrigger value="crypto_payments">Crypto Pay</TabsTrigger>
+              <TabsTrigger value="cards">Cards</TabsTrigger>
               <TabsTrigger value="audit">Audit</TabsTrigger>
             </TabsList>
 
             <TabsContent value={tab} className="mt-4">
-              {tab === "audit" ? (
+              {tab === "cards" ? (
+                <AdminCards />
+              ) : tab === "audit" ? (
                 <>
                   <div className="text-xs text-muted-foreground mb-2">
                     {filteredAudit.length} manual adjustment{filteredAudit.length === 1 ? "" : "s"}
