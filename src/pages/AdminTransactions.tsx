@@ -58,7 +58,7 @@ interface AuditRow {
 export const AdminTransactions = () => {
   const [rows, setRows] = useState<UnifiedRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"all" | Kind | "audit">("all");
+  const [tab, setTab] = useState<"all" | Kind | "audit" | "cards">("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [coinFilter, setCoinFilter] = useState("all");
   const [userFilter, setUserFilter] = useState("");
