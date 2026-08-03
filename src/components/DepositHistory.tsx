@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -11,8 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
-import { ExternalLink, Copy, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { ExternalLink, Copy, CheckCircle2, Clock, XCircle, Download } from "lucide-react";
 import { toast } from "sonner";
+import { useRealtimePrices } from "@/hooks/useRealtimePrices";
+import { generateDepositReceipt } from "@/lib/depositReceipt";
 
 interface DepositRecord {
   id: string;
@@ -27,9 +30,12 @@ interface DepositRecord {
   notes: string | null;
 }
 
+
 export const DepositHistory = () => {
   const [deposits, setDeposits] = useState<DepositRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [account, setAccount] = useState({ name: "", email: "" });
+  const { prices } = useRealtimePrices();
 
   useEffect(() => {
     fetchDepositHistory();
@@ -39,6 +45,18 @@ export const DepositHistory = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      setAccount({
+        name: profile?.display_name || user.email || "",
+        email: user.email || "",
+      });
+
 
       const { data, error } = await supabase
         .from("deposit_history")
@@ -60,6 +78,39 @@ export const DepositHistory = () => {
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
   };
+
+  const getRate = (symbol: string) =>
+    prices.find((p) => p.symbol.toUpperCase() === symbol.toUpperCase())?.price ?? null;
+
+  const usdValue = (deposit: DepositRecord) => {
+    const rate = getRate(deposit.coin_symbol);
+    return rate ? Number(deposit.amount) * rate : null;
+  };
+
+  const downloadReceipt = (deposit: DepositRecord) => {
+    try {
+      generateDepositReceipt({
+        id: deposit.id,
+        coinSymbol: deposit.coin_symbol,
+        amount: Number(deposit.amount),
+        walletAddress: deposit.wallet_address,
+        transactionHash: deposit.transaction_hash,
+        status: deposit.confirmation_status,
+        confirmations: deposit.confirmations,
+        createdAt: deposit.created_at,
+        confirmedAt: deposit.confirmed_at,
+        notes: deposit.notes,
+        usdRate: getRate(deposit.coin_symbol),
+        accountName: account.name,
+        accountEmail: account.email,
+      });
+      toast.success("Receipt downloaded");
+    } catch (error) {
+      console.error("Receipt generation failed:", error);
+      toast.error("Could not generate receipt");
+    }
+  };
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -119,11 +170,14 @@ export const DepositHistory = () => {
               <TableHead>Date</TableHead>
               <TableHead>Coin</TableHead>
               <TableHead>Amount</TableHead>
+              <TableHead>USD Value</TableHead>
               <TableHead>Wallet Address</TableHead>
               <TableHead>Transaction Hash</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Confirmations</TableHead>
+              <TableHead className="text-right">Receipt</TableHead>
             </TableRow>
+
           </TableHeader>
           <TableBody>
             {deposits.map((deposit) => (
@@ -135,6 +189,15 @@ export const DepositHistory = () => {
                 <TableCell className="font-mono">
                   {Number(deposit.amount).toFixed(8)}
                 </TableCell>
+                <TableCell className="font-mono text-sm">
+                  {usdValue(deposit) !== null
+                    ? usdValue(deposit)!.toLocaleString("en-US", {
+                        style: "currency",
+                        currency: "USD",
+                      })
+                    : "-"}
+                </TableCell>
+
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-mono">
@@ -179,7 +242,19 @@ export const DepositHistory = () => {
                     {deposit.confirmations}/6
                   </span>
                 </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadReceipt(deposit)}
+                    aria-label={`Download receipt for ${deposit.coin_symbol} deposit`}
+                  >
+                    <Download className="w-3 h-3 mr-1" />
+                    Receipt
+                  </Button>
+                </TableCell>
               </TableRow>
+
             ))}
           </TableBody>
         </Table>
