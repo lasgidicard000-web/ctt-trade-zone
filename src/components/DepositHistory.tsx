@@ -242,7 +242,19 @@ export const DepositHistory = () => {
                     {deposit.confirmations}/6
                   </span>
                 </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadReceipt(deposit)}
+                    aria-label={`Download receipt for ${deposit.coin_symbol} deposit`}
+                  >
+                    <Download className="w-3 h-3 mr-1" />
+                    Receipt
+                  </Button>
+                </TableCell>
               </TableRow>
+
             ))}
           </TableBody>
         </Table>
