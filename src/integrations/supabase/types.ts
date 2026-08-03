@@ -97,6 +97,53 @@ export type Database = {
           },
         ]
       }
+      card_transactions: {
+        Row: {
+          amount_btc: number
+          amount_usd: number
+          btc_rate: number
+          card_id: string
+          created_at: string
+          decline_reason: string | null
+          id: string
+          merchant: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_btc?: number
+          amount_usd: number
+          btc_rate?: number
+          card_id: string
+          created_at?: string
+          decline_reason?: string | null
+          id?: string
+          merchant: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_btc?: number
+          amount_usd?: number
+          btc_rate?: number
+          card_id?: string
+          created_at?: string
+          decline_reason?: string | null
+          id?: string
+          merchant?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_transactions_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "virtual_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_conversations: {
         Row: {
           created_at: string
@@ -909,6 +956,60 @@ export type Database = {
         }
         Relationships: []
       }
+      virtual_cards: {
+        Row: {
+          card_number: string
+          created_at: string
+          cvv: string
+          daily_limit: number
+          expiry_month: number
+          expiry_year: number
+          id: string
+          issued_at: string
+          last4: string
+          network: string
+          per_tx_limit: number
+          pin_hash: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_number: string
+          created_at?: string
+          cvv: string
+          daily_limit?: number
+          expiry_month: number
+          expiry_year: number
+          id?: string
+          issued_at?: string
+          last4: string
+          network?: string
+          per_tx_limit?: number
+          pin_hash?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_number?: string
+          created_at?: string
+          cvv?: string
+          daily_limit?: number
+          expiry_month?: number
+          expiry_year?: number
+          id?: string
+          issued_at?: string
+          last4?: string
+          network?: string
+          per_tx_limit?: number
+          pin_hash?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       virtual_transactions: {
         Row: {
           amount: number
@@ -1057,6 +1158,11 @@ export type Database = {
           udt_name: string
         }[]
       }
+      card_spend: {
+        Args: { _amount_usd: number; _card_id: string; _merchant: string }
+        Returns: Json
+      }
+      get_card_details: { Args: { _card_id: string }; Returns: Json }
       get_investment_roi_summary: {
         Args: { _investment_id: string }
         Returns: {
@@ -1066,6 +1172,23 @@ export type Database = {
           roi_max: number
           roi_min: number
           today_roi: number
+        }[]
+      }
+      get_my_card: {
+        Args: never
+        Returns: {
+          daily_limit: number
+          expiry_month: number
+          expiry_year: number
+          has_pin: boolean
+          id: string
+          issued_at: string
+          last4: string
+          network: string
+          per_tx_limit: number
+          spent_today: number
+          spent_total: number
+          status: string
         }[]
       }
       get_user_entitlements: {
@@ -1101,6 +1224,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      issue_virtual_card: { Args: never; Returns: Json }
       regulate_daily_roi: {
         Args: {
           _active_only: boolean
@@ -1112,6 +1236,11 @@ export type Database = {
         Returns: Json
       }
       roll_investment_daily_roi: { Args: never; Returns: number }
+      set_card_pin: { Args: { _card_id: string; _pin: string }; Returns: Json }
+      set_card_status: {
+        Args: { _card_id: string; _reason?: string; _status: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"
