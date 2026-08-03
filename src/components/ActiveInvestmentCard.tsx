@@ -10,8 +10,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { TrendingUp, Sparkles, Clock, ArrowUpRight, History, ChevronDown } from "lucide-react";
+import { TrendingUp, Sparkles, Clock, ArrowUpRight, History, ChevronDown, FileDown } from "lucide-react";
 import { useDailyRoi } from "@/hooks/useDailyRoi";
+import { useEntitlements } from "@/hooks/useEntitlements";
+import { generatePlanActivationReceipt } from "@/lib/planActivationReceipt";
+import { toast } from "sonner";
+
 
 interface Investment {
   id: string;
