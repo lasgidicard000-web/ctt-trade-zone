@@ -60,12 +60,26 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
     return () => clearInterval(t);
   }, []);
 
-  // auto re-mask revealed details after 30s
+  // auto re-mask the full card number after 30s
   useEffect(() => {
     if (!details) return;
     const t = setTimeout(() => setDetails(null), 30000);
     return () => clearTimeout(t);
   }, [details]);
+
+  // load CVV once for the card owner so expiry/CVV render immediately
+  useEffect(() => {
+    if (!card || card.status === "terminated" || secure) return;
+    let alive = true;
+    reveal().then(({ details: d }) => {
+      if (alive && d) setSecure(d);
+    });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [card?.id, card?.status]);
+
 
   const planActive = Boolean(planStartedAt);
   const isActive = card?.status === "active";
