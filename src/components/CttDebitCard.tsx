@@ -32,7 +32,9 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
   const [planStartedAt, setPlanStartedAt] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
   const [details, setDetails] = useState<{ card_number: string; cvv: string } | null>(null);
+  const [secure, setSecure] = useState<{ card_number: string; cvv: string } | null>(null);
   const [spendOpen, setSpendOpen] = useState(false);
+
 
   useEffect(() => {
     const load = async () => {
@@ -58,12 +60,26 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
     return () => clearInterval(t);
   }, []);
 
-  // auto re-mask revealed details after 30s
+  // auto re-mask the full card number after 30s
   useEffect(() => {
     if (!details) return;
     const t = setTimeout(() => setDetails(null), 30000);
     return () => clearTimeout(t);
   }, [details]);
+
+  // load CVV once for the card owner so expiry/CVV render immediately
+  useEffect(() => {
+    if (!card || card.status === "terminated" || secure) return;
+    let alive = true;
+    reveal().then(({ details: d }) => {
+      if (alive && d) setSecure(d);
+    });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [card?.id, card?.status]);
+
 
   const planActive = Boolean(planStartedAt);
   const isActive = card?.status === "active";
@@ -124,6 +140,8 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
 
   const pan = details ? groupPan(details.card_number) : `•••• •••• •••• ${card?.last4 ?? "0000"}`;
   const expiry = card ? `${String(card.expiry_month).padStart(2, "0")}/${String(card.expiry_year).slice(-2)}` : "••/••";
+  const cvv = details?.cvv ?? secure?.cvv ?? "•••";
+
 
   return (
     <Card className="mb-6 border-border p-4">
@@ -160,17 +178,28 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
           </div>
 
           <div className="flex items-end justify-between gap-3">
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="mb-2 h-6 w-9 rounded bg-primary-foreground/30" />
-              <p className="font-mono text-sm tracking-[0.15em] opacity-90">{pan}</p>
-              <div className="mt-1 flex items-center gap-3">
-                <p className="text-xs uppercase tracking-wider opacity-80">{holder}</p>
-                <p className="font-mono text-xs opacity-80">EXP {expiry}</p>
-                {details && <p className="font-mono text-xs opacity-80">CVV {details.cvv}</p>}
+              <p className="text-[9px] uppercase tracking-widest opacity-70">Card number</p>
+              <p className="font-mono text-sm tracking-[0.12em] opacity-95">{pan}</p>
+              <div className="mt-2 flex items-end gap-4">
+                <div className="min-w-0">
+                  <p className="text-[9px] uppercase tracking-widest opacity-70">Card holder</p>
+                  <p className="truncate text-xs uppercase tracking-wider opacity-90">{holder}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] uppercase tracking-widest opacity-70">Expires</p>
+                  <p className="font-mono text-sm opacity-95">{expiry}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] uppercase tracking-widest opacity-70">CVV</p>
+                  <p className="font-mono text-sm opacity-95">{cvv}</p>
+                </div>
               </div>
             </div>
             <p className="text-xs font-semibold uppercase tracking-wider opacity-80">CTT</p>
           </div>
+
         </div>
       </div>
 

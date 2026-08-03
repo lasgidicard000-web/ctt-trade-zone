@@ -10,8 +10,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { TrendingUp, Sparkles, Clock, ArrowUpRight, History, ChevronDown } from "lucide-react";
+import { TrendingUp, Sparkles, Clock, ArrowUpRight, History, ChevronDown, FileDown } from "lucide-react";
 import { useDailyRoi } from "@/hooks/useDailyRoi";
+import { useEntitlements } from "@/hooks/useEntitlements";
+import { generatePlanActivationReceipt } from "@/lib/planActivationReceipt";
+import { toast } from "sonner";
+
 
 interface Investment {
   id: string;
@@ -62,9 +66,30 @@ export const ActiveInvestmentCard = ({ userId }: { userId: string }) => {
   const [bands, setBands] = useState<Record<string, Band>>({});
   const [loading, setLoading] = useState(true);
   const [tick, setTick] = useState(0);
+  const [account, setAccount] = useState({ name: "", email: "" });
   const { byInvestment } = useDailyRoi(userId);
+  const { entitlements } = useEntitlements(userId);
 
   useEffect(() => {
+    let alive = true;
+    (async () => {
+      const [{ data: profile }, { data: auth }] = await Promise.all([
+        supabase.from("profiles").select("display_name").eq("user_id", userId).maybeSingle(),
+        supabase.auth.getUser(),
+      ]);
+      if (!alive) return;
+      setAccount({
+        name: profile?.display_name ?? "",
+        email: auth?.user?.email ?? "",
+      });
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [userId]);
+
+  useEffect(() => {
+
     let alive = true;
     const load = async () => {
       const { data } = await supabase
@@ -156,6 +181,39 @@ export const ActiveInvestmentCard = ({ userId }: { userId: string }) => {
           ? Number(inv.amount) * stats.effectiveSum
           : Number(inv.amount) * Number(inv.daily_roi) * elapsedDays;
 
+        const downloadReceipt = () => {
+          try {
+            generatePlanActivationReceipt({
+              investmentId: inv.id,
+              templateId: inv.template_id,
+              userId,
+              accountName: account.name,
+              accountEmail: account.email,
+              planName: inv.plan_name,
+              planId: inv.plan_id,
+              tierRank: entitlements.tier_rank,
+              principal: Number(inv.amount),
+              durationDays: inv.duration_days,
+              startedAt: inv.started_at,
+              endsAt: inv.ends_at,
+              todayRoi,
+              avgRoi,
+              roiMin,
+              roiMax,
+              accrued,
+              withdrawalFeePct: entitlements.withdrawal_fee_pct,
+              dailyWithdrawalCap: entitlements.daily_withdrawal_cap,
+              prioritySupport: entitlements.priority_support,
+              premiumFeatures: entitlements.premium_features,
+              communityAccess: entitlements.community_access,
+            });
+            toast.success("Activation receipt downloaded");
+          } catch (error) {
+            console.error("Activation receipt failed:", error);
+            toast.error("Could not generate receipt");
+          }
+        };
+
 
         return (
           <Card
@@ -231,6 +289,18 @@ export const ActiveInvestmentCard = ({ userId }: { userId: string }) => {
                   Ends {new Date(inv.ends_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
                 </p>
               </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4 w-full bg-background/50"
+                onClick={downloadReceipt}
+              >
+                <FileDown className="mr-2 h-4 w-4" />
+                Download activation receipt
+              </Button>
+
+
 
               {stats && stats.rows.length > 0 && (
                 <Collapsible className="mt-4">
