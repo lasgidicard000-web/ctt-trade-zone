@@ -170,11 +170,14 @@ export const DepositHistory = () => {
               <TableHead>Date</TableHead>
               <TableHead>Coin</TableHead>
               <TableHead>Amount</TableHead>
+              <TableHead>USD Value</TableHead>
               <TableHead>Wallet Address</TableHead>
               <TableHead>Transaction Hash</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Confirmations</TableHead>
+              <TableHead className="text-right">Receipt</TableHead>
             </TableRow>
+
           </TableHeader>
           <TableBody>
             {deposits.map((deposit) => (
