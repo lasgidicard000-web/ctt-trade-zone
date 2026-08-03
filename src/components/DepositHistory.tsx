@@ -34,6 +34,8 @@ interface DepositRecord {
 export const DepositHistory = () => {
   const [deposits, setDeposits] = useState<DepositRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [account, setAccount] = useState({ name: "", email: "" });
+  const { prices } = useRealtimePrices();
 
   useEffect(() => {
     fetchDepositHistory();
@@ -43,6 +45,18 @@ export const DepositHistory = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      setAccount({
+        name: profile?.display_name || user.email || "",
+        email: user.email || "",
+      });
+
 
       const { data, error } = await supabase
         .from("deposit_history")
