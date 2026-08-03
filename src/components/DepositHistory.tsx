@@ -79,6 +79,39 @@ export const DepositHistory = () => {
     toast.success("Copied to clipboard");
   };
 
+  const getRate = (symbol: string) =>
+    prices.find((p) => p.symbol.toUpperCase() === symbol.toUpperCase())?.price ?? null;
+
+  const usdValue = (deposit: DepositRecord) => {
+    const rate = getRate(deposit.coin_symbol);
+    return rate ? Number(deposit.amount) * rate : null;
+  };
+
+  const downloadReceipt = (deposit: DepositRecord) => {
+    try {
+      generateDepositReceipt({
+        id: deposit.id,
+        coinSymbol: deposit.coin_symbol,
+        amount: Number(deposit.amount),
+        walletAddress: deposit.wallet_address,
+        transactionHash: deposit.transaction_hash,
+        status: deposit.confirmation_status,
+        confirmations: deposit.confirmations,
+        createdAt: deposit.created_at,
+        confirmedAt: deposit.confirmed_at,
+        notes: deposit.notes,
+        usdRate: getRate(deposit.coin_symbol),
+        accountName: account.name,
+        accountEmail: account.email,
+      });
+      toast.success("Receipt downloaded");
+    } catch (error) {
+      console.error("Receipt generation failed:", error);
+      toast.error("Could not generate receipt");
+    }
+  };
+
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "confirmed":
