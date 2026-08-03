@@ -189,6 +189,15 @@ export const DepositHistory = () => {
                 <TableCell className="font-mono">
                   {Number(deposit.amount).toFixed(8)}
                 </TableCell>
+                <TableCell className="font-mono text-sm">
+                  {usdValue(deposit) !== null
+                    ? usdValue(deposit)!.toLocaleString("en-US", {
+                        style: "currency",
+                        currency: "USD",
+                      })
+                    : "-"}
+                </TableCell>
+
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-mono">
