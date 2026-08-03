@@ -32,7 +32,9 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
   const [planStartedAt, setPlanStartedAt] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
   const [details, setDetails] = useState<{ card_number: string; cvv: string } | null>(null);
+  const [secure, setSecure] = useState<{ card_number: string; cvv: string } | null>(null);
   const [spendOpen, setSpendOpen] = useState(false);
+
 
   useEffect(() => {
     const load = async () => {
