@@ -8,7 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { CreditCard, Wifi, Clock, Eye, EyeOff, Copy, ChevronDown, Receipt, ShieldCheck } from "lucide-react";
+import { CreditCard, Wifi, Clock, Eye, EyeOff, Copy, ChevronDown, Receipt, ShieldCheck, Check, History } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import logoAsset from "@/assets/ctttradezone-logo.png.asset.json";
 import { useVirtualCard } from "@/hooks/useVirtualCard";
