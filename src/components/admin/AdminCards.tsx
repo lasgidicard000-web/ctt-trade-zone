@@ -35,6 +35,27 @@ export const AdminCards = () => {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [openLog, setOpenLog] = useState<string | null>(null);
+  const [pinCard, setPinCard] = useState<string | null>(null);
+  const [pinValue, setPinValue] = useState("");
+
+  const savePin = async (id: string, pin: string) => {
+    setBusy(id);
+    const { error } = await supabase.rpc("admin_set_card_pin", { _card_id: id, _pin: pin });
+    setBusy(null);
+    if (error) return toast.error(error.message);
+    toast.success("Card PIN updated");
+    setPinCard(null);
+    setPinValue("");
+  };
+
+  const revokePin = async (id: string) => {
+    setBusy(id);
+    const { error } = await supabase.rpc("admin_set_card_pin", { _card_id: id, _pin: null });
+    setBusy(null);
+    if (error) return toast.error(error.message);
+    toast.success("Card PIN revoked");
+  };
+
 
   const load = async () => {
     setLoading(true);
