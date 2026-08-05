@@ -4,7 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Snowflake, Play, Trash2, RefreshCw } from "lucide-react";
+import { Snowflake, Play, Trash2, RefreshCw, History } from "lucide-react";
+import { CardSecurityLog } from "@/components/card/CardSecurityLog";
+import { Fragment } from "react";
 
 interface CardRow {
   id: string;
@@ -29,6 +31,7 @@ export const AdminCards = () => {
   const [txs, setTxs] = useState<TxRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [openLog, setOpenLog] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -122,7 +125,9 @@ export const AdminCards = () => {
               </TableRow>
             ) : (
               cards.map((c) => (
-                <TableRow key={c.id}>
+                <Fragment key={c.id}>
+                <TableRow>
+
                   <TableCell className="text-xs">{new Date(c.issued_at).toLocaleString()}</TableCell>
                   <TableCell className="font-mono text-xs">{c.user_id.slice(0, 8)}…</TableCell>
                   <TableCell className="text-xs">
@@ -174,9 +179,25 @@ export const AdminCards = () => {
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setOpenLog(openLog === c.id ? null : c.id)}
+                      >
+                        <History className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
+                {openLog === c.id && (
+                  <TableRow>
+                    <TableCell colSpan={8}>
+                      <CardSecurityLog cardId={c.id} />
+                    </TableCell>
+                  </TableRow>
+                )}
+                </Fragment>
+
               ))
             )}
           </TableBody>
