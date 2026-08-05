@@ -353,6 +353,22 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
             </CollapsibleContent>
           </Collapsible>
 
+          <Collapsible className="mt-1">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-full justify-between px-0">
+                <span className="flex items-center gap-2 text-sm">
+                  <History className="h-4 w-4 text-primary" /> Card security activity
+                </span>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardSecurityLog key={logVersion} cardId={card.id} />
+            </CollapsibleContent>
+          </Collapsible>
+
+
+
           <CardSpendDialog
             open={spendOpen}
             onOpenChange={setSpendOpen}
