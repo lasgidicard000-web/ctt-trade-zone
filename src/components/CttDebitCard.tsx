@@ -257,25 +257,39 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0 flex-1">
               <div className="mb-2 h-6 w-9 rounded bg-primary-foreground/30" />
-              <p className="text-[9px] uppercase tracking-widest opacity-70">Card number</p>
-              <p className="font-mono text-sm tracking-[0.12em] opacity-95">{pan}</p>
-              <div className="mt-2 flex items-end gap-4">
+              <div className="flex items-center gap-2">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] opacity-90">
+                  Card number
+                </p>
+                {!details && (
+                  <span className="text-[9px] font-semibold uppercase tracking-wider opacity-70">
+                    Unlock to view
+                  </span>
+                )}
+              </div>
+              <p className="font-mono text-base font-bold tracking-[0.14em] sm:text-lg">{pan}</p>
+              <div className="mt-2 flex items-end justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[9px] uppercase tracking-widest opacity-70">Card holder</p>
-                  <p className="truncate text-xs uppercase tracking-wider opacity-90">{holder}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] opacity-90">
+                    Card holder
+                  </p>
+                  <p className="truncate text-sm font-bold uppercase tracking-wider">{holder}</p>
                 </div>
-                <div>
-                  <p className="text-[9px] uppercase tracking-widest opacity-70">Expires</p>
-                  <p className="font-mono text-sm opacity-95">{expiry}</p>
+                <div className="shrink-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] opacity-90">
+                    Expires
+                  </p>
+                  <p className="font-mono text-sm font-bold tracking-wider">{expiry}</p>
                 </div>
-                <div>
-                  <p className="text-[9px] uppercase tracking-widest opacity-70">CVV</p>
-                  <p className="font-mono text-sm opacity-95">{cvv}</p>
+                <div className="shrink-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] opacity-90">CVV</p>
+                  <p className="font-mono text-sm font-bold tracking-wider">{cvv}</p>
                 </div>
               </div>
             </div>
-            <p className="text-xs font-semibold uppercase tracking-wider opacity-80">CTT</p>
+            <p className="text-xs font-bold uppercase tracking-wider opacity-90">CTT</p>
           </div>
+
 
         </div>
       </div>
