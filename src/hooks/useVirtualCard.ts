@@ -167,6 +167,32 @@ export function useVirtualCard(userId?: string | null) {
     [card]
   );
 
+  const logEvent = useCallback(
+    async (action: string, success = true, detail?: string) => {
+      if (!card) return;
+      await supabase.rpc("log_card_event", {
+        _card_id: card.id,
+        _action: action,
+        _success: success,
+        _detail: detail ?? null,
+        _user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+      });
+    },
+    [card]
+  );
 
-  return { card, transactions, loading, issueError, issue, setStatus, setPin, spend, reveal, refresh };
+  return {
+    card,
+    transactions,
+    loading,
+    issueError,
+    issue,
+    setStatus,
+    setPin,
+    spend,
+    reveal,
+    logEvent,
+    refresh,
+  };
 }
+
