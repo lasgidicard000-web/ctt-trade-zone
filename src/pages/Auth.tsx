@@ -31,7 +31,18 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
 
+  // Record a referral link click once per browser session
   useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (!ref) return;
+    const key = `ref-click-${ref}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    supabase.rpc("record_referral_click", { _ref: ref, _source: "auth_page" });
+  }, [searchParams]);
+
+  useEffect(() => {
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
