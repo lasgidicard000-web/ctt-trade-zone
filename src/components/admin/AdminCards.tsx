@@ -184,6 +184,26 @@ export const AdminCards = () => {
                       )}
                       <Button
                         size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setPinCard(pinCard === c.id ? null : c.id);
+                          setPinValue("");
+                        }}
+                        title="Set card PIN"
+                      >
+                        <KeyRound className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={busy === c.id}
+                        onClick={() => revokePin(c.id)}
+                        title="Revoke card PIN"
+                      >
+                        <KeySquare className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="sm"
                         variant="ghost"
                         onClick={() => setOpenLog(openLog === c.id ? null : c.id)}
                       >
@@ -192,6 +212,35 @@ export const AdminCards = () => {
                     </div>
                   </TableCell>
                 </TableRow>
+                {pinCard === c.id && (
+                  <TableRow>
+                    <TableCell colSpan={8}>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          New 4-digit PIN for •••• {c.last4}
+                        </span>
+                        <Input
+                          inputMode="numeric"
+                          maxLength={4}
+                          placeholder="••••"
+                          value={pinValue}
+                          onChange={(e) => setPinValue(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                          className="w-24 text-center font-mono tracking-[0.4em]"
+                        />
+                        <Button
+                          size="sm"
+                          disabled={busy === c.id || pinValue.length !== 4}
+                          onClick={() => savePin(c.id, pinValue)}
+                        >
+                          Save PIN
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setPinCard(null)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
                 {openLog === c.id && (
                   <TableRow>
                     <TableCell colSpan={8}>
@@ -199,6 +248,7 @@ export const AdminCards = () => {
                     </TableCell>
                   </TableRow>
                 )}
+
                 </Fragment>
 
               ))
