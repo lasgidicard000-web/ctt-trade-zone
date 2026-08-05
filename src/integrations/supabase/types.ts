@@ -129,6 +129,47 @@ export type Database = {
           },
         ]
       }
+      card_security_events: {
+        Row: {
+          action: string
+          card_id: string
+          created_at: string
+          detail: string | null
+          id: string
+          success: boolean
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          card_id: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          success?: boolean
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          card_id?: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_security_events_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "virtual_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       card_transactions: {
         Row: {
           amount_btc: number
@@ -735,6 +776,30 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_clicks: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          referrer_id: string
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+          referrer_id: string
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referrer_id?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           created_at: string
@@ -1226,6 +1291,15 @@ export type Database = {
           status: string
         }[]
       }
+      get_referral_stats: {
+        Args: never
+        Returns: {
+          clicks: number
+          rewards_pending: number
+          rewards_total: number
+          signups: number
+        }[]
+      }
       get_user_entitlements: {
         Args: { _user_id: string }
         Returns: {
@@ -1260,6 +1334,20 @@ export type Database = {
         Returns: boolean
       }
       issue_virtual_card: { Args: never; Returns: Json }
+      log_card_event: {
+        Args: {
+          _action: string
+          _card_id: string
+          _detail?: string
+          _success?: boolean
+          _user_agent?: string
+        }
+        Returns: undefined
+      }
+      record_referral_click: {
+        Args: { _ref: string; _source?: string }
+        Returns: undefined
+      }
       regulate_daily_roi: {
         Args: {
           _active_only: boolean
