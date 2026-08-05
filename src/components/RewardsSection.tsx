@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Gift, Users, Trophy, Copy, Check } from "lucide-react";
+import { ReferralLinkCard } from "@/components/ReferralLinkCard";
+
 import type { User } from "@supabase/supabase-js";
 import {
   Dialog,
