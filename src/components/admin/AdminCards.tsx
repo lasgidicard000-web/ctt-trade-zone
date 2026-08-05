@@ -112,7 +112,9 @@ export const AdminCards = () => {
 
   return (
     <>
+      <CardPinPolicy onChanged={load} />
       <div className="mb-2 flex items-center justify-between">
+
         <span className="text-xs text-muted-foreground">
           {cards.length} issued card{cards.length === 1 ? "" : "s"}
         </span>
