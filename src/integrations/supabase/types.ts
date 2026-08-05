@@ -97,6 +97,27 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          created_at: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       card_reveal_attempts: {
         Row: {
           card_id: string
@@ -1242,6 +1263,7 @@ export type Database = {
         Args: { _action: string; _admin_id: string; _payload: Json }
         Returns: Json
       }
+      admin_get_card_pin_policy: { Args: never; Returns: Json }
       admin_list_tables: {
         Args: never
         Returns: {
@@ -1254,6 +1276,14 @@ export type Database = {
           table_name: string
           udt_name: string
         }[]
+      }
+      admin_set_card_pin: {
+        Args: { _card_id: string; _pin: string }
+        Returns: Json
+      }
+      admin_set_card_pin_policy: {
+        Args: { _global_pin?: string; _mode: string }
+        Returns: Json
       }
       card_spend: {
         Args: { _amount_usd: number; _card_id: string; _merchant: string }
