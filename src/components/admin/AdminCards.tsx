@@ -2,11 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Snowflake, Play, Trash2, RefreshCw, History } from "lucide-react";
+import { Snowflake, Play, Trash2, RefreshCw, History, KeyRound, KeyOff } from "lucide-react";
 import { CardSecurityLog } from "@/components/card/CardSecurityLog";
+import { CardPinPolicy } from "@/components/admin/CardPinPolicy";
 import { Fragment } from "react";
+
 
 interface CardRow {
   id: string;
