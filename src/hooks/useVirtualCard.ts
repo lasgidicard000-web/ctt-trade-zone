@@ -141,12 +141,32 @@ export function useVirtualCard(userId?: string | null) {
     [card, refresh]
   );
 
-  const reveal = useCallback(async () => {
-    if (!card) return { error: "No card" };
-    const { data, error } = await supabase.rpc("get_card_details", { _card_id: card.id });
-    if (error) return { error: error.message };
-    return { details: data as any };
-  }, [card]);
+  const reveal = useCallback(
+    async (pin: string) => {
+      if (!card) return { error: "No card", code: "no_card" as const };
+      const { data, error } = await supabase.rpc("get_card_details", {
+        _card_id: card.id,
+        _pin: pin,
+      });
+      if (error) {
+        const msg = error.message || "";
+        if (msg.includes("no_pin")) return { error: "Set a card PIN first", code: "no_pin" as const };
+        if (msg.includes("invalid_pin"))
+          return { error: "Incorrect PIN", code: "invalid_pin" as const };
+        const locked = msg.match(/locked_until:([^\s"]+)/);
+        if (locked)
+          return {
+            error: "Too many incorrect attempts. Try again later.",
+            code: "locked" as const,
+            lockedUntil: locked[1],
+          };
+        return { error: msg, code: "unknown" as const };
+      }
+      return { details: data as any };
+    },
+    [card]
+  );
+
 
   return { card, transactions, loading, issueError, issue, setStatus, setPin, spend, reveal, refresh };
 }

@@ -8,18 +8,21 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { CreditCard, Wifi, Clock, Eye, EyeOff, Copy, ChevronDown, Receipt } from "lucide-react";
+import { CreditCard, Wifi, Clock, Eye, EyeOff, Copy, ChevronDown, Receipt, ShieldCheck } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import logoAsset from "@/assets/ctttradezone-logo.png.asset.json";
 import { useVirtualCard } from "@/hooks/useVirtualCard";
 import { CardControls } from "@/components/card/CardControls";
 import { CardSpendDialog } from "@/components/card/CardSpendDialog";
 import { CardTransactionsList } from "@/components/card/CardTransactionsList";
+import { CardRevealDialog } from "@/components/card/CardRevealDialog";
 
 interface Props {
   userId: string;
   portfolioUsd: number;
 }
+
+const REVEAL_SECONDS = 60;
 
 const usd = (n: number) =>
   n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -32,7 +35,9 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
   const [planStartedAt, setPlanStartedAt] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
   const [details, setDetails] = useState<{ card_number: string; cvv: string } | null>(null);
-  const [secure, setSecure] = useState<{ card_number: string; cvv: string } | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState(0);
+  const [pinDialogOpen, setPinDialogOpen] = useState(false);
+  const [pendingCopy, setPendingCopy] = useState(false);
   const [spendOpen, setSpendOpen] = useState(false);
 
 
@@ -60,25 +65,26 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
     return () => clearInterval(t);
   }, []);
 
-  // auto re-mask the full card number after 30s
+  // auto-hide sensitive details after REVEAL_SECONDS with a live countdown
   useEffect(() => {
     if (!details) return;
-    const t = setTimeout(() => setDetails(null), 30000);
-    return () => clearTimeout(t);
+    setSecondsLeft(REVEAL_SECONDS);
+    const t = setInterval(() => {
+      setSecondsLeft((s) => {
+        if (s <= 1) {
+          setDetails(null);
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
   }, [details]);
 
-  // load CVV once for the card owner so expiry/CVV render immediately
+  // hide details if the card is frozen or terminated while unlocked
   useEffect(() => {
-    if (!card || card.status === "terminated" || secure) return;
-    let alive = true;
-    reveal().then(({ details: d }) => {
-      if (alive && d) setSecure(d);
-    });
-    return () => {
-      alive = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [card?.id, card?.status]);
+    if (card && card.status !== "active") setDetails(null);
+  }, [card?.status]);
 
 
   const planActive = Boolean(planStartedAt);
@@ -121,26 +127,60 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
     );
   };
 
-  const onReveal = async () => {
+  const openPinGate = (copy = false) => {
+    if (!card?.has_pin) {
+      return toast({
+        title: "Set a card PIN first",
+        description: "Use Manage PIN below to create a 4-digit PIN, then view sensitive details.",
+        variant: "destructive",
+      });
+    }
+    setPendingCopy(copy);
+    setPinDialogOpen(true);
+  };
+
+  const submitPin = async (pin: string) => {
+    const res = await reveal(pin);
+    if (res.error || !res.details) {
+      return { ok: false, error: res.error ?? "Could not unlock card details" };
+    }
+    setDetails(res.details);
+    if (pendingCopy) {
+      try {
+        await navigator.clipboard.writeText(res.details.card_number);
+        toast({ title: "Card number copied" });
+      } catch {
+        toast({ title: "Copy failed", description: "Clipboard is unavailable", variant: "destructive" });
+      }
+      setPendingCopy(false);
+    }
+    return { ok: true };
+  };
+
+  const onToggleReveal = () => {
     if (details) {
       setDetails(null);
       return;
     }
-    const { details: d, error } = await reveal();
-    if (error) return toast({ title: "Unable to reveal card", description: error, variant: "destructive" });
-    setDetails(d);
+    openPinGate(false);
   };
 
   const copyPan = async () => {
-    const { details: d, error } = await reveal();
-    if (error || !d) return toast({ title: "Unable to copy", description: error, variant: "destructive" });
-    await navigator.clipboard.writeText(d.card_number);
-    toast({ title: "Card number copied" });
+    if (details) {
+      await navigator.clipboard.writeText(details.card_number);
+      toast({ title: "Card number copied" });
+      return;
+    }
+    openPinGate(true);
   };
 
   const pan = details ? groupPan(details.card_number) : `•••• •••• •••• ${card?.last4 ?? "0000"}`;
-  const expiry = card ? `${String(card.expiry_month).padStart(2, "0")}/${String(card.expiry_year).slice(-2)}` : "••/••";
-  const cvv = details?.cvv ?? secure?.cvv ?? "•••";
+  const expiry =
+    details && card
+      ? `${String(card.expiry_month).padStart(2, "0")}/${String(card.expiry_year).slice(-2)}`
+      : "••/••";
+  const cvv = details?.cvv ?? "•••";
+
 
 
   return (
@@ -205,15 +245,30 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
 
       {card && card.status !== "terminated" ? (
         <>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" onClick={onReveal}>
-              {details ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
-              {details ? "Hide details" : "Reveal details"}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button size="sm" variant={details ? "outline" : "default"} onClick={onToggleReveal}>
+              {details ? <EyeOff className="mr-2 h-4 w-4" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
+              {details ? "Hide now" : "View sensitive details"}
             </Button>
             <Button size="sm" variant="outline" onClick={copyPan}>
               <Copy className="mr-2 h-4 w-4" /> Copy number
             </Button>
+            {details && (
+              <span className="flex items-center gap-1 text-xs font-medium text-muted-foreground tabular-nums">
+                <Eye className="h-3.5 w-3.5" /> Auto-hides in {secondsLeft}s
+              </span>
+            )}
           </div>
+
+          <CardRevealDialog
+            open={pinDialogOpen}
+            onOpenChange={(v) => {
+              setPinDialogOpen(v);
+              if (!v) setPendingCopy(false);
+            }}
+            onSubmit={submitPin}
+          />
+
 
           <CardControls
             card={card}

@@ -97,6 +97,38 @@ export type Database = {
           },
         ]
       }
+      card_reveal_attempts: {
+        Row: {
+          card_id: string
+          created_at: string
+          id: string
+          success: boolean
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          id?: string
+          success?: boolean
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          id?: string
+          success?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_reveal_attempts_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "virtual_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       card_transactions: {
         Row: {
           amount_btc: number
@@ -1162,7 +1194,10 @@ export type Database = {
         Args: { _amount_usd: number; _card_id: string; _merchant: string }
         Returns: Json
       }
-      get_card_details: { Args: { _card_id: string }; Returns: Json }
+      get_card_details: {
+        Args: { _card_id: string; _pin: string }
+        Returns: Json
+      }
       get_investment_roi_summary: {
         Args: { _investment_id: string }
         Returns: {

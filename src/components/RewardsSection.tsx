@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Gift, Users, Trophy, Copy, Check } from "lucide-react";
+import { ReferralLinkCard } from "@/components/ReferralLinkCard";
+
 import type { User } from "@supabase/supabase-js";
 import {
   Dialog,
@@ -175,6 +177,8 @@ export const RewardsSection = ({ user, onRewardClaimed }: RewardsSectionProps) =
         </div>
         
         <div className="space-y-4">
+          <ReferralLinkCard userId={user.id} />
+
           <div>
             <Label>Your Referral Code</Label>
             <div className="mt-2 flex gap-2">
@@ -187,6 +191,7 @@ export const RewardsSection = ({ user, onRewardClaimed }: RewardsSectionProps) =
               Share this code with friends. You get $10 USDT when they sign up!
             </p>
           </div>
+
 
           <div className="grid grid-cols-2 gap-4">
             <div className="rounded-lg bg-primary/10 p-4">
