@@ -16,6 +16,8 @@ import { CardControls } from "@/components/card/CardControls";
 import { CardSpendDialog } from "@/components/card/CardSpendDialog";
 import { CardTransactionsList } from "@/components/card/CardTransactionsList";
 import { CardRevealDialog } from "@/components/card/CardRevealDialog";
+import { CardSecurityLog } from "@/components/card/CardSecurityLog";
+
 
 interface Props {
   userId: string;
@@ -30,7 +32,8 @@ const usd = (n: number) =>
 const groupPan = (pan: string) => pan.replace(/(.{4})/g, "$1 ").trim();
 
 export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
-  const { card, transactions, loading, setStatus, setPin, spend, reveal } = useVirtualCard(userId);
+  const { card, transactions, loading, setStatus, setPin, spend, reveal, logEvent } =
+    useVirtualCard(userId);
   const [holder, setHolder] = useState<string>("CTT MEMBER");
   const [planStartedAt, setPlanStartedAt] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
@@ -39,6 +42,15 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const [pendingCopy, setPendingCopy] = useState(false);
   const [spendOpen, setSpendOpen] = useState(false);
+  const [copyConfirm, setCopyConfirm] = useState(false);
+  const [expired, setExpired] = useState(false);
+  const [logVersion, setLogVersion] = useState(0);
+
+  const track = async (action: string, success = true, detail?: string) => {
+    await logEvent(action, success, detail);
+    setLogVersion((v) => v + 1);
+  };
+
 
 
   useEffect(() => {
@@ -69,10 +81,13 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
   useEffect(() => {
     if (!details) return;
     setSecondsLeft(REVEAL_SECONDS);
+    setExpired(false);
     const t = setInterval(() => {
       setSecondsLeft((s) => {
         if (s <= 1) {
           setDetails(null);
+          setExpired(true);
+          track("auto_hide", true, "60s reveal window expired");
           return 0;
         }
         return s - 1;
@@ -80,6 +95,7 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
     }, 1000);
     return () => clearInterval(t);
   }, [details]);
+
 
   // hide details if the card is frozen or terminated while unlocked
   useEffect(() => {
@@ -139,18 +155,29 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
     setPinDialogOpen(true);
   };
 
+  const confirmCopy = () => {
+    setCopyConfirm(true);
+    setTimeout(() => setCopyConfirm(false), 4000);
+  };
+
   const submitPin = async (pin: string) => {
     const res = await reveal(pin);
     if (res.error || !res.details) {
+      setLogVersion((v) => v + 1);
       return { ok: false, error: res.error ?? "Could not unlock card details" };
     }
     setDetails(res.details);
+    setExpired(false);
+    setLogVersion((v) => v + 1);
     if (pendingCopy) {
       try {
         await navigator.clipboard.writeText(res.details.card_number);
-        toast({ title: "Card number copied" });
+        toast({ title: "Card number copied", description: "Copied to your clipboard." });
+        confirmCopy();
+        track("copy_number", true, "card number copied to clipboard");
       } catch {
         toast({ title: "Copy failed", description: "Clipboard is unavailable", variant: "destructive" });
+        track("copy_number", false, "clipboard unavailable");
       }
       setPendingCopy(false);
     }
@@ -160,6 +187,8 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
   const onToggleReveal = () => {
     if (details) {
       setDetails(null);
+      setExpired(false);
+      track("manual_hide", true, "details hidden by user");
       return;
     }
     openPinGate(false);
@@ -167,12 +196,20 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
 
   const copyPan = async () => {
     if (details) {
-      await navigator.clipboard.writeText(details.card_number);
-      toast({ title: "Card number copied" });
+      try {
+        await navigator.clipboard.writeText(details.card_number);
+        toast({ title: "Card number copied", description: "Copied to your clipboard." });
+        confirmCopy();
+        track("copy_number", true, "card number copied to clipboard");
+      } catch {
+        toast({ title: "Copy failed", description: "Clipboard is unavailable", variant: "destructive" });
+        track("copy_number", false, "clipboard unavailable");
+      }
       return;
     }
     openPinGate(true);
   };
+
 
   const pan = details ? groupPan(details.card_number) : `•••• •••• •••• ${card?.last4 ?? "0000"}`;
   const expiry =
@@ -248,10 +285,11 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Button size="sm" variant={details ? "outline" : "default"} onClick={onToggleReveal}>
               {details ? <EyeOff className="mr-2 h-4 w-4" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
-              {details ? "Hide now" : "View sensitive details"}
+              {details ? "Hide now" : expired ? "Unlock again" : "View sensitive details"}
             </Button>
             <Button size="sm" variant="outline" onClick={copyPan}>
-              <Copy className="mr-2 h-4 w-4" /> Copy number
+              {copyConfirm ? <Check className="mr-2 h-4 w-4 text-emerald-500" /> : <Copy className="mr-2 h-4 w-4" />}
+              {copyConfirm ? "Copied!" : "Copy number"}
             </Button>
             {details && (
               <span className="flex items-center gap-1 text-xs font-medium text-muted-foreground tabular-nums">
@@ -259,6 +297,30 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
               </span>
             )}
           </div>
+
+          {details && (
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-1000 ease-linear"
+                style={{ width: `${(secondsLeft / REVEAL_SECONDS) * 100}%` }}
+              />
+            </div>
+          )}
+
+          {copyConfirm && (
+            <p className="mt-2 flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+              <Check className="h-3.5 w-3.5" /> Card number copied to your clipboard
+            </p>
+          )}
+
+          {expired && !details && (
+            <p className="mt-2 flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-xs font-medium text-amber-600 dark:text-amber-400">
+              <Clock className="h-3.5 w-3.5" /> Reveal window ended — sensitive details are hidden. Use
+              “Unlock again” to view them.
+            </p>
+          )}
+
+
 
           <CardRevealDialog
             open={pinDialogOpen}
