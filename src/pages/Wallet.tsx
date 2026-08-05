@@ -694,7 +694,10 @@ const Wallet = () => {
           />
         )}
 
+        {user && <ReferralLinkCard userId={user.id} className="mb-6" />}
+
         {user && <CttDebitCard userId={user.id} portfolioUsd={totalPortfolioValue} />}
+
 
         <Card className="mb-6 border-border bg-gradient-to-br from-primary/10 to-accent/10 p-6">
 
