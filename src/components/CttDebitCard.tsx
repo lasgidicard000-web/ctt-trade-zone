@@ -245,15 +245,30 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
 
       {card && card.status !== "terminated" ? (
         <>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" onClick={onReveal}>
-              {details ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
-              {details ? "Hide details" : "Reveal details"}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button size="sm" variant={details ? "outline" : "default"} onClick={onToggleReveal}>
+              {details ? <EyeOff className="mr-2 h-4 w-4" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
+              {details ? "Hide now" : "View sensitive details"}
             </Button>
             <Button size="sm" variant="outline" onClick={copyPan}>
               <Copy className="mr-2 h-4 w-4" /> Copy number
             </Button>
+            {details && (
+              <span className="flex items-center gap-1 text-xs font-medium text-muted-foreground tabular-nums">
+                <Eye className="h-3.5 w-3.5" /> Auto-hides in {secondsLeft}s
+              </span>
+            )}
           </div>
+
+          <CardRevealDialog
+            open={pinDialogOpen}
+            onOpenChange={(v) => {
+              setPinDialogOpen(v);
+              if (!v) setPendingCopy(false);
+            }}
+            onSubmit={submitPin}
+          />
+
 
           <CardControls
             card={card}
