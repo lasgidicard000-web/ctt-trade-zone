@@ -388,7 +388,7 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
             open={pinDialogOpen}
             onOpenChange={(v) => {
               setPinDialogOpen(v);
-              if (!v) setPendingCopy(false);
+              if (!v) setPendingCopy(null);
             }}
             onSubmit={submitPin}
           />
