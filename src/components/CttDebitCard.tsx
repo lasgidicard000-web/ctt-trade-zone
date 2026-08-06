@@ -26,6 +26,22 @@ interface Props {
 
 const REVEAL_SECONDS = 60;
 
+type CardField = "pan" | "holder" | "expiry" | "cvv";
+
+const FIELD_LABEL: Record<CardField, string> = {
+  pan: "Card number",
+  holder: "Card holder",
+  expiry: "Expiry date",
+  cvv: "CVV",
+};
+
+const FIELD_ACTION: Record<CardField, string> = {
+  pan: "copy_number",
+  holder: "copy_holder",
+  expiry: "copy_expiry",
+  cvv: "copy_cvv",
+};
+
 const usd = (n: number) =>
   n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -40,9 +56,9 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
   const [details, setDetails] = useState<{ card_number: string; cvv: string } | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
-  const [pendingCopy, setPendingCopy] = useState(false);
+  const [pendingCopy, setPendingCopy] = useState<CardField | null>(null);
   const [spendOpen, setSpendOpen] = useState(false);
-  const [copyConfirm, setCopyConfirm] = useState(false);
+  const [copiedField, setCopiedField] = useState<CardField | null>(null);
   const [expired, setExpired] = useState(false);
   const [logVersion, setLogVersion] = useState(0);
 
@@ -143,7 +159,7 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
     );
   };
 
-  const openPinGate = (copy = false) => {
+  const openPinGate = (copy: CardField | null = null) => {
     if (!card?.has_pin) {
       return toast({
         title: "Set a card PIN first",
@@ -155,9 +171,34 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
     setPinDialogOpen(true);
   };
 
-  const confirmCopy = () => {
-    setCopyConfirm(true);
-    setTimeout(() => setCopyConfirm(false), 4000);
+  const copyField = async (field: CardField, value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField((f) => (f === field ? null : f)), 4000);
+      toast({ title: `${FIELD_LABEL[field]} copied`, description: "Copied to your clipboard." });
+      track(FIELD_ACTION[field], true, `${FIELD_LABEL[field].toLowerCase()} copied to clipboard`);
+    } catch {
+      toast({ title: "Copy failed", description: "Clipboard is unavailable", variant: "destructive" });
+      track(FIELD_ACTION[field], false, "clipboard unavailable");
+    }
+  };
+
+  const fieldValue = (
+    field: CardField,
+    d: { card_number: string; cvv: string } | null = details,
+  ): string | null => {
+    if (field === "holder") return holder;
+    if (!d || !card) return null;
+    if (field === "pan") return d.card_number;
+    if (field === "cvv") return d.cvv;
+    return `${String(card.expiry_month).padStart(2, "0")}/${String(card.expiry_year).slice(-2)}`;
+  };
+
+  const requestCopy = (field: CardField) => {
+    const value = fieldValue(field);
+    if (value) return copyField(field, value);
+    openPinGate(field);
   };
 
   const submitPin = async (pin: string) => {
@@ -170,16 +211,9 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
     setExpired(false);
     setLogVersion((v) => v + 1);
     if (pendingCopy) {
-      try {
-        await navigator.clipboard.writeText(res.details.card_number);
-        toast({ title: "Card number copied", description: "Copied to your clipboard." });
-        confirmCopy();
-        track("copy_number", true, "card number copied to clipboard");
-      } catch {
-        toast({ title: "Copy failed", description: "Clipboard is unavailable", variant: "destructive" });
-        track("copy_number", false, "clipboard unavailable");
-      }
-      setPendingCopy(false);
+      const value = fieldValue(pendingCopy, res.details);
+      if (value) await copyField(pendingCopy, value);
+      setPendingCopy(null);
     }
     return { ok: true };
   };
@@ -191,25 +225,23 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
       track("manual_hide", true, "details hidden by user");
       return;
     }
-    openPinGate(false);
+    openPinGate(null);
   };
 
-  const copyPan = async () => {
-    if (details) {
-      try {
-        await navigator.clipboard.writeText(details.card_number);
-        toast({ title: "Card number copied", description: "Copied to your clipboard." });
-        confirmCopy();
-        track("copy_number", true, "card number copied to clipboard");
-      } catch {
-        toast({ title: "Copy failed", description: "Clipboard is unavailable", variant: "destructive" });
-        track("copy_number", false, "clipboard unavailable");
-      }
-      return;
-    }
-    openPinGate(true);
-  };
-
+  const FieldCopyButton = ({ field }: { field: CardField }) => (
+    <button
+      type="button"
+      onClick={() => requestCopy(field)}
+      aria-label={`Copy ${FIELD_LABEL[field].toLowerCase()}`}
+      className="rounded p-1 text-primary-foreground/70 transition-colors hover:bg-primary-foreground/15 hover:text-primary-foreground"
+    >
+      {copiedField === field ? (
+        <Check className="h-3.5 w-3.5" />
+      ) : (
+        <Copy className="h-3.5 w-3.5" />
+      )}
+    </button>
+  );
 
   const pan = details ? groupPan(details.card_number) : `•••• •••• •••• ${card?.last4 ?? "0000"}`;
   const expiry =
@@ -267,23 +299,35 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
                   </span>
                 )}
               </div>
-              <p className="font-mono text-base font-bold tracking-[0.14em] sm:text-lg">{pan}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="font-mono text-base font-bold tracking-[0.14em] sm:text-lg">{pan}</p>
+                <FieldCopyButton field="pan" />
+              </div>
               <div className="mt-2 flex items-end justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] opacity-90">
                     Card holder
                   </p>
-                  <p className="truncate text-sm font-bold uppercase tracking-wider">{holder}</p>
+                  <div className="flex items-center gap-1">
+                    <p className="truncate text-sm font-bold uppercase tracking-wider">{holder}</p>
+                    <FieldCopyButton field="holder" />
+                  </div>
                 </div>
                 <div className="shrink-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] opacity-90">
                     Expires
                   </p>
-                  <p className="font-mono text-sm font-bold tracking-wider">{expiry}</p>
+                  <div className="flex items-center gap-1">
+                    <p className="font-mono text-sm font-bold tracking-wider">{expiry}</p>
+                    <FieldCopyButton field="expiry" />
+                  </div>
                 </div>
                 <div className="shrink-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] opacity-90">CVV</p>
-                  <p className="font-mono text-sm font-bold tracking-wider">{cvv}</p>
+                  <div className="flex items-center gap-1">
+                    <p className="font-mono text-sm font-bold tracking-wider">{cvv}</p>
+                    <FieldCopyButton field="cvv" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -301,9 +345,13 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
               {details ? <EyeOff className="mr-2 h-4 w-4" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
               {details ? "Hide now" : expired ? "Unlock again" : "View sensitive details"}
             </Button>
-            <Button size="sm" variant="outline" onClick={copyPan}>
-              {copyConfirm ? <Check className="mr-2 h-4 w-4 text-emerald-500" /> : <Copy className="mr-2 h-4 w-4" />}
-              {copyConfirm ? "Copied!" : "Copy number"}
+            <Button size="sm" variant="outline" onClick={() => requestCopy("pan")}>
+              {copiedField === "pan" ? (
+                <Check className="mr-2 h-4 w-4 text-emerald-500" />
+              ) : (
+                <Copy className="mr-2 h-4 w-4" />
+              )}
+              {copiedField === "pan" ? "Copied!" : "Copy number"}
             </Button>
             {details && (
               <span className="flex items-center gap-1 text-xs font-medium text-muted-foreground tabular-nums">
@@ -321,9 +369,9 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
             </div>
           )}
 
-          {copyConfirm && (
+          {copiedField && (
             <p className="mt-2 flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-              <Check className="h-3.5 w-3.5" /> Card number copied to your clipboard
+              <Check className="h-3.5 w-3.5" /> {FIELD_LABEL[copiedField]} copied to your clipboard
             </p>
           )}
 
@@ -340,7 +388,7 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
             open={pinDialogOpen}
             onOpenChange={(v) => {
               setPinDialogOpen(v);
-              if (!v) setPendingCopy(false);
+              if (!v) setPendingCopy(null);
             }}
             onSubmit={submitPin}
           />
