@@ -201,6 +201,14 @@ export default function AdminWebmail() {
               onRefresh={() => setDraftsKey((k) => k + 1)}
             />
           </TabsContent>
+
+          <TabsContent value="templates" className="mt-4">
+            <TemplatesList
+              userId={userId}
+              onChanged={() => setTemplatesKey((k) => k + 1)}
+            />
+          </TabsContent>
+
         </Tabs>
       )}
     </main>
