@@ -160,7 +160,6 @@ serve(async (req) => {
       .reduce((s: number, t: any) => s + Number(t.amount_usd), 0);
 
     const { data: entitlements } = await admin.rpc("get_user_entitlements", { _user_id: uid });
-    const { data: referralStats } = await admin.rpc("get_referral_stats", { _user_id: uid });
 
     const context = `
 SIGNED-IN USER SNAPSHOT (their own live data — use these exact figures):
@@ -235,7 +234,6 @@ Recent transactions: ${
             .join("; ")
         : "none"
     }
-Referrals: ${referralStats ? JSON.stringify(referralStats) : "none"}
 ${segment ? `\nThe user opened the copilot from the "${segment}" section of the wallet dashboard. Break that section down first.` : ""}
 `;
 
