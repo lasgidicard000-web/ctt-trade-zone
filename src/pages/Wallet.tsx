@@ -818,19 +818,40 @@ const Wallet = () => {
 
         {/* Wallet Status and Activation Requirements */}
         {user && (
-          <WalletStatusCard
-            btcBalance={walletBalances.find(b => b.coin_symbol === 'BTC')?.balance || 0}
-            btcPrice={coinPrices.find(c => c.symbol === 'BTC')?.price || 0}
-          />
+          <>
+            <WalletStatusCard
+              btcBalance={walletBalances.find(b => b.coin_symbol === 'BTC')?.balance || 0}
+              btcPrice={coinPrices.find(c => c.symbol === 'BTC')?.price || 0}
+            />
+            <div className="-mt-4 mb-6 flex justify-end">
+              <ExplainButton segment="Wallet Status & Activation" />
+            </div>
+          </>
         )}
 
 
         {user && <AGCSBCreditBadge userId={user.id} />}
         {user && <GiftCardApprovalTracker userId={user.id} />}
 
-        {user && <div className="mb-6"><RewardsSection user={user} onRewardClaimed={fetchData} /></div>}
+        {user && (
+          <div className="mb-6">
+            <RewardsSection user={user} onRewardClaimed={fetchData} />
+            <div className="mt-1 flex justify-end">
+              <ExplainButton segment="Rewards" />
+            </div>
+          </div>
+        )}
 
-        {user && <div className="mb-6"><WalletAddresses coins={coinPrices} userId={user.id} btcBalance={walletBalances.find(b => b.coin_symbol === 'BTC')?.balance || 0} btcPrice={coinPrices.find(c => c.symbol === 'BTC')?.price || 0} /></div>}
+        {user && (
+          <div className="mb-6">
+            <WalletAddresses coins={coinPrices} userId={user.id} btcBalance={walletBalances.find(b => b.coin_symbol === 'BTC')?.balance || 0} btcPrice={coinPrices.find(c => c.symbol === 'BTC')?.price || 0} />
+            <div className="mt-1 flex justify-end gap-1">
+              <ExplainButton segment="Add Funds / Deposits" />
+              <ExplainButton segment="Withdrawals & Cash Out" />
+            </div>
+          </div>
+        )}
+
 
         {/* Global Bank Conversion Section */}
         <GlobalBankConversion />
