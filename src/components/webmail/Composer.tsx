@@ -456,43 +456,86 @@ export default function Composer({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-2">
-            <Label>Start from a template</Label>
-            <Select onValueChange={applyPreset}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a starting point" />
-              </SelectTrigger>
-              <SelectContent className="max-h-80">
-                {customTemplates.length ? (
-                  <SelectGroup>
-                    <SelectLabel>My templates</SelectLabel>
-                    {customTemplates.map((t) => (
-                      <SelectItem key={t.id} value={`custom:${t.id}`}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ) : null}
-                {PRESET_GROUPS.map((group) => {
-                  const items = Object.entries(PRESETS).filter(
-                    ([, p]) => p.group === group
-                  );
-                  if (!items.length) return null;
-                  return (
-                    <SelectGroup key={group}>
-                      <SelectLabel>{group}</SelectLabel>
-                      {items.map(([key, p]) => (
-                        <SelectItem key={key} value={key}>
-                          {p.label}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  );
-                })}
-              </SelectContent>
-            </Select>
+          <div className="grid gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <Label>Start from a template</Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {presetCount} built-in starting points
+                  {customTemplates.length
+                    ? ` + ${customTemplates.length} saved template${
+                        customTemplates.length === 1 ? "" : "s"
+                      }`
+                    : ""}
+                  .
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setGalleryOpen((o) => !o)}
+              >
+                <LayoutTemplate className="mr-2 h-4 w-4" />
+                {galleryOpen ? "Hide templates" : "Browse templates"}
+                {galleryOpen ? (
+                  <ChevronUp className="ml-2 h-4 w-4" />
+                ) : (
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                )}
+              </Button>
+            </div>
 
+            {galleryOpen ? (
+              <div className="rounded-lg border border-border bg-muted/30 p-3">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    className="pl-9"
+                    placeholder="Search templates…"
+                    value={tplQuery}
+                    onChange={(e) => setTplQuery(e.target.value)}
+                  />
+                </div>
+
+                <div className="mt-3 max-h-96 space-y-4 overflow-y-auto pr-1">
+                  {galleryGroups.length === 0 ? (
+                    <p className="py-6 text-center text-sm text-muted-foreground">
+                      No templates match “{tplQuery}”.
+                    </p>
+                  ) : (
+                    galleryGroups.map((group) => (
+                      <div key={group.name}>
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          {group.name}
+                        </p>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {group.items.map((item) => (
+                            <button
+                              key={item.key}
+                              type="button"
+                              onClick={() => applyPreset(item.key)}
+                              className={`rounded-lg border p-3 text-left transition-colors hover:border-primary hover:bg-background ${
+                                selectedTpl === item.key
+                                  ? "border-primary bg-background"
+                                  : "border-border bg-card"
+                              }`}
+                            >
+                              <p className="text-sm font-semibold">{item.label}</p>
+                              <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                                {item.subject || "No subject yet"}
+                              </p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            ) : null}
           </div>
+
 
           {manualVars.length ? (
             <div className="grid gap-3 rounded-lg border border-border bg-muted/40 p-4">
