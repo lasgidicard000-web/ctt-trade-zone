@@ -151,7 +151,7 @@ export const WalletCopilotProvider = ({ children }: { children: React.ReactNode 
         <Button
           onClick={() => api.open()}
           size="lg"
-          className="fixed bottom-5 right-5 z-40 gap-2 rounded-full shadow-lg shadow-primary/30"
+          className="fixed bottom-5 left-5 z-40 gap-2 rounded-full shadow-lg shadow-primary/30"
         >
           <Sparkles className="h-5 w-5" />
           <span className="hidden sm:inline">Wallet Copilot</span>
