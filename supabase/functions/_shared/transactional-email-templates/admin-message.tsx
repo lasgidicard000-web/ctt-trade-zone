@@ -154,3 +154,22 @@ const footer = {
   lineHeight: '1.6',
   margin: '32px 0 0',
 }
+const replySection = { margin: '28px 0 0' }
+const replyButton = {
+  backgroundColor: '#ffffff',
+  color: '#1111D4',
+  fontSize: '16px',
+  borderRadius: '12px',
+  padding: '14px 26px',
+  fontWeight: 'bold' as const,
+  display: 'inline-block' as const,
+  textDecoration: 'none',
+  border: '2px solid #1111D4',
+  lineHeight: '1.2',
+}
+const replyNote = {
+  fontSize: '14px',
+  color: '#8A93A3',
+  lineHeight: '1.6',
+  margin: '14px 0 0',
+}
