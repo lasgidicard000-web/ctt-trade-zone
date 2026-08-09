@@ -27,6 +27,17 @@ import {
 import { toast } from "sonner";
 import { Loader2, Save, Send } from "lucide-react";
 import type { AdminUser, MailDraft } from "./types";
+import { buildPreviewHtml } from "./emailPreview";
+import {
+  applyVars,
+  autoValues,
+  extractVars,
+  findUnfilled,
+  AUTO_VARS,
+  TEMPLATE_GROUPS,
+  type MailTemplate,
+} from "./templateVars";
+
 
 const SIGNOFF = "The CTTTradezone team";
 
