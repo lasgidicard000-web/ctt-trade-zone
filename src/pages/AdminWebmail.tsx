@@ -9,7 +9,9 @@ import InboxList from "@/components/webmail/InboxList";
 import OutboxList from "@/components/webmail/OutboxList";
 import DraftsList from "@/components/webmail/DraftsList";
 import ThreadView from "@/components/webmail/ThreadView";
+import TemplatesList from "@/components/webmail/TemplatesList";
 import type { AdminUser, MailDraft } from "@/components/webmail/types";
+
 
 export default function AdminWebmail() {
   const navigate = useNavigate();
