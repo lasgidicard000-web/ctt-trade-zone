@@ -61,28 +61,32 @@ export const SignupEmail = ({
 export default SignupEmail
 
 const main = { backgroundColor: '#ffffff', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }
-const container = { padding: '20px 25px' }
+const container = { padding: '24px', maxWidth: '600px' }
 const h1 = {
-  fontSize: '22px',
+  fontSize: '24px',
   fontWeight: 'bold' as const,
   color: '#10102E',
+  lineHeight: '1.3',
   margin: '0 0 20px',
 }
 const text = {
-  fontSize: '14px',
+  fontSize: '16px',
   color: '#5B6472',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
+  lineHeight: '1.6',
+  margin: '0 0 28px',
+  wordBreak: 'break-word' as const,
 }
-const link = { color: 'inherit', textDecoration: 'underline' }
+const link = { color: 'inherit', textDecoration: 'underline', wordBreak: 'break-word' as const }
 const button = {
   backgroundColor: '#1111D4',
   color: '#ffffff',
-  fontSize: '14px',
+  fontSize: '16px',
   borderRadius: '12px',
-  padding: '14px 24px',
+  padding: '16px 28px',
   fontWeight: 'bold' as const,
   display: 'inline-block' as const,
   textDecoration: 'none',
+  lineHeight: '1.2',
 }
-const footer = { fontSize: '12px', color: '#8A93A3', margin: '30px 0 0' }
+const footer = { fontSize: '13px', color: '#8A93A3', lineHeight: '1.6', margin: '32px 0 0' }
+
