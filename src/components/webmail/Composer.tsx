@@ -215,6 +215,7 @@ export default function Composer({
   users,
   draft,
   userId,
+  templatesKey = 0,
   onSent,
   onDraftsChanged,
   onDraftConsumed,
@@ -230,7 +231,27 @@ export default function Composer({
   const [sending, setSending] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [customTemplates, setCustomTemplates] = useState<MailTemplate[]>([]);
+  const [varValues, setVarValues] = useState<Record<string, string>>({});
   const dirty = useRef(false);
+
+  // Custom templates saved from the Templates tab.
+  useEffect(() => {
+    supabase
+      .from("mail_templates" as any)
+      .select("*")
+      .order("group_label", { ascending: true })
+      .order("name", { ascending: true })
+      .then(({ data }) => {
+        setCustomTemplates(
+          ((data ?? []) as any[]).map((r) => ({
+            ...r,
+            variables: Array.isArray(r.variables) ? r.variables : [],
+          })) as MailTemplate[]
+        );
+      });
+  }, [templatesKey]);
+
 
   // Load a draft the admin chose to continue.
   useEffect(() => {
