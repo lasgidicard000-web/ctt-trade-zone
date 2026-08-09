@@ -385,8 +385,10 @@ export default function Composer({
     return groups;
   }, [customTemplates, tplQuery]);
 
-
+  // Variables used anywhere in the current message.
+  const templateVars = useMemo(
     () => extractVars([subject, heading, body, buttonLabel, buttonUrl]),
+
     [subject, heading, body, buttonLabel, buttonUrl]
   );
 
