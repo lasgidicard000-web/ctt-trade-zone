@@ -1,16 +1,15 @@
 project_id = "cbezdlqbpebedvpkehjh"
 
-[functions.crypto-chat]
-verify_jwt = true
-
-[functions.check-price-alerts]
-verify_jwt = false
-
-[functions.nowpayments-deposit]
-verify_jwt = true
-
-[functions.fetch-price-history]
-verify_jwt = false
-
-[functions.process-email-queue]
-verify_jwt = true
+[functions]
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.check-price-alerts]
+    verify_jwt = false
+  [functions.crypto-chat]
+    verify_jwt = true
+  [functions.fetch-price-history]
+    verify_jwt = false
+  [functions.nowpayments-deposit]
+    verify_jwt = true
+  [functions.process-email-queue]
+    verify_jwt = true
