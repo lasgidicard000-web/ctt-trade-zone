@@ -32,6 +32,8 @@ import InvestmentPlans from "./pages/InvestmentPlans";
 import AdminPlans from "./pages/AdminPlans";
 import AdminRoiAudit from "./pages/AdminRoiAudit";
 import OAuthConsent from "./pages/OAuthConsent";
+import AdminWebmail from "./pages/AdminWebmail";
+import Unsubscribe from "./pages/Unsubscribe";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +78,8 @@ const App = () => (
             <Route path="/investment-plans" element={<InvestmentPlans />} />
             <Route path="/admin/plans" element={<AdminPlans />} />
             <Route path="/admin/roi-audit" element={<AdminRoiAudit />} />
+            <Route path="/admin/webmail" element={<AdminWebmail />} />
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
             <Route path="*" element={<NotFound />} />
           </Route>
