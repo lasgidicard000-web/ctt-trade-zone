@@ -464,6 +464,16 @@ export default function Composer({
                 <SelectValue placeholder="Choose a starting point" />
               </SelectTrigger>
               <SelectContent className="max-h-80">
+                {customTemplates.length ? (
+                  <SelectGroup>
+                    <SelectLabel>My templates</SelectLabel>
+                    {customTemplates.map((t) => (
+                      <SelectItem key={t.id} value={`custom:${t.id}`}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ) : null}
                 {PRESET_GROUPS.map((group) => {
                   const items = Object.entries(PRESETS).filter(
                     ([, p]) => p.group === group
@@ -484,6 +494,39 @@ export default function Composer({
             </Select>
 
           </div>
+
+          {manualVars.length ? (
+            <div className="grid gap-3 rounded-lg border border-border bg-muted/40 p-4">
+              <div>
+                <Label className="text-sm font-semibold">Fill in the variables</Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Every value is replaced before the email is sent.
+                </p>
+              </div>
+              {manualVars.map((k) => (
+                <div key={k} className="grid gap-1.5">
+                  <Label htmlFor={`var-${k}`} className="text-xs">
+                    <code>{`{{${k}}}`}</code>
+                  </Label>
+                  <Input
+                    id={`var-${k}`}
+                    maxLength={200}
+                    value={varValues[k] ?? ""}
+                    onChange={(e) =>
+                      setVarValues((prev) => ({ ...prev, [k]: e.target.value }))
+                    }
+                    placeholder={`Value for ${k}`}
+                  />
+                </div>
+              ))}
+              {unfilled.length ? (
+                <p className="text-xs text-destructive">
+                  Still to fill: {unfilled.map((k) => `{{${k}}}`).join(", ")}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
 
           <div className="grid gap-2">
             <Label>Pick a registered user</Label>
