@@ -149,9 +149,20 @@ export const WalletCopilotProvider = ({ children }: { children: React.ReactNode 
 
       {!open && (
         <Button
-          onClick={() => api.open()}
+          ref={launcherRef}
+          onPointerDown={onLauncherPointerDown}
+          onClick={() => {
+            if (draggedRef.current) return;
+            api.open();
+          }}
           size="lg"
-          className="fixed bottom-5 left-5 z-40 gap-2 rounded-full shadow-lg shadow-primary/30"
+          style={
+            pos
+              ? { left: pos.x, top: pos.y, right: "auto", bottom: "auto" }
+              : undefined
+          }
+          className="fixed bottom-5 left-5 z-40 touch-none gap-2 rounded-full shadow-lg shadow-primary/30 active:cursor-grabbing"
+          title="Drag to reposition"
         >
           <Sparkles className="h-5 w-5" />
           <span className="hidden sm:inline">Wallet Copilot</span>
