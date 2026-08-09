@@ -291,8 +291,11 @@ export default function Composer({
     dirty.current = true;
     setSubject(preset.subject);
     setBody(preset.body);
-    setHeading("");
+    setHeading(preset.heading ?? "");
+    setButtonLabel(preset.buttonLabel ?? "");
+    setButtonUrl(preset.buttonUrl ?? "");
   };
+
 
   const previewHtml = useMemo(() => {
     const paragraphs = body
