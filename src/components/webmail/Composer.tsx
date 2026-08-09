@@ -333,6 +333,7 @@ export default function Composer({
 
   const applyPreset = (key: string) => {
     dirty.current = true;
+    setSelectedTpl(key);
     if (key.startsWith("custom:")) {
       const t = customTemplates.find((c) => c.id === key.slice(7));
       if (!t) return;
@@ -358,8 +359,33 @@ export default function Composer({
     setVarValues({});
   };
 
-  // Variables used anywhere in the current message.
-  const templateVars = useMemo(
+  const presetCount = Object.keys(PRESETS).length;
+
+  const galleryGroups = useMemo(() => {
+    const q = tplQuery.trim().toLowerCase();
+    const match = (label: string, subj: string) =>
+      !q || label.toLowerCase().includes(q) || subj.toLowerCase().includes(q);
+
+    const groups: Array<{
+      name: string;
+      items: Array<{ key: string; label: string; subject: string }>;
+    }> = [];
+
+    const mine = customTemplates
+      .filter((t) => match(t.name, t.subject ?? ""))
+      .map((t) => ({ key: `custom:${t.id}`, label: t.name, subject: t.subject ?? "" }));
+    if (mine.length) groups.push({ name: "My templates", items: mine });
+
+    for (const group of PRESET_GROUPS) {
+      const items = Object.entries(PRESETS)
+        .filter(([, p]) => p.group === group && match(p.label, p.subject))
+        .map(([key, p]) => ({ key, label: p.label, subject: p.subject }));
+      if (items.length) groups.push({ name: group, items });
+    }
+    return groups;
+  }, [customTemplates, tplQuery]);
+
+
     () => extractVars([subject, heading, body, buttonLabel, buttonUrl]),
     [subject, heading, body, buttonLabel, buttonUrl]
   );
