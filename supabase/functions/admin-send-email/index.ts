@@ -10,7 +10,17 @@ const BodySchema = z.object({
   buttonLabel: z.string().trim().max(60).optional(),
   buttonUrl: z.string().trim().url().max(500).optional(),
   recipientName: z.string().trim().max(100).optional(),
+  threadId: z.string().uuid().optional(),
+  appOrigin: z.string().trim().url().max(200).optional(),
 })
+
+const DEFAULT_ORIGIN = 'https://ctttradezone.com'
+
+const json = (payload: unknown, status = 200) =>
+  new Response(JSON.stringify(payload), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  })
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -20,10 +30,7 @@ Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return json({ error: 'Unauthorized' }, 401)
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -36,10 +43,7 @@ Deno.serve(async (req) => {
     const token = authHeader.replace('Bearer ', '')
     const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token)
     if (claimsErr || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return json({ error: 'Unauthorized' }, 401)
     }
     const callerId = claimsData.claims.sub as string
 
@@ -52,44 +56,29 @@ Deno.serve(async (req) => {
       .maybeSingle()
 
     if (!isAdminRow) {
-      return new Response(JSON.stringify({ error: 'Forbidden' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return json({ error: 'Forbidden' }, 403)
     }
 
     let raw: unknown
     try {
       raw = await req.json()
     } catch {
-      return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return json({ error: 'Invalid JSON body' }, 400)
     }
 
     // One recipient per send — reject arrays or comma-separated lists.
     if (raw && typeof raw === 'object' && Array.isArray((raw as any).recipientEmail)) {
-      return new Response(
-        JSON.stringify({ error: 'Only one recipient per send is allowed' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return json({ error: 'Only one recipient per send is allowed' }, 400)
     }
 
     const parsed = BodySchema.safeParse(raw)
     if (!parsed.success) {
-      return new Response(
-        JSON.stringify({ error: parsed.error.flatten().fieldErrors }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return json({ error: parsed.error.flatten().fieldErrors }, 400)
     }
 
     const input = parsed.data
     if (input.recipientEmail.includes(',') || input.recipientEmail.includes(';')) {
-      return new Response(
-        JSON.stringify({ error: 'Only one recipient per send is allowed' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return json({ error: 'Only one recipient per send is allowed' }, 400)
     }
 
     const recipient = input.recipientEmail.toLowerCase()
@@ -101,15 +90,77 @@ Deno.serve(async (req) => {
       .maybeSingle()
 
     if (suppressed) {
-      return new Response(
-        JSON.stringify({
+      return json(
+        {
           error: `This address is on the suppression list (${suppressed.reason}) and cannot be emailed.`,
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        },
+        400
       )
     }
 
+    // --- Thread: continue an existing conversation or start a new one ---
+    let threadId = input.threadId ?? null
+    if (threadId) {
+      const { data: existing } = await admin
+        .from('mail_threads')
+        .select('id')
+        .eq('id', threadId)
+        .maybeSingle()
+      if (!existing) threadId = null
+    }
+    if (!threadId) {
+      const { data: created, error: threadErr } = await admin
+        .from('mail_threads')
+        .insert({
+          subject: input.subject,
+          participant_email: recipient,
+          participant_name: input.recipientName ?? null,
+          created_by: callerId,
+          last_message_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+      if (threadErr) {
+        console.error('thread create failed', threadErr.message)
+        return json({ error: 'Could not create the conversation' }, 500)
+      }
+      threadId = created.id
+    }
+
     const idempotencyKey = `admin-message-${crypto.randomUUID()}`
+
+    const { data: messageRow } = await admin
+      .from('mail_messages')
+      .insert({
+        thread_id: threadId,
+        direction: 'outbound',
+        sender_email: null,
+        heading: input.heading ?? null,
+        body: input.body,
+        button_label: input.buttonLabel ?? null,
+        button_url: input.buttonUrl ?? null,
+        message_id: idempotencyKey,
+        created_by: callerId,
+      })
+      .select('id')
+      .single()
+
+    // Mint a single-conversation reply token for the in-app reply page.
+    const bytes = new Uint8Array(24)
+    crypto.getRandomValues(bytes)
+    const replyToken = Array.from(bytes)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('')
+
+    await admin.from('mail_reply_tokens').insert({
+      token: replyToken,
+      thread_id: threadId,
+      message_id: messageRow?.id ?? null,
+      recipient_email: recipient,
+    })
+
+    const origin = (input.appOrigin ?? DEFAULT_ORIGIN).replace(/\/$/, '')
+    const replyUrl = `${origin}/reply/${replyToken}`
 
     const sendRes = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
       method: 'POST',
@@ -128,6 +179,7 @@ Deno.serve(async (req) => {
           buttonLabel: input.buttonLabel,
           buttonUrl: input.buttonUrl,
           recipientName: input.recipientName,
+          replyUrl,
         },
       }),
     })
@@ -135,29 +187,31 @@ Deno.serve(async (req) => {
     const sendJson = await sendRes.json().catch(() => ({}))
     if (!sendRes.ok) {
       console.error('send-transactional-email failed', sendJson)
-      return new Response(
-        JSON.stringify({ error: (sendJson as any).error ?? 'Failed to send email' }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return json({ error: (sendJson as any).error ?? 'Failed to send email' }, 502)
     }
+
+    await admin
+      .from('mail_threads')
+      .update({ last_message_at: new Date().toISOString(), subject: input.subject })
+      .eq('id', threadId)
 
     await admin.from('admin_transaction_log').insert({
       admin_user_id: callerId,
       action: 'send-email',
       target_table: 'email_send_log',
-      after: { recipient, subject: input.subject, idempotency_key: idempotencyKey },
+      after: {
+        recipient,
+        subject: input.subject,
+        idempotency_key: idempotencyKey,
+        thread_id: threadId,
+      },
       reason: 'manual webmail send',
     })
 
-    return new Response(JSON.stringify({ success: true, ...sendJson }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    return json({ success: true, threadId, ...sendJson })
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Server error'
     console.error('admin-send-email error', message)
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    return json({ error: message }, 500)
   }
 })
