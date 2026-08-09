@@ -620,6 +620,194 @@ export type Database = {
           },
         ]
       }
+      mail_drafts: {
+        Row: {
+          body: string | null
+          button_label: string | null
+          button_url: string | null
+          created_at: string
+          heading: string | null
+          id: string
+          recipient_email: string | null
+          recipient_name: string | null
+          subject: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          button_label?: string | null
+          button_url?: string | null
+          created_at?: string
+          heading?: string | null
+          id?: string
+          recipient_email?: string | null
+          recipient_name?: string | null
+          subject?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          button_label?: string | null
+          button_url?: string | null
+          created_at?: string
+          heading?: string | null
+          id?: string
+          recipient_email?: string | null
+          recipient_name?: string | null
+          subject?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mail_messages: {
+        Row: {
+          body: string
+          button_label: string | null
+          button_url: string | null
+          created_at: string
+          created_by: string | null
+          direction: string
+          heading: string | null
+          id: string
+          message_id: string | null
+          sender_email: string | null
+          sender_name: string | null
+          thread_id: string
+        }
+        Insert: {
+          body: string
+          button_label?: string | null
+          button_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          direction: string
+          heading?: string | null
+          id?: string
+          message_id?: string | null
+          sender_email?: string | null
+          sender_name?: string | null
+          thread_id: string
+        }
+        Update: {
+          body?: string
+          button_label?: string | null
+          button_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          direction?: string
+          heading?: string | null
+          id?: string
+          message_id?: string | null
+          sender_email?: string | null
+          sender_name?: string | null
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mail_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "mail_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mail_reply_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          last_used_at: string | null
+          message_id: string | null
+          recipient_email: string
+          revoked: boolean
+          thread_id: string
+          token: string
+          use_count: number
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_used_at?: string | null
+          message_id?: string | null
+          recipient_email: string
+          revoked?: boolean
+          thread_id: string
+          token: string
+          use_count?: number
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_used_at?: string | null
+          message_id?: string | null
+          recipient_email?: string
+          revoked?: boolean
+          thread_id?: string
+          token?: string
+          use_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mail_reply_tokens_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "mail_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mail_reply_tokens_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "mail_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mail_threads: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          last_message_at: string
+          participant_email: string
+          participant_name: string | null
+          status: string
+          subject: string
+          unread_count: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_message_at?: string
+          participant_email: string
+          participant_name?: string | null
+          status?: string
+          subject: string
+          unread_count?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_message_at?: string
+          participant_email?: string
+          participant_name?: string | null
+          status?: string
+          subject?: string
+          unread_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       milestones: {
         Row: {
           created_at: string

@@ -27,7 +27,7 @@ Each sent email opens a thread. Every later reply — from you or the user — i
   - `mail_threads` — subject, participant email/name, last_message_at, unread_count, status.
   - `mail_messages` — thread_id, direction (`outbound` / `inbound`), body, heading, button label/url, `email_send_log.message_id` for outbound delivery status, created_at.
   - `mail_drafts` — owned by the admin who created it (`auth.uid()`), recipient, subject, heading, body, button fields, updated_at.
-  - `mail_reply_tokens` — random token, thread_id, expires_at, revoked flag; consumed by the public reply endpoint.
+  - `mail_reply_tokens` — random token, thread_id, expires_at, revoked flag; consumed by the public reply endpoint.  
   All get GRANTs, RLS and `updated_at` triggers per project convention.
 - `admin-send-email` extended to: create or continue a thread, record the outbound `mail_messages` row, mint a reply token, and pass `replyUrl` into `templateData`.
 - `admin-message.tsx` template gains an optional "Reply to this message" secondary button rendered from `replyUrl`; template registry unchanged otherwise, functions redeployed after edits.

@@ -21,6 +21,7 @@ interface AdminMessageProps {
   buttonLabel?: string
   buttonUrl?: string
   recipientName?: string
+  replyUrl?: string
 }
 
 const SITE_NAME = 'CTTTradezone'
@@ -32,7 +33,9 @@ const AdminMessageEmail = ({
   buttonLabel,
   buttonUrl,
   recipientName,
+  replyUrl,
 }: AdminMessageProps) => {
+
   const paragraphs = String(body || '')
     .split(/\n\s*\n/)
     .map((p) => p.trim())
@@ -63,10 +66,22 @@ const AdminMessageEmail = ({
               {buttonLabel}
             </Button>
           ) : null}
+          {replyUrl ? (
+            <Section style={replySection}>
+              <Button style={replyButton} href={replyUrl}>
+                Reply to this message
+              </Button>
+              <Text style={replyNote}>
+                Replying by email will not reach us — use the button above to send your
+                reply securely inside {SITE_NAME}.
+              </Text>
+            </Section>
+          ) : null}
           <Text style={footer}>
             {SITE_NAME} Investment Center — this message was sent by our support team
             regarding your account.
           </Text>
+
         </Container>
       </Body>
     </Html>
@@ -138,4 +153,23 @@ const footer = {
   color: '#8A93A3',
   lineHeight: '1.6',
   margin: '32px 0 0',
+}
+const replySection = { margin: '28px 0 0' }
+const replyButton = {
+  backgroundColor: '#ffffff',
+  color: '#1111D4',
+  fontSize: '16px',
+  borderRadius: '12px',
+  padding: '14px 26px',
+  fontWeight: 'bold' as const,
+  display: 'inline-block' as const,
+  textDecoration: 'none',
+  border: '2px solid #1111D4',
+  lineHeight: '1.2',
+}
+const replyNote = {
+  fontSize: '14px',
+  color: '#8A93A3',
+  lineHeight: '1.6',
+  margin: '14px 0 0',
 }
