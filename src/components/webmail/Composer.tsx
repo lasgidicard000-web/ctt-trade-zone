@@ -204,10 +204,12 @@ interface ComposerProps {
   users: AdminUser[];
   draft: MailDraft | null;
   userId: string | null;
+  templatesKey?: number;
   onSent: () => void;
   onDraftsChanged: () => void;
   onDraftConsumed: () => void;
 }
+
 
 export default function Composer({
   users,
