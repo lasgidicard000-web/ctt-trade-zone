@@ -25,7 +25,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Loader2, Save, Send } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  LayoutTemplate,
+  Loader2,
+  Save,
+  Search,
+  Send,
+} from "lucide-react";
+
 import type { AdminUser, MailDraft } from "./types";
 import { buildPreviewHtml } from "./emailPreview";
 import {
