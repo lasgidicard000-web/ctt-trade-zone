@@ -54,10 +54,11 @@ export default function AdminWebmail() {
       .from("mail_threads" as any)
       .select("unread_count")
       .gt("unread_count", 0);
-    const total = (((data ?? []) as any[]) ?? []).reduce(
+    const total = ((data ?? []) as any[]).reduce(
       (sum, r) => sum + (r.unread_count ?? 0),
       0
     );
+
     setUnread(total);
   }, []);
 
