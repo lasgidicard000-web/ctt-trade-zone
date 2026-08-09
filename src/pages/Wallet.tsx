@@ -23,6 +23,9 @@ import { CttDebitCard } from "@/components/CttDebitCard";
 import { ReferralLinkCard } from "@/components/ReferralLinkCard";
 
 import { EntitlementsCard } from "@/components/EntitlementsCard";
+import { WalletCopilotProvider } from "@/components/wallet/WalletCopilot";
+import { ExplainButton } from "@/components/wallet/ExplainButton";
+
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { GiftCardApprovalTracker } from "@/components/GiftCardApprovalTracker";
 import { GlobalBankConversion } from "@/components/GlobalBankConversion";
