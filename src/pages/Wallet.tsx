@@ -1278,7 +1278,9 @@ const Wallet = () => {
         </Dialog>
       </div>
     </div>
+    </WalletCopilotProvider>
   );
 };
+
 
 export default Wallet;
