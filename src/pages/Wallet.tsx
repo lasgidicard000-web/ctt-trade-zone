@@ -798,8 +798,23 @@ const Wallet = () => {
         {user && <div className="mb-6"><PriceAlerts user={user} coins={coinPrices} /></div>}
 
         {/* Active Investment */}
-        {user && <EntitlementsCard userId={user.id} />}
-        {user && <ActiveInvestmentCard userId={user.id} />}
+        {user && (
+          <>
+            <EntitlementsCard userId={user.id} />
+            <div className="-mt-4 mb-6 flex justify-end">
+              <ExplainButton segment="Plan Entitlements" />
+            </div>
+          </>
+        )}
+        {user && (
+          <>
+            <ActiveInvestmentCard userId={user.id} />
+            <div className="-mt-4 mb-6 flex justify-end">
+              <ExplainButton segment="Active Investment Plan" />
+            </div>
+          </>
+        )}
+
 
         {/* Wallet Status and Activation Requirements */}
         {user && (
