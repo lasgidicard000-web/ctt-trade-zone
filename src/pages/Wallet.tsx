@@ -23,6 +23,9 @@ import { CttDebitCard } from "@/components/CttDebitCard";
 import { ReferralLinkCard } from "@/components/ReferralLinkCard";
 
 import { EntitlementsCard } from "@/components/EntitlementsCard";
+import { WalletCopilotProvider } from "@/components/wallet/WalletCopilot";
+import { ExplainButton } from "@/components/wallet/ExplainButton";
+
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { GiftCardApprovalTracker } from "@/components/GiftCardApprovalTracker";
 import { GlobalBankConversion } from "@/components/GlobalBankConversion";
@@ -647,8 +650,10 @@ const Wallet = () => {
   }
 
   return (
+    <WalletCopilotProvider>
     <div className="min-h-screen bg-background p-4">
       {user && <AlertNotifications user={user} />}
+
       <div className="container mx-auto max-w-6xl py-12">
         <div className="mb-8 text-center">
           <div className="mb-4 inline-flex rounded-full bg-primary/10 p-4">
@@ -696,15 +701,33 @@ const Wallet = () => {
           />
         )}
 
-        {user && <ReferralLinkCard userId={user.id} className="mb-6" />}
+        {user && (
+          <div className="mb-6">
+            <ReferralLinkCard userId={user.id} />
+            <div className="mt-1 flex justify-end">
+              <ExplainButton segment="Referral Link" />
+            </div>
+          </div>
+        )}
 
-        {user && <CttDebitCard userId={user.id} portfolioUsd={totalPortfolioValue} />}
+        {user && (
+          <>
+            <CttDebitCard userId={user.id} portfolioUsd={totalPortfolioValue} />
+            <div className="-mt-2 mb-4 flex justify-end">
+              <ExplainButton segment="CTT Debit Card" />
+            </div>
+          </>
+        )}
 
 
         <Card className="mb-6 border-border bg-gradient-to-br from-primary/10 to-accent/10 p-6">
 
           <div className="text-center">
-            <p className="mb-2 text-sm text-muted-foreground">Total Portfolio Value</p>
+            <p className="mb-2 flex items-center justify-center gap-1 text-sm text-muted-foreground">
+              Total Portfolio Value
+              <ExplainButton segment="Total Portfolio Value" />
+            </p>
+
             <p className="text-4xl font-bold text-foreground tabular-nums">
               ${totalPortfolioValue.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
@@ -754,6 +777,10 @@ const Wallet = () => {
           investments={activeInvestments as any}
           dailyRoi={dailyRoiByInvestment}
         />
+        <div className="-mt-4 mb-6 flex justify-end">
+          <ExplainButton segment="Portfolio Breakdown" />
+        </div>
+
 
 
         {user && (
@@ -771,24 +798,60 @@ const Wallet = () => {
         {user && <div className="mb-6"><PriceAlerts user={user} coins={coinPrices} /></div>}
 
         {/* Active Investment */}
-        {user && <EntitlementsCard userId={user.id} />}
-        {user && <ActiveInvestmentCard userId={user.id} />}
+        {user && (
+          <>
+            <EntitlementsCard userId={user.id} />
+            <div className="-mt-4 mb-6 flex justify-end">
+              <ExplainButton segment="Plan Entitlements" />
+            </div>
+          </>
+        )}
+        {user && (
+          <>
+            <ActiveInvestmentCard userId={user.id} />
+            <div className="-mt-4 mb-6 flex justify-end">
+              <ExplainButton segment="Active Investment Plan" />
+            </div>
+          </>
+        )}
+
 
         {/* Wallet Status and Activation Requirements */}
         {user && (
-          <WalletStatusCard
-            btcBalance={walletBalances.find(b => b.coin_symbol === 'BTC')?.balance || 0}
-            btcPrice={coinPrices.find(c => c.symbol === 'BTC')?.price || 0}
-          />
+          <>
+            <WalletStatusCard
+              btcBalance={walletBalances.find(b => b.coin_symbol === 'BTC')?.balance || 0}
+              btcPrice={coinPrices.find(c => c.symbol === 'BTC')?.price || 0}
+            />
+            <div className="-mt-4 mb-6 flex justify-end">
+              <ExplainButton segment="Wallet Status & Activation" />
+            </div>
+          </>
         )}
 
 
         {user && <AGCSBCreditBadge userId={user.id} />}
         {user && <GiftCardApprovalTracker userId={user.id} />}
 
-        {user && <div className="mb-6"><RewardsSection user={user} onRewardClaimed={fetchData} /></div>}
+        {user && (
+          <div className="mb-6">
+            <RewardsSection user={user} onRewardClaimed={fetchData} />
+            <div className="mt-1 flex justify-end">
+              <ExplainButton segment="Rewards" />
+            </div>
+          </div>
+        )}
 
-        {user && <div className="mb-6"><WalletAddresses coins={coinPrices} userId={user.id} btcBalance={walletBalances.find(b => b.coin_symbol === 'BTC')?.balance || 0} btcPrice={coinPrices.find(c => c.symbol === 'BTC')?.price || 0} /></div>}
+        {user && (
+          <div className="mb-6">
+            <WalletAddresses coins={coinPrices} userId={user.id} btcBalance={walletBalances.find(b => b.coin_symbol === 'BTC')?.balance || 0} btcPrice={coinPrices.find(c => c.symbol === 'BTC')?.price || 0} />
+            <div className="mt-1 flex justify-end gap-1">
+              <ExplainButton segment="Add Funds / Deposits" />
+              <ExplainButton segment="Withdrawals & Cash Out" />
+            </div>
+          </div>
+        )}
+
 
         {/* Global Bank Conversion Section */}
         <GlobalBankConversion />
@@ -1276,7 +1339,9 @@ const Wallet = () => {
         </Dialog>
       </div>
     </div>
+    </WalletCopilotProvider>
   );
 };
+
 
 export default Wallet;
