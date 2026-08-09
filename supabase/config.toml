@@ -23,3 +23,6 @@ project_id = "cbezdlqbpebedvpkehjh"
     verify_jwt = false
   [functions.admin-send-email]
     verify_jwt = true
+  [functions.mail-reply]
+    verify_jwt = false
+
