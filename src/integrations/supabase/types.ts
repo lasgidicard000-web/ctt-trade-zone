@@ -769,6 +769,51 @@ export type Database = {
           },
         ]
       }
+      mail_templates: {
+        Row: {
+          body: string
+          button_label: string | null
+          button_url: string | null
+          created_at: string
+          created_by: string | null
+          group_label: string
+          heading: string | null
+          id: string
+          name: string
+          subject: string
+          updated_at: string
+          variables: Json
+        }
+        Insert: {
+          body?: string
+          button_label?: string | null
+          button_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          group_label?: string
+          heading?: string | null
+          id?: string
+          name: string
+          subject?: string
+          updated_at?: string
+          variables?: Json
+        }
+        Update: {
+          body?: string
+          button_label?: string | null
+          button_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          group_label?: string
+          heading?: string | null
+          id?: string
+          name?: string
+          subject?: string
+          updated_at?: string
+          variables?: Json
+        }
+        Relationships: []
+      }
       mail_threads: {
         Row: {
           created_at: string

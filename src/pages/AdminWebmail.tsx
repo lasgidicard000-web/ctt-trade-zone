@@ -9,7 +9,9 @@ import InboxList from "@/components/webmail/InboxList";
 import OutboxList from "@/components/webmail/OutboxList";
 import DraftsList from "@/components/webmail/DraftsList";
 import ThreadView from "@/components/webmail/ThreadView";
+import TemplatesList from "@/components/webmail/TemplatesList";
 import type { AdminUser, MailDraft } from "@/components/webmail/types";
+
 
 export default function AdminWebmail() {
   const navigate = useNavigate();
@@ -26,6 +28,8 @@ export default function AdminWebmail() {
   const [inboxKey, setInboxKey] = useState(0);
   const [outboxKey, setOutboxKey] = useState(0);
   const [draftsKey, setDraftsKey] = useState(0);
+  const [templatesKey, setTemplatesKey] = useState(0);
+
 
   useEffect(() => {
     const run = async () => {
@@ -149,6 +153,7 @@ export default function AdminWebmail() {
             </TabsTrigger>
             <TabsTrigger value="outbox">Outbox</TabsTrigger>
             <TabsTrigger value="drafts">Drafts</TabsTrigger>
+            <TabsTrigger value="templates">Templates</TabsTrigger>
           </TabsList>
 
           <TabsContent value="compose" className="mt-4">
@@ -156,6 +161,7 @@ export default function AdminWebmail() {
               users={users}
               draft={editingDraft}
               userId={userId}
+              templatesKey={templatesKey}
               onSent={() => {
                 setOutboxKey((k) => k + 1);
                 setDraftsKey((k) => k + 1);
@@ -164,6 +170,7 @@ export default function AdminWebmail() {
               onDraftConsumed={() => setEditingDraft(null)}
             />
           </TabsContent>
+
 
           <TabsContent value="inbox" className="mt-4">
             <InboxList
@@ -194,6 +201,14 @@ export default function AdminWebmail() {
               onRefresh={() => setDraftsKey((k) => k + 1)}
             />
           </TabsContent>
+
+          <TabsContent value="templates" className="mt-4">
+            <TemplatesList
+              userId={userId}
+              onChanged={() => setTemplatesKey((k) => k + 1)}
+            />
+          </TabsContent>
+
         </Tabs>
       )}
     </main>

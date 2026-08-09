@@ -27,6 +27,16 @@ import {
 import { toast } from "sonner";
 import { Loader2, Save, Send } from "lucide-react";
 import type { AdminUser, MailDraft } from "./types";
+import { buildPreviewHtml } from "./emailPreview";
+import {
+  applyVars,
+  autoValues,
+  extractVars,
+  findUnfilled,
+  AUTO_VARS,
+  type MailTemplate,
+} from "./templateVars";
+
 
 const SIGNOFF = "The CTTTradezone team";
 
@@ -193,15 +203,18 @@ interface ComposerProps {
   users: AdminUser[];
   draft: MailDraft | null;
   userId: string | null;
+  templatesKey?: number;
   onSent: () => void;
   onDraftsChanged: () => void;
   onDraftConsumed: () => void;
 }
 
+
 export default function Composer({
   users,
   draft,
   userId,
+  templatesKey = 0,
   onSent,
   onDraftsChanged,
   onDraftConsumed,
@@ -217,7 +230,27 @@ export default function Composer({
   const [sending, setSending] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [customTemplates, setCustomTemplates] = useState<MailTemplate[]>([]);
+  const [varValues, setVarValues] = useState<Record<string, string>>({});
   const dirty = useRef(false);
+
+  // Custom templates saved from the Templates tab.
+  useEffect(() => {
+    supabase
+      .from("mail_templates" as any)
+      .select("*")
+      .order("group_label", { ascending: true })
+      .order("name", { ascending: true })
+      .then(({ data }) => {
+        setCustomTemplates(
+          ((data ?? []) as any[]).map((r) => ({
+            ...r,
+            variables: Array.isArray(r.variables) ? r.variables : [],
+          })) as MailTemplate[]
+        );
+      });
+  }, [templatesKey]);
+
 
   // Load a draft the admin chose to continue.
   useEffect(() => {
@@ -286,65 +319,99 @@ export default function Composer({
   };
 
   const applyPreset = (key: string) => {
+    dirty.current = true;
+    if (key.startsWith("custom:")) {
+      const t = customTemplates.find((c) => c.id === key.slice(7));
+      if (!t) return;
+      setSubject(t.subject ?? "");
+      setBody(t.body ?? "");
+      setHeading(t.heading ?? "");
+      setButtonLabel(t.button_label ?? "");
+      setButtonUrl(t.button_url ?? "");
+      const seed: Record<string, string> = {};
+      (t.variables ?? []).forEach((v) => {
+        if (v?.key && v.default) seed[v.key] = v.default;
+      });
+      setVarValues(seed);
+      return;
+    }
     const preset = PRESETS[key];
     if (!preset) return;
-    dirty.current = true;
     setSubject(preset.subject);
     setBody(preset.body);
     setHeading(preset.heading ?? "");
     setButtonLabel(preset.buttonLabel ?? "");
     setButtonUrl(preset.buttonUrl ?? "");
+    setVarValues({});
   };
 
+  // Variables used anywhere in the current message.
+  const templateVars = useMemo(
+    () => extractVars([subject, heading, body, buttonLabel, buttonUrl]),
+    [subject, heading, body, buttonLabel, buttonUrl]
+  );
 
-  const previewHtml = useMemo(() => {
-    const paragraphs = body
-      .split(/\n\s*\n/)
-      .map((p) => p.trim())
-      .filter(Boolean);
-    const esc = (s: string) =>
-      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    return `<!doctype html><html><body style="margin:0;background:#ffffff;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
-      <div style="padding:24px;max-width:600px">
-        <div style="background:#10102E;border-radius:12px;padding:16px 20px;margin:0 0 24px">
-          <p style="color:#fff;font-size:18px;font-weight:bold;letter-spacing:.5px;margin:0">CTTTradezone</p>
-        </div>
-        <h1 style="font-size:24px;color:#10102E;margin:0 0 20px;line-height:1.3">${esc(heading || subject || "Subject")}</h1>
-        ${recipientName ? `<p style="font-size:16px;color:#5B6472;line-height:1.6;margin:0 0 20px">Hi ${esc(recipientName)},</p>` : ""}
-        ${paragraphs
-          .map(
-            (p) =>
-              `<p style="font-size:16px;color:#5B6472;line-height:1.6;margin:0 0 20px;word-break:break-word">${esc(p)}</p>`
-          )
-          .join("")}
-        ${
-          buttonLabel && buttonUrl
-            ? `<a href="#" style="background:#1111D4;color:#fff;font-size:16px;border-radius:12px;padding:16px 28px;font-weight:bold;display:inline-block;text-decoration:none">${esc(buttonLabel)}</a>`
-            : ""
-        }
-        <div style="margin:28px 0 0">
-          <a href="#" style="background:#fff;color:#1111D4;border:2px solid #1111D4;font-size:16px;border-radius:12px;padding:14px 26px;font-weight:bold;display:inline-block;text-decoration:none">Reply to this message</a>
-          <p style="font-size:14px;color:#8A93A3;line-height:1.6;margin:14px 0 0">Replying by email will not reach us — use the button above to send your reply securely inside CTTTradezone.</p>
-        </div>
-        <p style="font-size:13px;color:#8A93A3;line-height:1.6;margin:32px 0 0">CTTTradezone Investment Center — this message was sent by our support team regarding your account.</p>
-      </div></body></html>`;
-  }, [body, heading, subject, recipientName, buttonLabel, buttonUrl]);
+  const manualVars = useMemo(
+    () => templateVars.filter((k) => !(AUTO_VARS as readonly string[]).includes(k)),
+    [templateVars]
+  );
+
+  const resolvedValues = useMemo(
+    () => ({
+      ...autoValues({ recipientName, recipientEmail: recipient }),
+      ...Object.fromEntries(
+        Object.entries(varValues).filter(([, v]) => v.trim() !== "")
+      ),
+    }),
+    [recipientName, recipient, varValues]
+  );
+
+  const resolved = useMemo(
+    () => ({
+      subject: applyVars(subject, resolvedValues),
+      heading: applyVars(heading, resolvedValues),
+      body: applyVars(body, resolvedValues),
+      buttonLabel: applyVars(buttonLabel, resolvedValues),
+      buttonUrl: applyVars(buttonUrl, resolvedValues),
+    }),
+    [subject, heading, body, buttonLabel, buttonUrl, resolvedValues]
+  );
+
+  const unfilled = useMemo(
+    () =>
+      findUnfilled([subject, heading, body, buttonLabel, buttonUrl], resolvedValues),
+    [subject, heading, body, buttonLabel, buttonUrl, resolvedValues]
+  );
+
+  const previewHtml = useMemo(
+    () =>
+      buildPreviewHtml({
+        heading: resolved.heading,
+        subject: resolved.subject,
+        recipientName,
+        body: resolved.body,
+        buttonLabel: resolved.buttonLabel,
+        buttonUrl: resolved.buttonUrl,
+      }),
+    [resolved, recipientName]
+  );
 
   const canSend =
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient.trim()) &&
-    subject.trim().length > 0 &&
-    body.trim().length > 0;
+    resolved.subject.trim().length > 0 &&
+    resolved.body.trim().length > 0 &&
+    unfilled.length === 0;
 
   const handleSend = async () => {
     setSending(true);
     const { data, error } = await supabase.functions.invoke("admin-send-email", {
       body: {
         recipientEmail: recipient.trim(),
-        subject: subject.trim(),
-        heading: heading.trim() || undefined,
-        body: body.trim(),
-        buttonLabel: buttonLabel.trim() || undefined,
-        buttonUrl: buttonUrl.trim() || undefined,
+        subject: resolved.subject.trim(),
+        heading: resolved.heading.trim() || undefined,
+        body: resolved.body.trim(),
+        buttonLabel: resolved.buttonLabel.trim() || undefined,
+        buttonUrl: resolved.buttonUrl.trim() || undefined,
         recipientName: recipientName.trim() || undefined,
         appOrigin: window.location.origin,
       },
@@ -372,9 +439,11 @@ export default function Composer({
     setHeading("");
     setButtonLabel("");
     setButtonUrl("");
+    setVarValues({});
     dirty.current = false;
     onSent();
   };
+
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -394,6 +463,16 @@ export default function Composer({
                 <SelectValue placeholder="Choose a starting point" />
               </SelectTrigger>
               <SelectContent className="max-h-80">
+                {customTemplates.length ? (
+                  <SelectGroup>
+                    <SelectLabel>My templates</SelectLabel>
+                    {customTemplates.map((t) => (
+                      <SelectItem key={t.id} value={`custom:${t.id}`}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ) : null}
                 {PRESET_GROUPS.map((group) => {
                   const items = Object.entries(PRESETS).filter(
                     ([, p]) => p.group === group
@@ -414,6 +493,39 @@ export default function Composer({
             </Select>
 
           </div>
+
+          {manualVars.length ? (
+            <div className="grid gap-3 rounded-lg border border-border bg-muted/40 p-4">
+              <div>
+                <Label className="text-sm font-semibold">Fill in the variables</Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Every value is replaced before the email is sent.
+                </p>
+              </div>
+              {manualVars.map((k) => (
+                <div key={k} className="grid gap-1.5">
+                  <Label htmlFor={`var-${k}`} className="text-xs">
+                    <code>{`{{${k}}}`}</code>
+                  </Label>
+                  <Input
+                    id={`var-${k}`}
+                    maxLength={200}
+                    value={varValues[k] ?? ""}
+                    onChange={(e) =>
+                      setVarValues((prev) => ({ ...prev, [k]: e.target.value }))
+                    }
+                    placeholder={`Value for ${k}`}
+                  />
+                </div>
+              ))}
+              {unfilled.length ? (
+                <p className="text-xs text-destructive">
+                  Still to fill: {unfilled.map((k) => `{{${k}}}`).join(", ")}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
 
           <div className="grid gap-2">
             <Label>Pick a registered user</Label>
