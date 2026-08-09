@@ -647,8 +647,10 @@ const Wallet = () => {
   }
 
   return (
+    <WalletCopilotProvider>
     <div className="min-h-screen bg-background p-4">
       {user && <AlertNotifications user={user} />}
+
       <div className="container mx-auto max-w-6xl py-12">
         <div className="mb-8 text-center">
           <div className="mb-4 inline-flex rounded-full bg-primary/10 p-4">
