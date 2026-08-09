@@ -35,6 +35,75 @@ export const WalletCopilotProvider = ({ children }: { children: React.ReactNode 
   const inputRef = useRef<HTMLInputElement>(null);
   const pendingRef = useRef<string | null>(null);
 
+  // ---- draggable launcher ----
+  const launcherRef = useRef<HTMLButtonElement>(null);
+  const draggedRef = useRef(false);
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(() => {
+    try {
+      const raw = localStorage.getItem("walletCopilotPos");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const onLauncherPointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    const el = launcherRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const offX = e.clientX - rect.left;
+    const offY = e.clientY - rect.top;
+    draggedRef.current = false;
+    el.setPointerCapture(e.pointerId);
+
+    const move = (ev: PointerEvent) => {
+      if (Math.abs(ev.clientX - e.clientX) + Math.abs(ev.clientY - e.clientY) > 4) {
+        draggedRef.current = true;
+      }
+      const x = Math.min(Math.max(ev.clientX - offX, 8), window.innerWidth - rect.width - 8);
+      const y = Math.min(Math.max(ev.clientY - offY, 8), window.innerHeight - rect.height - 8);
+      setPos({ x, y });
+    };
+    const up = () => {
+      el.removeEventListener("pointermove", move);
+      el.removeEventListener("pointerup", up);
+      el.removeEventListener("pointercancel", up);
+      setPos((p) => {
+        if (p && draggedRef.current) {
+          try {
+            localStorage.setItem("walletCopilotPos", JSON.stringify(p));
+          } catch {
+            /* ignore */
+          }
+        }
+        return p;
+      });
+      setTimeout(() => {
+        draggedRef.current = false;
+      }, 0);
+    };
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerup", up);
+    el.addEventListener("pointercancel", up);
+  }, []);
+
+  // Keep the launcher on-screen when the viewport resizes.
+  useEffect(() => {
+    const onResize = () =>
+      setPos((p) => {
+        if (!p) return p;
+        const rect = launcherRef.current?.getBoundingClientRect();
+        const w = rect?.width ?? 56;
+        const h = rect?.height ?? 44;
+        return {
+          x: Math.min(p.x, Math.max(8, window.innerWidth - w - 8)),
+          y: Math.min(p.y, Math.max(8, window.innerHeight - h - 8)),
+        };
+      });
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streaming]);
