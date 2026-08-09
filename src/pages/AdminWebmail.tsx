@@ -28,6 +28,8 @@ export default function AdminWebmail() {
   const [inboxKey, setInboxKey] = useState(0);
   const [outboxKey, setOutboxKey] = useState(0);
   const [draftsKey, setDraftsKey] = useState(0);
+  const [templatesKey, setTemplatesKey] = useState(0);
+
 
   useEffect(() => {
     const run = async () => {
