@@ -393,14 +393,26 @@ export default function Composer({
               <SelectTrigger>
                 <SelectValue placeholder="Choose a starting point" />
               </SelectTrigger>
-              <SelectContent>
-                {Object.entries(PRESETS).map(([key, p]) => (
-                  <SelectItem key={key} value={key}>
-                    {p.label}
-                  </SelectItem>
-                ))}
+              <SelectContent className="max-h-80">
+                {PRESET_GROUPS.map((group) => {
+                  const items = Object.entries(PRESETS).filter(
+                    ([, p]) => p.group === group
+                  );
+                  if (!items.length) return null;
+                  return (
+                    <SelectGroup key={group}>
+                      <SelectLabel>{group}</SelectLabel>
+                      {items.map(([key, p]) => (
+                        <SelectItem key={key} value={key}>
+                          {p.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  );
+                })}
               </SelectContent>
             </Select>
+
           </div>
 
           <div className="grid gap-2">
