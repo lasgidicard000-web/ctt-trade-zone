@@ -34,7 +34,6 @@ import {
   extractVars,
   findUnfilled,
   AUTO_VARS,
-  TEMPLATE_GROUPS,
   type MailTemplate,
 } from "./templateVars";
 
