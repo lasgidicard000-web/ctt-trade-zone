@@ -701,15 +701,33 @@ const Wallet = () => {
           />
         )}
 
-        {user && <ReferralLinkCard userId={user.id} className="mb-6" />}
+        {user && (
+          <div className="mb-6">
+            <ReferralLinkCard userId={user.id} />
+            <div className="mt-1 flex justify-end">
+              <ExplainButton segment="Referral Link" />
+            </div>
+          </div>
+        )}
 
-        {user && <CttDebitCard userId={user.id} portfolioUsd={totalPortfolioValue} />}
+        {user && (
+          <>
+            <CttDebitCard userId={user.id} portfolioUsd={totalPortfolioValue} />
+            <div className="-mt-2 mb-4 flex justify-end">
+              <ExplainButton segment="CTT Debit Card" />
+            </div>
+          </>
+        )}
 
 
         <Card className="mb-6 border-border bg-gradient-to-br from-primary/10 to-accent/10 p-6">
 
           <div className="text-center">
-            <p className="mb-2 text-sm text-muted-foreground">Total Portfolio Value</p>
+            <p className="mb-2 flex items-center justify-center gap-1 text-sm text-muted-foreground">
+              Total Portfolio Value
+              <ExplainButton segment="Total Portfolio Value" />
+            </p>
+
             <p className="text-4xl font-bold text-foreground tabular-nums">
               ${totalPortfolioValue.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
