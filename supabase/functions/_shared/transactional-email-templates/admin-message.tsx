@@ -66,10 +66,22 @@ const AdminMessageEmail = ({
               {buttonLabel}
             </Button>
           ) : null}
+          {replyUrl ? (
+            <Section style={replySection}>
+              <Button style={replyButton} href={replyUrl}>
+                Reply to this message
+              </Button>
+              <Text style={replyNote}>
+                Replying by email will not reach us — use the button above to send your
+                reply securely inside {SITE_NAME}.
+              </Text>
+            </Section>
+          ) : null}
           <Text style={footer}>
             {SITE_NAME} Investment Center — this message was sent by our support team
             regarding your account.
           </Text>
+
         </Container>
       </Body>
     </Html>
