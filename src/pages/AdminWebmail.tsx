@@ -153,6 +153,7 @@ export default function AdminWebmail() {
             </TabsTrigger>
             <TabsTrigger value="outbox">Outbox</TabsTrigger>
             <TabsTrigger value="drafts">Drafts</TabsTrigger>
+            <TabsTrigger value="templates">Templates</TabsTrigger>
           </TabsList>
 
           <TabsContent value="compose" className="mt-4">
@@ -160,6 +161,7 @@ export default function AdminWebmail() {
               users={users}
               draft={editingDraft}
               userId={userId}
+              templatesKey={templatesKey}
               onSent={() => {
                 setOutboxKey((k) => k + 1);
                 setDraftsKey((k) => k + 1);
@@ -168,6 +170,7 @@ export default function AdminWebmail() {
               onDraftConsumed={() => setEditingDraft(null)}
             />
           </TabsContent>
+
 
           <TabsContent value="inbox" className="mt-4">
             <InboxList
