@@ -241,7 +241,11 @@ export default function Composer({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [customTemplates, setCustomTemplates] = useState<MailTemplate[]>([]);
   const [varValues, setVarValues] = useState<Record<string, string>>({});
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [tplQuery, setTplQuery] = useState("");
+  const [selectedTpl, setSelectedTpl] = useState<string | null>(null);
   const dirty = useRef(false);
+
 
   // Custom templates saved from the Templates tab.
   useEffect(() => {
