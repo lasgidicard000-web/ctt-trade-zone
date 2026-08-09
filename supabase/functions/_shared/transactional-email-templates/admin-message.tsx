@@ -21,6 +21,7 @@ interface AdminMessageProps {
   buttonLabel?: string
   buttonUrl?: string
   recipientName?: string
+  replyUrl?: string
 }
 
 const SITE_NAME = 'CTTTradezone'
@@ -32,7 +33,9 @@ const AdminMessageEmail = ({
   buttonLabel,
   buttonUrl,
   recipientName,
+  replyUrl,
 }: AdminMessageProps) => {
+
   const paragraphs = String(body || '')
     .split(/\n\s*\n/)
     .map((p) => p.trim())
