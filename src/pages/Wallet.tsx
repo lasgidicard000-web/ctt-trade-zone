@@ -777,6 +777,10 @@ const Wallet = () => {
           investments={activeInvestments as any}
           dailyRoi={dailyRoiByInvestment}
         />
+        <div className="-mt-4 mb-6 flex justify-end">
+          <ExplainButton segment="Portfolio Breakdown" />
+        </div>
+
 
 
         {user && (
