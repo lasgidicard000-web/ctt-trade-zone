@@ -776,7 +776,9 @@ const Wallet = () => {
           depositsUsd={walletUsd}
           investments={activeInvestments as any}
           dailyRoi={dailyRoiByInvestment}
+          onCashedOut={fetchData}
         />
+
         <div className="-mt-4 mb-6 flex justify-end">
           <ExplainButton segment="Portfolio Breakdown" />
         </div>
