@@ -1764,6 +1764,10 @@ export type Database = {
         Args: { _card_id: string; _reason?: string; _status: string }
         Returns: Json
       }
+      withdraw_investment_to_portfolio: {
+        Args: { _investment_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"
