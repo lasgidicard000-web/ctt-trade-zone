@@ -14,7 +14,9 @@ import { TrendingUp, Sparkles, Clock, ArrowUpRight, History, ChevronDown, FileDo
 import { useDailyRoi } from "@/hooks/useDailyRoi";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { generatePlanActivationReceipt } from "@/lib/planActivationReceipt";
+import { PlanCashOutButton } from "@/components/PlanCashOutButton";
 import { toast } from "sonner";
+
 
 
 interface Investment {
@@ -290,15 +292,25 @@ export const ActiveInvestmentCard = ({ userId }: { userId: string }) => {
                 </p>
               </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-4 w-full bg-background/50"
-                onClick={downloadReceipt}
-              >
-                <FileDown className="mr-2 h-4 w-4" />
-                Download activation receipt
-              </Button>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full bg-background/50"
+                  onClick={downloadReceipt}
+                >
+                  <FileDown className="mr-2 h-4 w-4" />
+                  Download activation receipt
+                </Button>
+                <PlanCashOutButton
+                  investmentId={inv.id}
+                  planName={inv.plan_name}
+                  principal={Number(inv.amount)}
+                  profit={accrued}
+                  className="w-full"
+                />
+              </div>
+
 
 
 
