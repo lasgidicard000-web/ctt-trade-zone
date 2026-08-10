@@ -3,6 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Wallet as WalletIcon, TrendingUp, Lock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import type { RoiStats } from "@/hooks/useDailyRoi";
+import { PlanCashOutButton } from "@/components/PlanCashOutButton";
+
 
 interface Investment {
   id?: string;
@@ -18,12 +20,13 @@ interface Props {
   depositsUsd: number;
   investments: Investment[];
   dailyRoi?: Record<string, RoiStats>;
+  onCashedOut?: () => void;
 }
 
 const fmt = (n: number) =>
   `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-export const PortfolioBreakdown = ({ depositsUsd, investments, dailyRoi }: Props) => {
+export const PortfolioBreakdown = ({ depositsUsd, investments, dailyRoi, onCashedOut }: Props) => {
   const [, setTick] = useState(0);
   useEffect(() => {
     const i = setInterval(() => setTick((t) => t + 1), 1000);
@@ -42,6 +45,7 @@ export const PortfolioBreakdown = ({ depositsUsd, investments, dailyRoi }: Props
     const duration = Number(inv.duration_days || 0);
     const progress = duration > 0 ? Math.min(100, (elapsedDays / duration) * 100) : 0;
     return {
+      id: inv.id,
       name: inv.plan_name || "Plan",
       principal,
       earned,
@@ -50,6 +54,7 @@ export const PortfolioBreakdown = ({ depositsUsd, investments, dailyRoi }: Props
       avgPct: (stats?.avgRoi ?? roi) * 100,
     };
   });
+
 
 
   const lockedTotal = rows.reduce((a, r) => a + r.principal, 0);
@@ -127,7 +132,18 @@ export const PortfolioBreakdown = ({ depositsUsd, investments, dailyRoi }: Props
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {r.progress.toFixed(1)}% of cycle complete
               </p>
+              {r.id && (
+                <PlanCashOutButton
+                  investmentId={r.id}
+                  planName={r.name}
+                  principal={r.principal}
+                  profit={r.earned}
+                  onCashedOut={onCashedOut}
+                  className="mt-3 w-full"
+                />
+              )}
             </div>
+
           ))}
         </div>
       )}
