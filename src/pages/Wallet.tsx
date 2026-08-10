@@ -810,7 +810,7 @@ const Wallet = () => {
         )}
         {user && (
           <>
-            <ActiveInvestmentCard userId={user.id} />
+            <ActiveInvestmentCard userId={user.id} onCashedOut={fetchData} />
             <div className="-mt-4 mb-6 flex justify-end">
               <ExplainButton segment="Active Investment Plan" />
             </div>

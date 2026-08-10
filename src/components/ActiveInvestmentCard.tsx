@@ -63,7 +63,7 @@ const gradientFor = (planId: string) => {
 const formatUSD = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
-export const ActiveInvestmentCard = ({ userId }: { userId: string }) => {
+export const ActiveInvestmentCard = ({ userId, onCashedOut }: { userId: string; onCashedOut?: () => void }) => {
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [bands, setBands] = useState<Record<string, Band>>({});
   const [loading, setLoading] = useState(true);
@@ -307,8 +307,10 @@ export const ActiveInvestmentCard = ({ userId }: { userId: string }) => {
                   planName={inv.plan_name}
                   principal={Number(inv.amount)}
                   profit={accrued}
+                  onCashedOut={onCashedOut}
                   className="w-full"
                 />
+
               </div>
 
 
