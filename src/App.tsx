@@ -36,6 +36,8 @@ import AdminWebmail from "./pages/AdminWebmail";
 import AdminCloud from "./pages/AdminCloud";
 import Unsubscribe from "./pages/Unsubscribe";
 import ReplyToMessage from "./pages/ReplyToMessage";
+import Downloads from "./pages/Downloads";
+
 
 
 const queryClient = new QueryClient();
@@ -85,6 +87,8 @@ const App = () => (
             <Route path="/admin/cloud" element={<AdminCloud />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/reply/:token" element={<ReplyToMessage />} />
+            <Route path="/downloads" element={<Downloads />} />
+
 
             <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
             <Route path="*" element={<NotFound />} />

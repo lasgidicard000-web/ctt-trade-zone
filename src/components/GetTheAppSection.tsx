@@ -1,12 +1,12 @@
+import { Link } from "react-router-dom";
 import { Apple, Smartphone, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import BuildDownloads from "@/components/BuildDownloads";
 import {
   APP_NAME,
   appStoreUrl,
-  directApkUrl,
-  directIpaUrl,
   googlePlayUrl,
 } from "@/config/appStores";
 
@@ -14,6 +14,7 @@ interface GetTheAppSectionProps {
   /** Compact rendering for use inside dashboards */
   compact?: boolean;
 }
+
 
 const StoreButton = ({
   href,
@@ -73,23 +74,10 @@ const StoreButton = ({
 };
 
 const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
-  const anyAvailable =
-    googlePlayUrl.length > 0 ||
-    appStoreUrl.length > 0 ||
-    directApkUrl.length > 0 ||
-    directIpaUrl.length > 0;
+  const storeAvailable = googlePlayUrl.length > 0 || appStoreUrl.length > 0;
 
   const buttons = (
     <div className={`flex flex-col gap-3 ${compact ? "" : "sm:flex-row sm:flex-wrap sm:justify-center"}`}>
-      {directApkUrl.length > 0 && (
-        <StoreButton
-          href={directApkUrl}
-          icon={<Download className="h-5 w-5" />}
-          label="Download APK"
-          sub="Android — direct install"
-          compact={compact}
-        />
-      )}
       <StoreButton
         href={googlePlayUrl}
         icon={<Smartphone className="h-5 w-5" />}
@@ -104,15 +92,6 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
         sub="iOS — iPhone & iPad"
         compact={compact}
       />
-      {directIpaUrl.length > 0 && appStoreUrl.length === 0 && (
-        <StoreButton
-          href={directIpaUrl}
-          icon={<Apple className="h-5 w-5" />}
-          label="Download iOS build"
-          sub="iOS — sideload (IPA)"
-          compact={compact}
-        />
-      )}
     </div>
   );
 
@@ -124,9 +103,15 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
           <h3 className="text-sm font-semibold">Get the {APP_NAME} app</h3>
         </div>
         {buttons}
-        {!anyAvailable && (
+        <div className="mt-4 border-t border-border pt-4">
+          <BuildDownloads compact />
+        </div>
+        {!storeAvailable && (
           <p className="mt-3 text-xs text-muted-foreground">
-            Store listings are on the way. Meanwhile your dashboard works fully in any mobile browser.
+            Store listings are on the way.{" "}
+            <Link to="/downloads" className="text-primary underline">
+              All build downloads
+            </Link>
           </p>
         )}
       </Card>
@@ -144,14 +129,19 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
           Trade, redeem and manage your portfolio on the go. Download for Android or iOS.
         </p>
         {buttons}
-        {!anyAvailable && (
-          <p className="mx-auto mt-6 max-w-xl text-sm text-muted-foreground">
-            Store listings are being prepared. Until then, CTT Trade Zone runs fully in any mobile browser.
-          </p>
-        )}
+        <div className="mx-auto mt-10 max-w-xl rounded-xl border border-border bg-card p-5">
+          <BuildDownloads />
+        </div>
+        <p className="mx-auto mt-6 max-w-xl text-sm text-muted-foreground">
+          {!storeAvailable && "Store listings are being prepared. "}
+          <Link to="/downloads" className="text-primary underline">
+            See all builds and install instructions
+          </Link>
+        </p>
       </div>
     </section>
   );
 };
+
 
 export default GetTheAppSection;
