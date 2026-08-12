@@ -20,6 +20,8 @@ import { PortfolioBreakdown } from "@/components/PortfolioBreakdown";
 import { useDailyRoi } from "@/hooks/useDailyRoi";
 import { CommissionersTopUpBanner } from "@/components/CommissionersTopUpBanner";
 import { CttDebitCard } from "@/components/CttDebitCard";
+import { MemberProfileCard } from "@/components/MemberProfileCard";
+
 import { ReferralLinkCard } from "@/components/ReferralLinkCard";
 
 import { EntitlementsCard } from "@/components/EntitlementsCard";
@@ -711,13 +713,17 @@ const Wallet = () => {
         )}
 
         {user && (
-          <>
-            <CttDebitCard userId={user.id} portfolioUsd={totalPortfolioValue} />
-            <div className="-mt-2 mb-4 flex justify-end">
-              <ExplainButton segment="CTT Debit Card" />
+          <div className="mb-2 grid gap-4 lg:grid-cols-2 lg:items-start">
+            <MemberProfileCard userId={user.id} />
+            <div>
+              <CttDebitCard userId={user.id} portfolioUsd={totalPortfolioValue} />
+              <div className="-mt-2 mb-4 flex justify-end">
+                <ExplainButton segment="CTT Debit Card" />
+              </div>
             </div>
-          </>
+          </div>
         )}
+
 
 
         <Card className="mb-6 border-border bg-gradient-to-br from-primary/10 to-accent/10 p-6">
