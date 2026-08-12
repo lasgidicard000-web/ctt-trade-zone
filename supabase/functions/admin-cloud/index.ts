@@ -161,14 +161,12 @@ Deno.serve(async (req) => {
         }),
       );
       return json({
-        tables: names.map(([]: any = [], i = 0) => i).length
-          ? names.map((name, i) => ({
-              name,
-              rows: counts[i][1],
-              columns: schema[name].length,
-              readOnly: READ_ONLY_TABLES.has(name),
-            }))
-          : [],
+        tables: names.map((name, i) => ({
+          name,
+          rows: counts[i][1],
+          columns: schema[name].length,
+          readOnly: READ_ONLY_TABLES.has(name),
+        })),
         schema,
       });
     }
