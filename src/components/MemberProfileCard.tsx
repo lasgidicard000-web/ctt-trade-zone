@@ -205,8 +205,16 @@ export const MemberProfileCard = ({ userId }: { userId: string }) => {
                 <Badge
                   key={p.id}
                   variant="outline"
-                  className={`px-2.5 py-1 text-xs font-semibold ${planBadgeStyle(p.plan_id)}`}
+                  className={`flex items-center gap-1.5 px-2 py-1 text-xs font-semibold ${planBadgeStyle(p.plan_id)}`}
                 >
+                  {planBadgeUrl(p.plan_id) && (
+                    <img
+                      src={planBadgeUrl(p.plan_id) as string}
+                      alt={planBadgeAlt(p.plan_name)}
+                      loading="lazy"
+                      className="h-5 w-5 object-contain"
+                    />
+                  )}
                   {p.plan_name}
                 </Badge>
               ))}
