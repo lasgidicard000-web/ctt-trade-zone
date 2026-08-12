@@ -45,20 +45,31 @@ const ArtifactRow = ({ artifact }: { artifact: ClassifiedArtifact }) => (
 );
 
 interface BuildDownloadsProps {
-  /** Only show the recommended Android + iOS build */
+  /** Only show the recommended build(s) */
   compact?: boolean;
   /** Hide the heading row (when the parent already has one) */
   hideHeading?: boolean;
+  /** Override the detected OS (e.g. "show all platforms" toggles) */
+  platform?: PlatformOs;
 }
 
-const BuildDownloads = ({ compact, hideHeading }: BuildDownloadsProps) => {
+const BuildDownloads = ({ compact, hideHeading, platform }: BuildDownloadsProps) => {
   const { status, release, refetch, isRefetching } = useLatestRelease();
+  const detected = usePlatform();
+  const os = platform ?? detected.os;
 
-  const artifacts = release ? classifyRelease(release) : [];
+  const artifacts = release ? sortForPlatform(classifyRelease(release), os) : [];
   const recommended = pickRecommended(artifacts);
+  const compactPicks =
+    os === "android"
+      ? [recommended.android]
+      : os === "ios"
+        ? [recommended.ios]
+        : [recommended.android, recommended.ios];
   const shown = compact
-    ? ([recommended.android, recommended.ios].filter(Boolean) as ClassifiedArtifact[])
+    ? (compactPicks.filter(Boolean) as ClassifiedArtifact[])
     : artifacts;
+
 
   const note = (text: string) => (
     <p className="text-sm text-muted-foreground">{text}</p>
