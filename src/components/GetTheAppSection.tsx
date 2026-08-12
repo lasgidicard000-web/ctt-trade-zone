@@ -126,6 +126,7 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
           <h3 className="text-sm font-semibold">Get the {APP_NAME} app</h3>
         </div>
         {buttons}
+        {detectedNote}
         <div className="mt-4 border-t border-border pt-4">
           <BuildDownloads compact />
         </div>
