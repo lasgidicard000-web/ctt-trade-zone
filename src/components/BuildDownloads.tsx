@@ -8,9 +8,11 @@ import {
   formatBytes,
   formatReleaseDate,
   pickRecommended,
+  sortForPlatform,
   type ClassifiedArtifact,
 } from "@/lib/releaseAssets";
 import { releasesPageUrl } from "@/config/appStores";
+import { usePlatform, type PlatformOs } from "@/hooks/usePlatform";
 
 const iconFor = (artifact: ClassifiedArtifact) => {
   if (artifact.platform === "ios") return <Apple className="h-5 w-5" />;
@@ -43,20 +45,31 @@ const ArtifactRow = ({ artifact }: { artifact: ClassifiedArtifact }) => (
 );
 
 interface BuildDownloadsProps {
-  /** Only show the recommended Android + iOS build */
+  /** Only show the recommended build(s) */
   compact?: boolean;
   /** Hide the heading row (when the parent already has one) */
   hideHeading?: boolean;
+  /** Override the detected OS (e.g. "show all platforms" toggles) */
+  platform?: PlatformOs;
 }
 
-const BuildDownloads = ({ compact, hideHeading }: BuildDownloadsProps) => {
+const BuildDownloads = ({ compact, hideHeading, platform }: BuildDownloadsProps) => {
   const { status, release, refetch, isRefetching } = useLatestRelease();
+  const detected = usePlatform();
+  const os = platform ?? detected.os;
 
-  const artifacts = release ? classifyRelease(release) : [];
+  const artifacts = release ? sortForPlatform(classifyRelease(release), os) : [];
   const recommended = pickRecommended(artifacts);
+  const compactPicks =
+    os === "android"
+      ? [recommended.android]
+      : os === "ios"
+        ? [recommended.ios]
+        : [recommended.android, recommended.ios];
   const shown = compact
-    ? ([recommended.android, recommended.ios].filter(Boolean) as ClassifiedArtifact[])
+    ? (compactPicks.filter(Boolean) as ClassifiedArtifact[])
     : artifacts;
+
 
   const note = (text: string) => (
     <p className="text-sm text-muted-foreground">{text}</p>
@@ -130,13 +143,27 @@ const BuildDownloads = ({ compact, hideHeading }: BuildDownloadsProps) => {
           )}
           {shown.length === 0
             ? note(
-                "The latest release has no build files attached yet. Re-run the mobile build workflow to attach the APK, AAB and iOS artifacts.",
+                os === "ios"
+                  ? "No installable iOS build is attached to the latest release yet. You can add the web app to your Home Screen in the meantime."
+                  : "The latest release has no build files attached yet. Re-run the mobile build workflow to attach the APK, AAB and iOS artifacts.",
               )
             : shown.map((artifact) => (
                 <ArtifactRow key={artifact.asset.id} artifact={artifact} />
               ))}
+          {shown.length > 0 && os === "android" && (
+            <p className="text-xs text-muted-foreground">
+              Tap the APK, then allow installs from unknown apps for your browser.
+            </p>
+          )}
+          {shown.length > 0 && os === "ios" && (
+            <p className="text-xs text-muted-foreground">
+              iOS builds install with a sideloading tool (AltStore or Sideloadly) from a
+              computer.
+            </p>
+          )}
         </div>
       )}
+
     </div>
   );
 };
