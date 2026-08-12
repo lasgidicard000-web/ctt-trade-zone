@@ -851,11 +851,20 @@ const InvestmentPlans = () => {
                         <div className={`h-2 bg-gradient-to-r ${plan.gradient}`} />
                         <CardHeader className="relative">
                           <div className="flex items-start justify-between gap-3">
-                            <div
-                              className={`p-3 rounded-xl bg-gradient-to-br ${plan.gradient} shadow-lg group-hover:scale-110 transition-transform`}
-                            >
-                              <Icon className="h-6 w-6 text-white" />
-                            </div>
+                            {badge ? (
+                              <img
+                                src={badge}
+                                alt={planBadgeAlt(plan.name)}
+                                loading="lazy"
+                                className="h-16 w-16 object-contain drop-shadow-[0_6px_18px_rgba(0,0,0,0.45)] group-hover:scale-110 transition-transform"
+                              />
+                            ) : (
+                              <div
+                                className={`p-3 rounded-xl bg-gradient-to-br ${plan.gradient} shadow-lg group-hover:scale-110 transition-transform`}
+                              >
+                                <Icon className="h-6 w-6 text-white" />
+                              </div>
+                            )}
                             <Badge variant="outline" className={plan.badgeColor}>
                               {plan.badge}
                             </Badge>
