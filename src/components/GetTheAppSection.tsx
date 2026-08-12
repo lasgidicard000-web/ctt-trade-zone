@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import BuildDownloads from "@/components/BuildDownloads";
+import { usePlatform } from "@/hooks/usePlatform";
 import {
   APP_NAME,
   appStoreUrl,
