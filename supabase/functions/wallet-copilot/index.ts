@@ -130,7 +130,7 @@ serve(async (req) => {
     if (activeInvestments.length > 0) {
       const { data } = await admin
         .from("investment_daily_roi")
-        .select("investment_id, roi_percent, roi_date")
+        .select("investment_id, roi, roi_date")
         .in(
           "investment_id",
           activeInvestments.map((i) => i.id),
@@ -142,7 +142,7 @@ serve(async (req) => {
     const profitUsd = activeInvestments.reduce((sum, i) => {
       const mine = rolls.filter((r) => r.investment_id === i.id);
       const pct = mine.length
-        ? mine.reduce((s, r) => s + Number(r.roi_percent), 0)
+        ? mine.reduce((s, r) => s + Number(r.roi) * 100, 0)
         : (i.daily_roi *
             Math.max(
               0,
@@ -193,7 +193,7 @@ Their plans: ${
     }
 Recent daily ROI rolls: ${
       rolls.length
-        ? rolls.slice(0, 7).map((r: any) => `${r.roi_date}: ${Number(r.roi_percent).toFixed(3)}%`).join(", ")
+        ? rolls.slice(0, 7).map((r: any) => `${r.roi_date}: ${(Number(r.roi) * 100).toFixed(3)}%`).join(", ")
         : "none recorded yet"
     }
 Available plan templates: ${(templatesRes.data ?? [])
