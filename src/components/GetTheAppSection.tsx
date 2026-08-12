@@ -2,7 +2,13 @@ import { Apple, Smartphone, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { APP_NAME, appStoreUrl, googlePlayUrl } from "@/config/appStores";
+import {
+  APP_NAME,
+  appStoreUrl,
+  directApkUrl,
+  directIpaUrl,
+  googlePlayUrl,
+} from "@/config/appStores";
 
 interface GetTheAppSectionProps {
   /** Compact rendering for use inside dashboards */
@@ -67,15 +73,28 @@ const StoreButton = ({
 };
 
 const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
-  const anyAvailable = googlePlayUrl.length > 0 || appStoreUrl.length > 0;
+  const anyAvailable =
+    googlePlayUrl.length > 0 ||
+    appStoreUrl.length > 0 ||
+    directApkUrl.length > 0 ||
+    directIpaUrl.length > 0;
 
   const buttons = (
-    <div className={`flex flex-col gap-3 ${compact ? "" : "sm:flex-row sm:justify-center"}`}>
+    <div className={`flex flex-col gap-3 ${compact ? "" : "sm:flex-row sm:flex-wrap sm:justify-center"}`}>
+      {directApkUrl.length > 0 && (
+        <StoreButton
+          href={directApkUrl}
+          icon={<Download className="h-5 w-5" />}
+          label="Download APK"
+          sub="Android — direct install"
+          compact={compact}
+        />
+      )}
       <StoreButton
         href={googlePlayUrl}
         icon={<Smartphone className="h-5 w-5" />}
         label="Google Play"
-        sub="Android — APK"
+        sub="Android — store listing"
         compact={compact}
       />
       <StoreButton
@@ -85,6 +104,15 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
         sub="iOS — iPhone & iPad"
         compact={compact}
       />
+      {directIpaUrl.length > 0 && appStoreUrl.length === 0 && (
+        <StoreButton
+          href={directIpaUrl}
+          icon={<Apple className="h-5 w-5" />}
+          label="Download iOS build"
+          sub="iOS — sideload (IPA)"
+          compact={compact}
+        />
+      )}
     </div>
   );
 
