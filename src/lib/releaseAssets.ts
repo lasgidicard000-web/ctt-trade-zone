@@ -103,6 +103,42 @@ export const pickRecommended = (artifacts: ClassifiedArtifact[]) => ({
     artifacts.find((a) => a.kind === "ios-archive"),
 });
 
+/**
+ * Order (and filter) artifacts for a detected OS so the relevant build comes first.
+ * Android hides the iOS archive noise; iOS hides the AAB (never installable).
+ */
+export const sortForPlatform = (
+  artifacts: ClassifiedArtifact[],
+  os: "android" | "ios" | "desktop" | "other",
+): ClassifiedArtifact[] => {
+  if (os === "android") {
+    const order: ArtifactKind[] = [
+      "android-apk",
+      "android-aab",
+      "ios-ipa",
+      "ios-archive",
+      "other",
+    ];
+    return [...artifacts].sort(
+      (a, b) => order.indexOf(a.kind) - order.indexOf(b.kind),
+    );
+  }
+  if (os === "ios") {
+    const order: ArtifactKind[] = [
+      "ios-ipa",
+      "ios-archive",
+      "android-apk",
+      "other",
+    ];
+    return artifacts
+      .filter((a) => a.kind !== "android-aab")
+      .sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
+  }
+  return artifacts;
+};
+
+
+
 export const formatBytes = (bytes: number) => {
   if (!bytes || bytes < 0) return "";
   const units = ["B", "KB", "MB", "GB"];
