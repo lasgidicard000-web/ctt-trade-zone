@@ -132,16 +132,6 @@ export const PortfolioBreakdown = ({ depositsUsd, investments, dailyRoi, onCashe
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {r.progress.toFixed(1)}% of cycle complete
               </p>
-              {r.id && (
-                <PlanCashOutButton
-                  investmentId={r.id}
-                  planName={r.name}
-                  principal={r.principal}
-                  profit={r.earned}
-                  onCashedOut={onCashedOut}
-                  className="mt-3 w-full"
-                />
-              )}
             </div>
 
           ))}
