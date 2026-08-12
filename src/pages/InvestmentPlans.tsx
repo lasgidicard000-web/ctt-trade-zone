@@ -55,6 +55,7 @@ import {
   Quote,
   ArrowDownRight,
 } from "lucide-react";
+import { planBadgeAlt, planBadgeUrl } from "@/lib/planBadges";
 
 type TradingMode = "auto" | "manual";
 
@@ -824,6 +825,7 @@ const InvestmentPlans = () => {
               <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                 {group.map((plan) => {
                   const Icon = plan.icon;
+                  const badge = planBadgeUrl(plan.id);
                   return (
                     <Reveal key={plan.id}>
                       <Card
@@ -849,11 +851,20 @@ const InvestmentPlans = () => {
                         <div className={`h-2 bg-gradient-to-r ${plan.gradient}`} />
                         <CardHeader className="relative">
                           <div className="flex items-start justify-between gap-3">
-                            <div
-                              className={`p-3 rounded-xl bg-gradient-to-br ${plan.gradient} shadow-lg group-hover:scale-110 transition-transform`}
-                            >
-                              <Icon className="h-6 w-6 text-white" />
-                            </div>
+                            {badge ? (
+                              <img
+                                src={badge}
+                                alt={planBadgeAlt(plan.name)}
+                                loading="lazy"
+                                className="h-16 w-16 object-contain drop-shadow-[0_6px_18px_rgba(0,0,0,0.45)] group-hover:scale-110 transition-transform"
+                              />
+                            ) : (
+                              <div
+                                className={`p-3 rounded-xl bg-gradient-to-br ${plan.gradient} shadow-lg group-hover:scale-110 transition-transform`}
+                              >
+                                <Icon className="h-6 w-6 text-white" />
+                              </div>
+                            )}
                             <Badge variant="outline" className={plan.badgeColor}>
                               {plan.badge}
                             </Badge>
@@ -1315,7 +1326,17 @@ const InvestmentPlans = () => {
                 className="border-border/50 bg-card/60 backdrop-blur-md hover:border-primary/40 transition-all"
               >
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">{plan.name}</CardTitle>
+                  <div className="flex items-center gap-2">
+                    {planBadgeUrl(plan.id) && (
+                      <img
+                        src={planBadgeUrl(plan.id) as string}
+                        alt={planBadgeAlt(plan.name)}
+                        loading="lazy"
+                        className="h-8 w-8 object-contain"
+                      />
+                    )}
+                    <CardTitle className="text-base">{plan.name}</CardTitle>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-1 text-xs">
                   {plan.referral.levels.map((l) => (
