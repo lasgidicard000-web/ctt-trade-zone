@@ -6,14 +6,22 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const PAYPAL_API = "https://api-m.paypal.com"; // Use https://api-m.sandbox.paypal.com for testing
+// Set PAYPAL_ENV to "sandbox" when using sandbox credentials.
+const PAYPAL_API =
+  (Deno.env.get("PAYPAL_ENV") ?? "live").toLowerCase() === "sandbox"
+    ? "https://api-m.sandbox.paypal.com"
+    : "https://api-m.paypal.com";
 
 async function getPayPalAccessToken() {
   const clientId = Deno.env.get('PAYPAL_CLIENT_ID');
   const clientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET');
-  
+
+  if (!clientId || !clientSecret) {
+    throw new Error('PayPal is not configured');
+  }
+
   const auth = btoa(`${clientId}:${clientSecret}`);
-  
+
   const response = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
     method: 'POST',
     headers: {
@@ -22,10 +30,17 @@ async function getPayPalAccessToken() {
     },
     body: 'grant_type=client_credentials',
   });
-  
-  const data = await response.json();
-  return data.access_token;
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.access_token) {
+    console.error('PayPal token request failed:', response.status, data?.error, data?.error_description);
+    throw new Error(
+      `PayPal authentication failed (${PAYPAL_API}). Verify PAYPAL_CLIENT_ID/PAYPAL_CLIENT_SECRET match this environment.`,
+    );
+  }
+  return data.access_token as string;
 }
+
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
