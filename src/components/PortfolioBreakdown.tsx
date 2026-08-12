@@ -3,7 +3,6 @@ import { Card } from "@/components/ui/card";
 import { Wallet as WalletIcon, TrendingUp, Lock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import type { RoiStats } from "@/hooks/useDailyRoi";
-import { PlanCashOutButton } from "@/components/PlanCashOutButton";
 
 
 interface Investment {
