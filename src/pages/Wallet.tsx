@@ -1345,7 +1345,12 @@ const Wallet = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        <div className="mt-8">
+          <GetTheAppSection compact />
+        </div>
       </div>
+
     </div>
     </WalletCopilotProvider>
   );
