@@ -55,6 +55,7 @@ import {
   Quote,
   ArrowDownRight,
 } from "lucide-react";
+import { planBadgeAlt, planBadgeUrl } from "@/lib/planBadges";
 
 type TradingMode = "auto" | "manual";
 
