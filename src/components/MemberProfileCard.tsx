@@ -147,16 +147,28 @@ export const MemberProfileCard = ({ userId }: { userId: string }) => {
               )}
             </div>
           </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="absolute -bottom-2 left-1/2 h-8 -translate-x-1/2 gap-1.5 px-2.5 text-xs"
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
-          >
-            {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
-            {uploading ? "Uploading" : "Change photo"}
-          </Button>
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-8 gap-1.5 px-2.5 text-xs"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+              {uploading ? "Uploading" : "Change photo"}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-8 gap-1.5 px-2.5 text-xs"
+              onClick={handleDownload}
+              disabled={!photo || uploading}
+            >
+              <Download className="h-3.5 w-3.5" />
+              Download
+            </Button>
+          </div>
           <input
             ref={fileRef}
             type="file"
