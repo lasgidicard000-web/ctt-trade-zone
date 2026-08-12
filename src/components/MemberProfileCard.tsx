@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BadgeCheck, Camera, Download, Loader2, ShieldCheck } from "lucide-react";
+import { planBadgeAlt, planBadgeUrl } from "@/lib/planBadges";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { toast } from "sonner";
 
