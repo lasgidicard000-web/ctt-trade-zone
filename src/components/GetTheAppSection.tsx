@@ -153,6 +153,7 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
           Trade, redeem and manage your portfolio on the go. Download for Android or iOS.
         </p>
         {buttons}
+        {detectedNote}
         <div className="mx-auto mt-10 max-w-xl rounded-xl border border-border bg-card p-5">
           <BuildDownloads />
         </div>
