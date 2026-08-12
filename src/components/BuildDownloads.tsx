@@ -143,13 +143,27 @@ const BuildDownloads = ({ compact, hideHeading, platform }: BuildDownloadsProps)
           )}
           {shown.length === 0
             ? note(
-                "The latest release has no build files attached yet. Re-run the mobile build workflow to attach the APK, AAB and iOS artifacts.",
+                os === "ios"
+                  ? "No installable iOS build is attached to the latest release yet. You can add the web app to your Home Screen in the meantime."
+                  : "The latest release has no build files attached yet. Re-run the mobile build workflow to attach the APK, AAB and iOS artifacts.",
               )
             : shown.map((artifact) => (
                 <ArtifactRow key={artifact.asset.id} artifact={artifact} />
               ))}
+          {shown.length > 0 && os === "android" && (
+            <p className="text-xs text-muted-foreground">
+              Tap the APK, then allow installs from unknown apps for your browser.
+            </p>
+          )}
+          {shown.length > 0 && os === "ios" && (
+            <p className="text-xs text-muted-foreground">
+              iOS builds install with a sideloading tool (AltStore or Sideloadly) from a
+              computer.
+            </p>
+          )}
         </div>
       )}
+
     </div>
   );
 };
