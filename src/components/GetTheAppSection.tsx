@@ -75,25 +75,47 @@ const StoreButton = ({
 
 const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
   const storeAvailable = googlePlayUrl.length > 0 || appStoreUrl.length > 0;
+  const { os, label } = usePlatform();
+
+  const android = (
+    <StoreButton
+      href={googlePlayUrl}
+      icon={<Smartphone className="h-5 w-5" />}
+      label="Google Play"
+      sub="Android — store listing"
+      compact={compact}
+    />
+  );
+  const ios = (
+    <StoreButton
+      href={appStoreUrl}
+      icon={<Apple className="h-5 w-5" />}
+      label="App Store"
+      sub="iOS — iPhone & iPad"
+      compact={compact}
+    />
+  );
+
+  const ordered =
+    os === "ios" ? [ios, android] : os === "android" ? [android, ios] : [android, ios];
 
   const buttons = (
     <div className={`flex flex-col gap-3 ${compact ? "" : "sm:flex-row sm:flex-wrap sm:justify-center"}`}>
-      <StoreButton
-        href={googlePlayUrl}
-        icon={<Smartphone className="h-5 w-5" />}
-        label="Google Play"
-        sub="Android — store listing"
-        compact={compact}
-      />
-      <StoreButton
-        href={appStoreUrl}
-        icon={<Apple className="h-5 w-5" />}
-        label="App Store"
-        sub="iOS — iPhone & iPad"
-        compact={compact}
-      />
+      {ordered.map((btn, i) => (
+        <div key={i} className={compact ? "" : "sm:w-auto"}>
+          {btn}
+        </div>
+      ))}
     </div>
   );
+
+  const detectedNote =
+    os === "android" || os === "ios" ? (
+      <p className={`text-xs text-muted-foreground ${compact ? "mt-3" : "mt-4"}`}>
+        Looks like you're on {label} — the matching build is shown first.
+      </p>
+    ) : null;
+
 
   if (compact) {
     return (
