@@ -8,9 +8,11 @@ import {
   formatBytes,
   formatReleaseDate,
   pickRecommended,
+  sortForPlatform,
   type ClassifiedArtifact,
 } from "@/lib/releaseAssets";
 import { releasesPageUrl } from "@/config/appStores";
+import { usePlatform, type PlatformOs } from "@/hooks/usePlatform";
 
 const iconFor = (artifact: ClassifiedArtifact) => {
   if (artifact.platform === "ios") return <Apple className="h-5 w-5" />;
