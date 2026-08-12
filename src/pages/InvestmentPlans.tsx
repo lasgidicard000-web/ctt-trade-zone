@@ -824,6 +824,7 @@ const InvestmentPlans = () => {
               <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                 {group.map((plan) => {
                   const Icon = plan.icon;
+                  const badge = planBadgeUrl(plan.id);
                   return (
                     <Reveal key={plan.id}>
                       <Card
