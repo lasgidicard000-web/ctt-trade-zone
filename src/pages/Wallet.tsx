@@ -20,6 +20,8 @@ import { PortfolioBreakdown } from "@/components/PortfolioBreakdown";
 import { useDailyRoi } from "@/hooks/useDailyRoi";
 import { CommissionersTopUpBanner } from "@/components/CommissionersTopUpBanner";
 import { CttDebitCard } from "@/components/CttDebitCard";
+import { MemberProfileCard } from "@/components/MemberProfileCard";
+
 import { ReferralLinkCard } from "@/components/ReferralLinkCard";
 
 import { EntitlementsCard } from "@/components/EntitlementsCard";
