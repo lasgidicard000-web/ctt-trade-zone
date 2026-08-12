@@ -1,5 +1,27 @@
 # Publishing ctttradezone to Google Play and the App Store
 
+## Get the APK right now (3 steps)
+
+1. Export this project to GitHub ("Export to GitHub" in Lovable). GitHub Actions
+   only runs on GitHub.
+2. Publish a release tag (e.g. `v1.0.0`) or run Actions > "Mobile release builds"
+   > Run workflow. Every push to `main` also produces a build.
+3. Download `ctttradezone-<tag>-sideload.apk` from the release assets (or the
+   Actions run artifacts) and install it on Android — enable "Install unknown
+   apps" for your browser/file manager when prompted.
+
+The APK is always signed in CI: with your own keystore if the secrets below are
+set, otherwise with a throwaway CI key so it still installs. Only the
+`.aab` signed with **your** keystore can be uploaded to Google Play.
+
+For iOS the workflow produces `ctttradezone-<tag>-unsigned.ipa` plus an
+`.xcarchive.zip`. An unsigned IPA must be re-signed (Sideloadly/AltStore with an
+Apple ID) before it installs — Apple offers no free path to a distributable app.
+With the Apple secrets set, a proper App Store `.ipa` is exported instead.
+
+Then paste your `owner/repo` into `src/config/appStores.ts` (`githubRepo`) so the
+homepage and dashboard download buttons point at your latest release.
+
 The website is a web app. To appear in the stores it must be wrapped in a native
 shell (Capacitor) and submitted manually. Lovable cannot compile or submit binaries.
 
@@ -87,8 +109,8 @@ The homepage and dashboard buttons activate automatically and the
 (Actions > "Mobile release builds" > Run workflow).
 
 **Output:**
-- Android: `ctttradezone-<tag>.apk` and `.aab`
-- iOS: `ctttradezone-<tag>.ipa` (signed) or `ctttradezone-<tag>.xcarchive.zip` (unsigned)
+- Android: `ctttradezone-<tag>-sideload.apk` and `ctttradezone-<tag>-play.aab`
+- iOS: `ctttradezone-<tag>.ipa` (signed), or `ctttradezone-<tag>-unsigned.ipa` + `ctttradezone-<tag>.xcarchive.zip` (unsigned)
 
 Downloads appear as assets on the release itself, and as artifacts on the
 Actions run for manual builds.
@@ -102,9 +124,12 @@ Actions run for manual builds.
 
 Base64-encode files with `base64 -i keystore.jks | pbcopy`.
 
-Without these secrets the workflow still succeeds: Android yields an unsigned
-debug APK you can sideload, and iOS yields an unsigned archive that must be
+Without these secrets the workflow still succeeds: Android yields a CI-signed
+release APK you can sideload, and iOS yields an unsigned archive that must be
 re-signed before it can be installed (an Apple restriction).
 
 The `android/` and `ios/` folders are generated in CI (`npx cap add`) and are
 git-ignored, so nothing native needs to be committed.
+
+App icons and splash screens are generated in CI from `resources/icon.png` and
+`resources/splash.png` via `@capacitor/assets`.
