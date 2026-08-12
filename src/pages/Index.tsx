@@ -122,7 +122,11 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Get the App */}
+      <GetTheAppSection />
+
       {/* Benefits Section */}
+
       <section className="border-t border-border bg-card/50">
         <div className="container mx-auto px-4 py-20">
           <div className="grid gap-12 md:grid-cols-3">
