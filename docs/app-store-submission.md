@@ -78,3 +78,33 @@ export const appStoreUrl = "https://apps.apple.com/app/ctttradezone/idXXXXXXXXXX
 
 The homepage and dashboard buttons activate automatically and the
 "Coming soon" state disappears.
+
+## 7. Automated builds via GitHub Actions
+
+`.github/workflows/mobile-release.yml` builds both platforms automatically.
+
+**Triggers:** publishing a GitHub release, or running the workflow manually
+(Actions > "Mobile release builds" > Run workflow).
+
+**Output:**
+- Android: `ctttradezone-<tag>.apk` and `.aab`
+- iOS: `ctttradezone-<tag>.ipa` (signed) or `ctttradezone-<tag>.xcarchive.zip` (unsigned)
+
+Downloads appear as assets on the release itself, and as artifacts on the
+Actions run for manual builds.
+
+**Repository secrets for signed builds** (Settings > Secrets and variables > Actions):
+
+| Platform | Secrets |
+| --- | --- |
+| Android | `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` |
+| iOS | `IOS_CERTIFICATE_P12_BASE64`, `IOS_CERTIFICATE_PASSWORD`, `IOS_PROVISIONING_PROFILE_BASE64`, `IOS_TEAM_ID` |
+
+Base64-encode files with `base64 -i keystore.jks | pbcopy`.
+
+Without these secrets the workflow still succeeds: Android yields an unsigned
+debug APK you can sideload, and iOS yields an unsigned archive that must be
+re-signed before it can be installed (an Apple restriction).
+
+The `android/` and `ios/` folders are generated in CI (`npx cap add`) and are
+git-ignored, so nothing native needs to be committed.
