@@ -1326,7 +1326,17 @@ const InvestmentPlans = () => {
                 className="border-border/50 bg-card/60 backdrop-blur-md hover:border-primary/40 transition-all"
               >
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">{plan.name}</CardTitle>
+                  <div className="flex items-center gap-2">
+                    {planBadgeUrl(plan.id) && (
+                      <img
+                        src={planBadgeUrl(plan.id) as string}
+                        alt={planBadgeAlt(plan.name)}
+                        loading="lazy"
+                        className="h-8 w-8 object-contain"
+                      />
+                    )}
+                    <CardTitle className="text-base">{plan.name}</CardTitle>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-1 text-xs">
                   {plan.referral.levels.map((l) => (
