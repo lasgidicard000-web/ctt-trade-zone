@@ -33,6 +33,7 @@ import AdminPlans from "./pages/AdminPlans";
 import AdminRoiAudit from "./pages/AdminRoiAudit";
 import OAuthConsent from "./pages/OAuthConsent";
 import AdminWebmail from "./pages/AdminWebmail";
+import AdminCloud from "./pages/AdminCloud";
 import Unsubscribe from "./pages/Unsubscribe";
 import ReplyToMessage from "./pages/ReplyToMessage";
 
@@ -81,6 +82,7 @@ const App = () => (
             <Route path="/admin/plans" element={<AdminPlans />} />
             <Route path="/admin/roi-audit" element={<AdminRoiAudit />} />
             <Route path="/admin/webmail" element={<AdminWebmail />} />
+            <Route path="/admin/cloud" element={<AdminCloud />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/reply/:token" element={<ReplyToMessage />} />
 
