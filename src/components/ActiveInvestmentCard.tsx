@@ -16,6 +16,7 @@ import { useEntitlements } from "@/hooks/useEntitlements";
 import { generatePlanActivationReceipt } from "@/lib/planActivationReceipt";
 import { PlanCashOutButton } from "@/components/PlanCashOutButton";
 import { toast } from "sonner";
+import { planBadgeAlt, planBadgeUrl } from "@/lib/planBadges";
 
 
 
