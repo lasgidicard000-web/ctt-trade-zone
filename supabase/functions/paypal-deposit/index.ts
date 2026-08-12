@@ -90,7 +90,11 @@ serve(async (req) => {
         }),
       });
 
-      const orderData = await orderResponse.json();
+      const orderData = await orderResponse.json().catch(() => ({}));
+      if (!orderResponse.ok || !orderData.id) {
+        console.error('PayPal order creation failed:', orderResponse.status, orderData);
+        throw new Error(orderData?.message ?? 'Could not create PayPal order');
+      }
       console.log('PayPal order created:', orderData.id);
 
       return new Response(JSON.stringify({ orderId: orderData.id }), {
@@ -111,8 +115,12 @@ serve(async (req) => {
         },
       });
 
-      const captureData = await captureResponse.json();
-      console.log('PayPal order captured:', captureData);
+      const captureData = await captureResponse.json().catch(() => ({}));
+      if (!captureResponse.ok) {
+        console.error('PayPal capture failed:', captureResponse.status, captureData);
+        throw new Error(captureData?.message ?? 'PayPal could not capture this payment');
+      }
+      console.log('PayPal order captured:', captureData.status);
 
       if (captureData.status === 'COMPLETED') {
         const capturedAmount = parseFloat(
