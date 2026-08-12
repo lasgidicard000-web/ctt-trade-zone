@@ -225,9 +225,18 @@ export const ActiveInvestmentCard = ({ userId, onCashedOut }: { userId: string; 
             <div className="p-5">
               <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-background/60 backdrop-blur flex items-center justify-center">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                  </div>
+                  {planBadgeUrl(inv.plan_id) ? (
+                    <img
+                      src={planBadgeUrl(inv.plan_id) as string}
+                      alt={planBadgeAlt(inv.plan_name)}
+                      loading="lazy"
+                      className="h-11 w-11 object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
+                    />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-background/60 backdrop-blur flex items-center justify-center">
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                    </div>
+                  )}
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold">{inv.plan_name}</h3>
