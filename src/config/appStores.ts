@@ -13,17 +13,23 @@ export const appStoreUrl = "";
 
 /**
  * GitHub repository in "owner/repo" form. Set this after exporting the project
- * to GitHub — the direct download buttons then point at the latest release,
- * where the CI workflow attaches the APK and iOS artifacts.
+ * to GitHub — the Build & Download section then reads the latest release and
+ * lists every build artifact the CI workflow attached.
  */
 export const githubRepo = "";
 
-/** Direct link to the newest built Android APK (or the releases page). */
-export const directApkUrl = githubRepo
+/** GitHub API endpoint for the newest published release. */
+export const latestReleaseApiUrl = githubRepo
+  ? `https://api.github.com/repos/${githubRepo}/releases/latest`
+  : "";
+
+/** Human-facing releases page (fallback link). */
+export const releasesPageUrl = githubRepo
   ? `https://github.com/${githubRepo}/releases/latest`
   : "";
 
+/** Direct link to the newest built Android APK (or the releases page). */
+export const directApkUrl = releasesPageUrl;
+
 /** Direct link to the newest built iOS artifact (or the releases page). */
-export const directIpaUrl = githubRepo
-  ? `https://github.com/${githubRepo}/releases/latest`
-  : "";
+export const directIpaUrl = releasesPageUrl;
