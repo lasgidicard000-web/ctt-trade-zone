@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BadgeCheck, Camera, Loader2, ShieldCheck } from "lucide-react";
+import { BadgeCheck, Camera, Download, Loader2, ShieldCheck } from "lucide-react";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { toast } from "sonner";
 
@@ -104,6 +104,29 @@ export const MemberProfileCard = ({ userId }: { userId: string }) => {
     }
   };
 
+  const handleDownload = async () => {
+    if (!photo) return;
+    try {
+      const res = await fetch(photo);
+      if (!res.ok) throw new Error("Could not fetch image");
+      const blob = await res.blob();
+      const ext = (photo.split(".").pop()?.split("?")[0] || "jpg").toLowerCase();
+      const safeExt = ["png", "jpg", "jpeg", "webp", "gif"].includes(ext) ? ext : "jpg";
+      const filename = `ctt-member-portrait-${(name || "user").replace(/\s+/g, "-").toLowerCase()}.${safeExt}`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download portrait failed:", err);
+      toast.error("Could not download photo");
+    }
+  };
+
   return (
     <Card className="relative mb-6 overflow-hidden border-primary/25 bg-gradient-to-br from-primary/10 via-card to-card p-5">
       <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
@@ -124,16 +147,28 @@ export const MemberProfileCard = ({ userId }: { userId: string }) => {
               )}
             </div>
           </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="absolute -bottom-2 left-1/2 h-8 -translate-x-1/2 gap-1.5 px-2.5 text-xs"
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
-          >
-            {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
-            {uploading ? "Uploading" : "Change photo"}
-          </Button>
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-8 gap-1.5 px-2.5 text-xs"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+              {uploading ? "Uploading" : "Change photo"}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-8 gap-1.5 px-2.5 text-xs"
+              onClick={handleDownload}
+              disabled={!photo || uploading}
+            >
+              <Download className="h-3.5 w-3.5" />
+              Download
+            </Button>
+          </div>
           <input
             ref={fileRef}
             type="file"
