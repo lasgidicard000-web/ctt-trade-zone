@@ -352,6 +352,9 @@ const Admin = () => {
             <p className="text-muted-foreground">Manage coin prices and view transactions</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button onClick={() => navigate("/admin/cloud")} variant="default" size="sm">
+              Cloud Console
+            </Button>
             <Button onClick={() => navigate("/admin/plans")} variant="outline" size="sm">
               Plans
             </Button>
