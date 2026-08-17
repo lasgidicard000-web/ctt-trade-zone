@@ -1,14 +1,22 @@
 import { Link } from "react-router-dom";
-import { Apple, Smartphone, Download } from "lucide-react";
+import { Apple, Smartphone, Download, Github, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import BuildDownloads from "@/components/BuildDownloads";
 import { usePlatform } from "@/hooks/usePlatform";
+import { useLatestRelease } from "@/hooks/useLatestRelease";
+import {
+  classifyRelease,
+  formatBytes,
+  pickRecommended,
+  type ClassifiedArtifact,
+} from "@/lib/releaseAssets";
 import {
   APP_NAME,
   appStoreUrl,
   googlePlayUrl,
+  releasesPageUrl,
 } from "@/config/appStores";
 
 interface GetTheAppSectionProps {
@@ -16,99 +24,155 @@ interface GetTheAppSectionProps {
   compact?: boolean;
 }
 
-
-const StoreButton = ({
+const LinkButton = ({
   href,
   icon,
   label,
   sub,
+  badge,
+  primary,
   compact,
 }: {
   href: string;
   icon: React.ReactNode;
   label: string;
   sub: string;
+  badge?: string;
+  primary?: boolean;
   compact?: boolean;
-}) => {
-  const available = href.length > 0;
-
-  const inner = (
-    <>
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+}) => (
+  <Button
+    asChild
+    variant={primary ? "default" : "outline"}
+    className={`h-auto w-full justify-start gap-3 px-4 py-3 ${compact ? "" : "sm:w-auto sm:min-w-[240px]"}`}
+  >
+    <a href={href} target="_blank" rel="noopener noreferrer">
+      <span
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${primary ? "bg-primary-foreground/15" : "bg-primary/10 text-primary"}`}
+      >
         {icon}
       </span>
-      <span className="flex flex-col items-start leading-tight">
-        <span className="text-xs text-muted-foreground">{sub}</span>
-        <span className="text-sm font-semibold">{label}</span>
+      <span className="flex min-w-0 flex-col items-start leading-tight">
+        <span className={`text-xs ${primary ? "opacity-80" : "text-muted-foreground"}`}>
+          {sub}
+        </span>
+        <span className="truncate text-sm font-semibold">{label}</span>
       </span>
-      {!available && (
-        <Badge variant="secondary" className="ml-auto text-[10px]">
-          Coming soon
+      {badge && (
+        <Badge variant="secondary" className="ml-auto shrink-0 text-[10px]">
+          {badge}
         </Badge>
       )}
-    </>
-  );
-
-  if (!available) {
-    return (
-      <Button
-        variant="outline"
-        disabled
-        className={`h-auto w-full justify-start gap-3 px-4 py-3 ${compact ? "" : "sm:w-auto sm:min-w-[240px]"}`}
-      >
-        {inner}
-      </Button>
-    );
-  }
-
-  return (
-    <Button
-      asChild
-      variant="outline"
-      className={`h-auto w-full justify-start gap-3 px-4 py-3 ${compact ? "" : "sm:w-auto sm:min-w-[240px]"}`}
-    >
-      <a href={href} target="_blank" rel="noopener noreferrer">
-        {inner}
-      </a>
-    </Button>
-  );
-};
+    </a>
+  </Button>
+);
 
 const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
-  const storeAvailable = googlePlayUrl.length > 0 || appStoreUrl.length > 0;
   const { os, label } = usePlatform();
+  const { status, release } = useLatestRelease();
 
-  const android = (
-    <StoreButton
+  const artifacts: ClassifiedArtifact[] = release ? classifyRelease(release) : [];
+  const recommended = pickRecommended(artifacts);
+  const aab = artifacts.find((a) => a.kind === "android-aab");
+  const buildsReady = status === "ready" && (recommended.android || recommended.ios);
+
+  const androidDownload = recommended.android ? (
+    <LinkButton
+      key="android-dl"
+      href={recommended.android.asset.browser_download_url}
+      icon={<Download className="h-5 w-5" />}
+      label={recommended.android.kind === "android-apk" ? "Download APK" : "Download AAB"}
+      sub="Android — direct install"
+      badge={formatBytes(recommended.android.asset.size) || undefined}
+      primary={os !== "ios"}
+      compact={compact}
+    />
+  ) : null;
+
+  const iosDownload = recommended.ios ? (
+    <LinkButton
+      key="ios-dl"
+      href={recommended.ios.asset.browser_download_url}
+      icon={<Apple className="h-5 w-5" />}
+      label={
+        recommended.ios.kind === "ios-ipa"
+          ? "Download iOS build (.ipa)"
+          : "Download iOS archive"
+      }
+      sub="iOS — iPhone & iPad"
+      badge={formatBytes(recommended.ios.asset.size) || undefined}
+      primary={os === "ios"}
+      compact={compact}
+    />
+  ) : null;
+
+  const playButton = googlePlayUrl ? (
+    <LinkButton
+      key="play"
       href={googlePlayUrl}
       icon={<Smartphone className="h-5 w-5" />}
       label="Google Play"
       sub="Android — store listing"
       compact={compact}
     />
-  );
-  const ios = (
-    <StoreButton
+  ) : null;
+
+  const appStoreButton = appStoreUrl ? (
+    <LinkButton
+      key="appstore"
       href={appStoreUrl}
       icon={<Apple className="h-5 w-5" />}
       label="App Store"
-      sub="iOS — iPhone & iPad"
+      sub="iOS — store listing"
       compact={compact}
     />
-  );
+  ) : null;
 
-  const ordered =
-    os === "ios" ? [ios, android] : os === "android" ? [android, ios] : [android, ios];
+  const aabButton =
+    aab && os !== "android" && os !== "ios" ? (
+      <LinkButton
+        key="aab"
+        href={aab.asset.browser_download_url}
+        icon={<Package className="h-5 w-5" />}
+        label="Download AAB (Play upload)"
+        sub="Android — Play Store bundle"
+        badge={formatBytes(aab.asset.size) || undefined}
+        compact={compact}
+      />
+    ) : null;
 
-  const buttons = (
-    <div className={`flex flex-col gap-3 ${compact ? "" : "sm:flex-row sm:flex-wrap sm:justify-center"}`}>
+  const releasesButton = releasesPageUrl ? (
+    <LinkButton
+      key="releases"
+      href={releasesPageUrl}
+      icon={<Github className="h-5 w-5" />}
+      label="View releases on GitHub"
+      sub="Latest builds"
+      compact={compact}
+    />
+  ) : null;
+
+  const androidGroup = [androidDownload, playButton].filter(Boolean);
+  const iosGroup = [iosDownload, appStoreButton].filter(Boolean);
+
+  const ordered = buildsReady
+    ? (os === "ios"
+        ? [...iosGroup, ...androidGroup, aabButton]
+        : [...androidGroup, ...iosGroup, aabButton]
+      ).filter(Boolean)
+    : [playButton, appStoreButton, releasesButton].filter(Boolean);
+
+  const buttons = ordered.length ? (
+    <div
+      className={`flex flex-col gap-3 ${compact ? "" : "sm:flex-row sm:flex-wrap sm:justify-center"}`}
+    >
       {ordered.map((btn, i) => (
         <div key={i} className={compact ? "" : "sm:w-auto"}>
           {btn}
         </div>
       ))}
     </div>
-  );
+  ) : null;
 
   const detectedNote =
     os === "android" || os === "ios" ? (
@@ -117,6 +181,12 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
       </p>
     ) : null;
 
+  const pendingNote = !buildsReady ? (
+    <p className={`text-xs text-muted-foreground ${compact ? "mt-3" : "mt-4"}`}>
+      The installable builds are being prepared — they appear here automatically as soon
+      as the next release finishes.
+    </p>
+  ) : null;
 
   if (compact) {
     return (
@@ -127,17 +197,15 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
         </div>
         {buttons}
         {detectedNote}
+        {pendingNote}
         <div className="mt-4 border-t border-border pt-4">
           <BuildDownloads compact />
         </div>
-        {!storeAvailable && (
-          <p className="mt-3 text-xs text-muted-foreground">
-            Store listings are on the way.{" "}
-            <Link to="/downloads" className="text-primary underline">
-              All build downloads
-            </Link>
-          </p>
-        )}
+        <p className="mt-3 text-xs text-muted-foreground">
+          <Link to="/downloads" className="text-primary underline">
+            All build downloads &amp; install steps
+          </Link>
+        </p>
       </Card>
     );
   }
@@ -154,11 +222,11 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
         </p>
         {buttons}
         {detectedNote}
+        {pendingNote}
         <div className="mx-auto mt-10 max-w-xl rounded-xl border border-border bg-card p-5">
           <BuildDownloads />
         </div>
         <p className="mx-auto mt-6 max-w-xl text-sm text-muted-foreground">
-          {!storeAvailable && "Store listings are being prepared. "}
           <Link to="/downloads" className="text-primary underline">
             See all builds and install instructions
           </Link>
@@ -167,6 +235,5 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
     </section>
   );
 };
-
 
 export default GetTheAppSection;

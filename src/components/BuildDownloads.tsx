@@ -116,10 +116,21 @@ const BuildDownloads = ({ compact, hideHeading, platform }: BuildDownloadsProps)
           "Build downloads aren't linked yet. Once the project is exported to GitHub and the repository is set in the app config, the latest APK, AAB and iOS builds appear here automatically.",
         )}
 
-      {status === "no-release" &&
-        note(
-          "No release published yet. Publish a release (or run the mobile build workflow) and the build files will show up here.",
-        )}
+      {status === "no-release" && (
+        <div className="space-y-3">
+          {note(
+            "The installable builds are being prepared. As soon as the next release is published, the APK and iOS files appear here automatically.",
+          )}
+          {releasesPageUrl && (
+            <Button asChild variant="outline" size="sm">
+              <a href={releasesPageUrl} target="_blank" rel="noopener noreferrer">
+                View releases on GitHub
+              </a>
+            </Button>
+          )}
+        </div>
+      )}
+
 
       {status === "error" && (
         <div className="space-y-3">
