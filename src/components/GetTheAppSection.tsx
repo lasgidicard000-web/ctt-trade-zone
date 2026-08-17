@@ -119,7 +119,18 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
       primary={os === "windows"}
       compact={compact}
     />
+  ) : releasesPageUrl ? (
+    <LinkButton
+      key="windows-pending"
+      href={releasesPageUrl}
+      icon={<Monitor className="h-5 w-5" />}
+      label="Windows build — coming in next release"
+      sub="Windows — desktop app"
+      badge="Preparing"
+      compact={compact}
+    />
   ) : null;
+
 
   const playButton = googlePlayUrl ? (
     <LinkButton
