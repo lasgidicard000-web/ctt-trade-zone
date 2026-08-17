@@ -66,7 +66,9 @@ const BuildDownloads = ({ compact, hideHeading, platform }: BuildDownloadsProps)
       ? [recommended.android]
       : os === "ios"
         ? [recommended.ios]
-        : [recommended.android, recommended.ios];
+        : os === "windows"
+          ? [recommended.windows, recommended.android]
+          : [recommended.windows, recommended.android, recommended.ios];
   const shown = compact
     ? (compactPicks.filter(Boolean) as ClassifiedArtifact[])
     : artifacts;
