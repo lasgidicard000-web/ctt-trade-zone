@@ -159,7 +159,9 @@ const BuildDownloads = ({ compact, hideHeading, platform }: BuildDownloadsProps)
             ? note(
                 os === "ios"
                   ? "No installable iOS build is attached to the latest release yet. You can add the web app to your Home Screen in the meantime."
-                  : "The latest release has no build files attached yet. Re-run the mobile build workflow to attach the APK, AAB and iOS artifacts.",
+                  : os === "windows"
+                    ? "No Windows build is attached to the latest release yet. It appears here as soon as the next release finishes building."
+                    : "The latest release has no build files attached yet. Re-run the release build workflow to attach the APK, AAB, iOS and Windows artifacts.",
               )
             : shown.map((artifact) => (
                 <ArtifactRow key={artifact.asset.id} artifact={artifact} />
