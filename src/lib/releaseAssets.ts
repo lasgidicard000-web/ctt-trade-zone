@@ -3,6 +3,7 @@ export type ArtifactKind =
   | "android-aab"
   | "ios-ipa"
   | "ios-archive"
+  | "windows-zip"
   | "other";
 
 export interface GitHubReleaseAsset {
@@ -26,7 +27,7 @@ export interface GitHubRelease {
 
 export interface ClassifiedArtifact {
   kind: ArtifactKind;
-  platform: "android" | "ios" | "other";
+  platform: "android" | "ios" | "windows" | "other";
   label: string;
   sub: string;
   asset: GitHubReleaseAsset;
@@ -71,6 +72,22 @@ export const classifyAsset = (asset: GitHubReleaseAsset): ClassifiedArtifact => 
       asset,
     };
   }
+  if (
+    name.endsWith(".exe") ||
+    name.endsWith(".msi") ||
+    ((name.includes("windows") || name.includes("win32") || name.includes("win-x64")) &&
+      name.endsWith(".zip"))
+  ) {
+    return {
+      kind: "windows-zip",
+      platform: "windows",
+      label: name.endsWith(".exe") || name.endsWith(".msi")
+        ? "Download for Windows"
+        : "Download for Windows (ZIP)",
+      sub: "Windows — portable desktop app",
+      asset,
+    };
+  }
   return {
     kind: "other",
     platform: "other",
@@ -83,6 +100,7 @@ export const classifyAsset = (asset: GitHubReleaseAsset): ClassifiedArtifact => 
 const KIND_ORDER: ArtifactKind[] = [
   "android-apk",
   "ios-ipa",
+  "windows-zip",
   "android-aab",
   "ios-archive",
   "other",
@@ -101,6 +119,7 @@ export const pickRecommended = (artifacts: ClassifiedArtifact[]) => ({
   ios:
     artifacts.find((a) => a.kind === "ios-ipa") ??
     artifacts.find((a) => a.kind === "ios-archive"),
+  windows: artifacts.find((a) => a.kind === "windows-zip"),
 });
 
 /**
@@ -109,7 +128,7 @@ export const pickRecommended = (artifacts: ClassifiedArtifact[]) => ({
  */
 export const sortForPlatform = (
   artifacts: ClassifiedArtifact[],
-  os: "android" | "ios" | "desktop" | "other",
+  os: "android" | "ios" | "windows" | "desktop" | "other",
 ): ClassifiedArtifact[] => {
   if (os === "android") {
     const order: ArtifactKind[] = [
@@ -117,6 +136,7 @@ export const sortForPlatform = (
       "android-aab",
       "ios-ipa",
       "ios-archive",
+      "windows-zip",
       "other",
     ];
     return [...artifacts].sort(
@@ -128,11 +148,25 @@ export const sortForPlatform = (
       "ios-ipa",
       "ios-archive",
       "android-apk",
+      "windows-zip",
       "other",
     ];
     return artifacts
       .filter((a) => a.kind !== "android-aab")
       .sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
+  }
+  if (os === "windows") {
+    const order: ArtifactKind[] = [
+      "windows-zip",
+      "android-apk",
+      "ios-ipa",
+      "ios-archive",
+      "android-aab",
+      "other",
+    ];
+    return [...artifacts].sort(
+      (a, b) => order.indexOf(a.kind) - order.indexOf(b.kind),
+    );
   }
   return artifacts;
 };

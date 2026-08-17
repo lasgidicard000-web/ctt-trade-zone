@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-export type PlatformOs = "android" | "ios" | "desktop" | "other";
+export type PlatformOs = "android" | "ios" | "windows" | "desktop" | "other";
 
 export interface PlatformInfo {
   os: PlatformOs;
@@ -31,6 +31,10 @@ const detect = (): PlatformInfo => {
 
   if (isIpadOS || /iphone|ipad|ipod/.test(ua)) {
     return { os: "ios", isMobile: true, isIpadOS, label: isIpadOS ? "iPad" : "iPhone / iPad" };
+  }
+
+  if (uaPlatform.includes("windows") || /windows nt|win64|win32/.test(ua)) {
+    return { os: "windows", isMobile: false, isIpadOS: false, label: "Windows" };
   }
 
   const mobileHint = nav.userAgentData?.mobile ?? /mobi/.test(ua);
