@@ -63,9 +63,9 @@ const BuildDownloads = ({ compact, hideHeading, platform }: BuildDownloadsProps)
   const recommended = pickRecommended(artifacts);
   const compactPicks =
     os === "android"
-      ? [recommended.android]
+      ? [recommended.android, recommended.windows]
       : os === "ios"
-        ? [recommended.ios]
+        ? [recommended.ios, recommended.windows]
         : os === "windows"
           ? [recommended.windows, recommended.android]
           : [recommended.windows, recommended.android, recommended.ios];
