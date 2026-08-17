@@ -249,6 +249,8 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
         {buttons}
         {detectedNote}
         {pendingNote}
+        {windowsSteps}
+
         <div className="mt-4 border-t border-border pt-4">
           <BuildDownloads compact />
         </div>
@@ -275,6 +277,8 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
         {buttons}
         {detectedNote}
         {pendingNote}
+        {windowsSteps}
+
         <div className="mx-auto mt-10 max-w-xl rounded-xl border border-border bg-card p-5">
           <BuildDownloads />
         </div>
