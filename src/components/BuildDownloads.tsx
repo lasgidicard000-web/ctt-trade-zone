@@ -1,4 +1,4 @@
-import { Apple, Download, Package, RefreshCw, Smartphone } from "lucide-react";
+import { Apple, Download, Monitor, Package, RefreshCw, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
