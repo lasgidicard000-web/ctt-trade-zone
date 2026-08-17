@@ -10,6 +10,7 @@ import {
   classifyRelease,
   formatBytes,
   pickRecommended,
+  WINDOWS_INSTALL_STEPS,
   type ClassifiedArtifact,
 } from "@/lib/releaseAssets";
 import {
