@@ -16,6 +16,7 @@ import { usePlatform, type PlatformOs } from "@/hooks/usePlatform";
 
 const iconFor = (artifact: ClassifiedArtifact) => {
   if (artifact.platform === "ios") return <Apple className="h-5 w-5" />;
+  if (artifact.kind === "windows-zip") return <Monitor className="h-5 w-5" />;
   if (artifact.kind === "android-apk") return <Download className="h-5 w-5" />;
   if (artifact.kind === "android-aab") return <Package className="h-5 w-5" />;
   return <Smartphone className="h-5 w-5" />;
