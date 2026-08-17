@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Apple, Smartphone } from "lucide-react";
+import { Apple, Monitor, Smartphone } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -61,24 +61,51 @@ const IosInstructions = ({ highlighted }: { highlighted?: boolean }) => (
   </Card>
 );
 
+const WindowsInstructions = ({ highlighted }: { highlighted?: boolean }) => (
+  <Card
+    className={`bg-card p-5 ${highlighted ? "border-primary/60 ring-1 ring-primary/30" : "border-border"}`}
+  >
+    <div className="mb-2 flex items-center gap-2">
+      <Monitor className="h-4 w-4 text-primary" />
+      <h2 className="text-lg font-semibold">Installing on Windows</h2>
+      {highlighted && (
+        <Badge variant="secondary" className="text-[10px]">
+          Your device
+        </Badge>
+      )}
+    </div>
+    <ol className="list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
+      <li>Download the <strong>Windows ZIP</strong> above.</li>
+      <li>Right-click the file → Extract All.</li>
+      <li>
+        Open the extracted folder and run <strong>ctttradezone.exe</strong>.
+      </li>
+    </ol>
+    <p className="mt-3 text-xs text-muted-foreground">
+      Windows SmartScreen may warn about an unknown publisher — choose More info → Run
+      anyway. The build is portable, so no installer or admin rights are required.
+    </p>
+  </Card>
+);
+
 const Downloads = () => {
   const { os, label } = usePlatform();
   const [showAll, setShowAll] = useState(false);
 
-  const detected = os === "android" || os === "ios";
+  const detected = os === "android" || os === "ios" || os === "windows";
   const expanded = showAll || !detected;
 
   return (
     <div className="min-h-screen bg-background">
-      <title>Download the ctttradezone App (APK & iOS Builds)</title>
+      <title>Download the ctttradezone App (APK, iOS & Windows)</title>
       <meta
         name="description"
-        content="Download the latest ctttradezone Android APK, Play Store bundle and iOS build straight from the newest release, with install instructions."
+        content="Download the latest ctttradezone Android APK, Play Store bundle, iOS build and Windows desktop app straight from the newest release, with install steps."
       />
 
       <section className="container mx-auto max-w-3xl px-4 py-12">
         <Badge variant="secondary" className="mb-4">
-          Mobile builds
+          Mobile &amp; desktop builds
         </Badge>
         <h1 className="mb-3 text-3xl font-bold">Download the {APP_NAME} app</h1>
         <p className="mb-6 text-muted-foreground">
@@ -105,13 +132,21 @@ const Downloads = () => {
         <div className="grid gap-6 md:grid-cols-2">
           {os === "ios" ? (
             <>
-              <IosInstructions highlighted={detected} />
+              <IosInstructions highlighted />
               {expanded && <AndroidInstructions />}
+              {expanded && <WindowsInstructions />}
+            </>
+          ) : os === "windows" ? (
+            <>
+              <WindowsInstructions highlighted />
+              {expanded && <AndroidInstructions />}
+              {expanded && <IosInstructions />}
             </>
           ) : (
             <>
               <AndroidInstructions highlighted={os === "android"} />
               {(expanded || os !== "android") && <IosInstructions />}
+              {expanded && <WindowsInstructions />}
             </>
           )}
         </div>

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Apple, Smartphone, Download, Github, Package } from "lucide-react";
+import { Apple, Smartphone, Download, Github, Monitor, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -74,7 +74,9 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
   const artifacts: ClassifiedArtifact[] = release ? classifyRelease(release) : [];
   const recommended = pickRecommended(artifacts);
   const aab = artifacts.find((a) => a.kind === "android-aab");
-  const buildsReady = status === "ready" && (recommended.android || recommended.ios);
+  const buildsReady =
+    status === "ready" &&
+    (recommended.android || recommended.ios || recommended.windows);
 
   const androidDownload = recommended.android ? (
     <LinkButton
@@ -102,6 +104,19 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
       sub="iOS — iPhone & iPad"
       badge={formatBytes(recommended.ios.asset.size) || undefined}
       primary={os === "ios"}
+      compact={compact}
+    />
+  ) : null;
+
+  const windowsDownload = recommended.windows ? (
+    <LinkButton
+      key="windows-dl"
+      href={recommended.windows.asset.browser_download_url}
+      icon={<Monitor className="h-5 w-5" />}
+      label={recommended.windows.label}
+      sub="Windows — desktop app"
+      badge={formatBytes(recommended.windows.asset.size) || undefined}
+      primary={os === "windows"}
       compact={compact}
     />
   ) : null;
@@ -157,8 +172,10 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
 
   const ordered = buildsReady
     ? (os === "ios"
-        ? [...iosGroup, ...androidGroup, aabButton]
-        : [...androidGroup, ...iosGroup, aabButton]
+        ? [...iosGroup, ...androidGroup, windowsDownload, aabButton]
+        : os === "windows"
+          ? [windowsDownload, ...androidGroup, ...iosGroup, aabButton]
+          : [...androidGroup, ...iosGroup, windowsDownload, aabButton]
       ).filter(Boolean)
     : [playButton, appStoreButton, releasesButton].filter(Boolean);
 
@@ -175,7 +192,7 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
   ) : null;
 
   const detectedNote =
-    os === "android" || os === "ios" ? (
+    os === "android" || os === "ios" || os === "windows" ? (
       <p className={`text-xs text-muted-foreground ${compact ? "mt-3" : "mt-4"}`}>
         Looks like you're on {label} — the matching build is shown first.
       </p>
@@ -214,11 +231,12 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
     <section className="border-t border-border bg-card/50">
       <div className="container mx-auto px-4 py-16 text-center">
         <Badge variant="secondary" className="mb-4">
-          Mobile
+          Mobile &amp; desktop
         </Badge>
         <h2 className="mb-3 text-3xl font-bold">Get the {APP_NAME} app</h2>
         <p className="mx-auto mb-8 max-w-xl text-muted-foreground">
-          Trade, redeem and manage your portfolio on the go. Download for Android or iOS.
+          Trade, redeem and manage your portfolio anywhere. Download for Android, iOS or
+          Windows.
         </p>
         {buttons}
         {detectedNote}

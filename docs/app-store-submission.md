@@ -133,3 +133,21 @@ git-ignored, so nothing native needs to be committed.
 
 App icons and splash screens are generated in CI from `resources/icon.png` and
 `resources/splash.png` via `@capacitor/assets`.
+
+## Windows desktop build
+
+The same workflow has a `windows` job that packages the app with Electron
+(`@electron/packager`) and attaches a portable ZIP to the release:
+
+- `ctttradezone-<tag>-windows-x64.zip`
+
+Users unzip it and run `ctttradezone.exe` — no installer and no admin rights.
+The window loads the live site and falls back to the bundled `dist/` build when
+offline (`electron/main.cjs`).
+
+Locally: `npm run desktop:package` (output in `electron-release/`).
+
+Windows SmartScreen shows an "unknown publisher" prompt because the executable
+is unsigned. Removing that prompt requires an EV/OV code-signing certificate; a
+Microsoft Store listing additionally needs an MSIX package built with
+electron-builder. Neither is set up yet.

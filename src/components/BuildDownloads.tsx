@@ -1,4 +1,4 @@
-import { Apple, Download, Package, RefreshCw, Smartphone } from "lucide-react";
+import { Apple, Download, Monitor, Package, RefreshCw, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +16,7 @@ import { usePlatform, type PlatformOs } from "@/hooks/usePlatform";
 
 const iconFor = (artifact: ClassifiedArtifact) => {
   if (artifact.platform === "ios") return <Apple className="h-5 w-5" />;
+  if (artifact.kind === "windows-zip") return <Monitor className="h-5 w-5" />;
   if (artifact.kind === "android-apk") return <Download className="h-5 w-5" />;
   if (artifact.kind === "android-aab") return <Package className="h-5 w-5" />;
   return <Smartphone className="h-5 w-5" />;
@@ -65,7 +66,9 @@ const BuildDownloads = ({ compact, hideHeading, platform }: BuildDownloadsProps)
       ? [recommended.android]
       : os === "ios"
         ? [recommended.ios]
-        : [recommended.android, recommended.ios];
+        : os === "windows"
+          ? [recommended.windows, recommended.android]
+          : [recommended.windows, recommended.android, recommended.ios];
   const shown = compact
     ? (compactPicks.filter(Boolean) as ClassifiedArtifact[])
     : artifacts;
@@ -156,7 +159,9 @@ const BuildDownloads = ({ compact, hideHeading, platform }: BuildDownloadsProps)
             ? note(
                 os === "ios"
                   ? "No installable iOS build is attached to the latest release yet. You can add the web app to your Home Screen in the meantime."
-                  : "The latest release has no build files attached yet. Re-run the mobile build workflow to attach the APK, AAB and iOS artifacts.",
+                  : os === "windows"
+                    ? "No Windows build is attached to the latest release yet. It appears here as soon as the next release finishes building."
+                    : "The latest release has no build files attached yet. Re-run the release build workflow to attach the APK, AAB, iOS and Windows artifacts.",
               )
             : shown.map((artifact) => (
                 <ArtifactRow key={artifact.asset.id} artifact={artifact} />
@@ -170,6 +175,12 @@ const BuildDownloads = ({ compact, hideHeading, platform }: BuildDownloadsProps)
             <p className="text-xs text-muted-foreground">
               iOS builds install with a sideloading tool (AltStore or Sideloadly) from a
               computer.
+            </p>
+          )}
+          {shown.length > 0 && os === "windows" && (
+            <p className="text-xs text-muted-foreground">
+              Unzip the Windows download, then run <strong>ctttradezone.exe</strong> — no
+              installer or admin rights needed.
             </p>
           )}
         </div>
