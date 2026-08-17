@@ -134,7 +134,7 @@ const Downloads = () => {
             <>
               <IosInstructions highlighted />
               {expanded && <AndroidInstructions />}
-              {expanded && <WindowsInstructions />}
+              <WindowsInstructions />
             </>
           ) : os === "windows" ? (
             <>
