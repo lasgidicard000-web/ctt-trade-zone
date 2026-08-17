@@ -177,12 +177,11 @@ const BuildDownloads = ({ compact, hideHeading, platform }: BuildDownloadsProps)
               computer.
             </p>
           )}
-          {shown.length > 0 && os === "windows" && (
-            <p className="text-xs text-muted-foreground">
-              Unzip the Windows download, then run <strong>ctttradezone.exe</strong> — no
-              installer or admin rights needed.
-            </p>
-          )}
+          <p className="text-xs text-muted-foreground">
+            <strong>Windows:</strong> unzip the download, then run{" "}
+            <strong>ctttradezone.exe</strong> — no installer or admin rights needed.
+          </p>
+
         </div>
       )}
 
