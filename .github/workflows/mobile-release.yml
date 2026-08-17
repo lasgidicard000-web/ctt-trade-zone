@@ -256,3 +256,55 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: artifacts/*
+
+  windows:
+    name: Windows (portable desktop app)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        shell: bash
+        run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund --legacy-peer-deps
+
+      - name: Build web bundle (relative asset paths)
+        shell: bash
+        env:
+          ELECTRON_BUILD: "1"
+        run: npm run build
+
+      - name: Package Windows desktop app
+        shell: bash
+        run: |
+          npx @electron/packager . ctttradezone \
+            --platform=win32 --arch=x64 \
+            --out=electron-release --overwrite \
+            --ignore='^/src' --ignore='^/public' \
+            --ignore='^/android' --ignore='^/ios' \
+            --ignore='^/electron-release'
+          ls -la electron-release
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          TAG="${GITHUB_REF_NAME:-manual}"
+          DIR="$(ls -d electron-release/* | head -1)"
+          (cd "$(dirname "$DIR")" && 7z a -tzip "../artifacts/ctttradezone-$TAG-windows-x64.zip" "$(basename "$DIR")")
+          ls -la artifacts
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-builds
+          path: artifacts/*
+          if-no-files-found: error
+
+      - name: Attach to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
