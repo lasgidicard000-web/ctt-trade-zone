@@ -1,6 +1,7 @@
 {
   "name": "vite_react_shadcn_ts",
   "private": true,
+  "main": "electron/main.cjs",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -11,7 +12,8 @@
     "preview": "vite preview",
     "cap:sync": "npm run build && npx cap sync",
     "mobile:android": "npm run build && npx cap sync android && npx cap run android",
-    "mobile:ios": "npm run build && npx cap sync ios && npx cap run ios"
+    "mobile:ios": "npm run build && npx cap sync ios && npx cap run ios",
+    "desktop:package": "ELECTRON_BUILD=1 vite build && npx @electron/packager . ctttradezone --platform=win32 --arch=x64 --out=electron-release --overwrite --ignore=\"^/src\" --ignore=\"^/public\" --ignore=\"^/electron-release\""
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
