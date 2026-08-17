@@ -188,7 +188,8 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
           ? [windowsDownload, ...androidGroup, ...iosGroup, aabButton]
           : [...androidGroup, ...iosGroup, windowsDownload, aabButton]
       ).filter(Boolean)
-    : [playButton, appStoreButton, releasesButton].filter(Boolean);
+    : [playButton, appStoreButton, windowsDownload, releasesButton].filter(Boolean);
+
 
   const buttons = ordered.length ? (
     <div
@@ -209,12 +210,33 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
       </p>
     ) : null;
 
+  const windowsSteps = (
+    <div
+      className={`rounded-lg border border-border bg-muted/40 p-3 text-left ${compact ? "mt-3" : "mx-auto mt-6 max-w-xl"}`}
+    >
+      <p className="mb-1 flex items-center gap-2 text-xs font-semibold">
+        <Monitor className="h-3.5 w-3.5 text-primary" />
+        Installing on Windows
+      </p>
+      <ol className="list-decimal space-y-0.5 pl-5 text-xs text-muted-foreground">
+        {WINDOWS_INSTALL_STEPS.map((step) => (
+          <li key={step}>{step}</li>
+        ))}
+      </ol>
+      <p className="mt-2 text-[11px] text-muted-foreground">
+        Portable build — no installer or admin rights needed. If SmartScreen warns, choose
+        More info → Run anyway.
+      </p>
+    </div>
+  );
+
   const pendingNote = !buildsReady ? (
     <p className={`text-xs text-muted-foreground ${compact ? "mt-3" : "mt-4"}`}>
       The installable builds are being prepared — they appear here automatically as soon
       as the next release finishes.
     </p>
   ) : null;
+
 
   if (compact) {
     return (
