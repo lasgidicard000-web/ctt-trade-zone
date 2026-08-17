@@ -146,9 +146,25 @@ jobs:
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$PLIST" || true
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${GITHUB_RUN_NUMBER:-1}" "$PLIST" || true
 
-      - name: Install CocoaPods dependencies
+      - name: Install CocoaPods dependencies (only when a Podfile exists)
         working-directory: ios/App
-        run: pod install
+        run: |
+          if [ -f Podfile ]; then
+            pod install
+          else
+            echo "No Podfile - Capacitor 8 uses Swift Package Manager, skipping."
+          fi
+
+      - name: Resolve Xcode container flag
+        id: xcflag
+        working-directory: ios/App
+        run: |
+          if [ -d App.xcworkspace ]; then
+            echo "flag=-workspace App.xcworkspace" >> "$GITHUB_OUTPUT"
+          else
+            echo "flag=-project App.xcodeproj" >> "$GITHUB_OUTPUT"
+          fi
+
 
       - name: Import signing assets
         id: signing
@@ -179,7 +195,7 @@ jobs:
         env:
           IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
         run: |
-          xcodebuild -workspace App.xcworkspace -scheme App \
+          xcodebuild ${{ steps.xcflag.outputs.flag }} -scheme App \
             -configuration Release -sdk iphoneos \
             -archivePath "$RUNNER_TEMP/App.xcarchive" \
             DEVELOPMENT_TEAM="$IOS_TEAM_ID" archive
@@ -199,7 +215,7 @@ jobs:
         if: steps.signing.outputs.signed == 'false'
         working-directory: ios/App
         run: |
-          xcodebuild -workspace App.xcworkspace -scheme App \
+          xcodebuild ${{ steps.xcflag.outputs.flag }} -scheme App \
             -configuration Release -sdk iphoneos \
             -archivePath "$RUNNER_TEMP/App.xcarchive" \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" archive
