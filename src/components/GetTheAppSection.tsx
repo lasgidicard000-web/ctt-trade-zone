@@ -10,6 +10,7 @@ import {
   classifyRelease,
   formatBytes,
   pickRecommended,
+  WINDOWS_INSTALL_STEPS,
   type ClassifiedArtifact,
 } from "@/lib/releaseAssets";
 import {
@@ -119,7 +120,18 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
       primary={os === "windows"}
       compact={compact}
     />
+  ) : releasesPageUrl ? (
+    <LinkButton
+      key="windows-pending"
+      href={releasesPageUrl}
+      icon={<Monitor className="h-5 w-5" />}
+      label="Windows build — coming in next release"
+      sub="Windows — desktop app"
+      badge="Preparing"
+      compact={compact}
+    />
   ) : null;
+
 
   const playButton = googlePlayUrl ? (
     <LinkButton
@@ -177,7 +189,8 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
           ? [windowsDownload, ...androidGroup, ...iosGroup, aabButton]
           : [...androidGroup, ...iosGroup, windowsDownload, aabButton]
       ).filter(Boolean)
-    : [playButton, appStoreButton, releasesButton].filter(Boolean);
+    : [playButton, appStoreButton, windowsDownload, releasesButton].filter(Boolean);
+
 
   const buttons = ordered.length ? (
     <div
@@ -198,12 +211,33 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
       </p>
     ) : null;
 
+  const windowsSteps = (
+    <div
+      className={`rounded-lg border border-border bg-muted/40 p-3 text-left ${compact ? "mt-3" : "mx-auto mt-6 max-w-xl"}`}
+    >
+      <p className="mb-1 flex items-center gap-2 text-xs font-semibold">
+        <Monitor className="h-3.5 w-3.5 text-primary" />
+        Installing on Windows
+      </p>
+      <ol className="list-decimal space-y-0.5 pl-5 text-xs text-muted-foreground">
+        {WINDOWS_INSTALL_STEPS.map((step) => (
+          <li key={step}>{step}</li>
+        ))}
+      </ol>
+      <p className="mt-2 text-[11px] text-muted-foreground">
+        Portable build — no installer or admin rights needed. If SmartScreen warns, choose
+        More info → Run anyway.
+      </p>
+    </div>
+  );
+
   const pendingNote = !buildsReady ? (
     <p className={`text-xs text-muted-foreground ${compact ? "mt-3" : "mt-4"}`}>
       The installable builds are being prepared — they appear here automatically as soon
       as the next release finishes.
     </p>
   ) : null;
+
 
   if (compact) {
     return (
@@ -215,6 +249,8 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
         {buttons}
         {detectedNote}
         {pendingNote}
+        {windowsSteps}
+
         <div className="mt-4 border-t border-border pt-4">
           <BuildDownloads compact />
         </div>
@@ -241,6 +277,8 @@ const GetTheAppSection = ({ compact }: GetTheAppSectionProps) => {
         {buttons}
         {detectedNote}
         {pendingNote}
+        {windowsSteps}
+
         <div className="mx-auto mt-10 max-w-xl rounded-xl border border-border bg-card p-5">
           <BuildDownloads />
         </div>

@@ -122,6 +122,18 @@ export const pickRecommended = (artifacts: ClassifiedArtifact[]) => ({
   windows: artifacts.find((a) => a.kind === "windows-zip"),
 });
 
+/** True when the release actually carries a Windows desktop build. */
+export const hasWindowsBuild = (artifacts: ClassifiedArtifact[]) =>
+  artifacts.some((a) => a.kind === "windows-zip");
+
+/** Install steps for the portable Windows build (shown regardless of detected OS). */
+export const WINDOWS_INSTALL_STEPS = [
+  "Download the Windows ZIP.",
+  "Right-click the file and choose Extract All.",
+  "Open the extracted folder and run ctttradezone.exe.",
+] as const;
+
+
 /**
  * Order (and filter) artifacts for a detected OS so the relevant build comes first.
  * Android hides the iOS archive noise; iOS hides the AAB (never installable).

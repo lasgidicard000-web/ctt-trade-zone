@@ -134,7 +134,7 @@ const Downloads = () => {
             <>
               <IosInstructions highlighted />
               {expanded && <AndroidInstructions />}
-              {expanded && <WindowsInstructions />}
+              <WindowsInstructions />
             </>
           ) : os === "windows" ? (
             <>
@@ -146,7 +146,7 @@ const Downloads = () => {
             <>
               <AndroidInstructions highlighted={os === "android"} />
               {(expanded || os !== "android") && <IosInstructions />}
-              {expanded && <WindowsInstructions />}
+              <WindowsInstructions />
             </>
           )}
         </div>

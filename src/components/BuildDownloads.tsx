@@ -63,9 +63,9 @@ const BuildDownloads = ({ compact, hideHeading, platform }: BuildDownloadsProps)
   const recommended = pickRecommended(artifacts);
   const compactPicks =
     os === "android"
-      ? [recommended.android]
+      ? [recommended.android, recommended.windows]
       : os === "ios"
-        ? [recommended.ios]
+        ? [recommended.ios, recommended.windows]
         : os === "windows"
           ? [recommended.windows, recommended.android]
           : [recommended.windows, recommended.android, recommended.ios];
@@ -177,12 +177,11 @@ const BuildDownloads = ({ compact, hideHeading, platform }: BuildDownloadsProps)
               computer.
             </p>
           )}
-          {shown.length > 0 && os === "windows" && (
-            <p className="text-xs text-muted-foreground">
-              Unzip the Windows download, then run <strong>ctttradezone.exe</strong> — no
-              installer or admin rights needed.
-            </p>
-          )}
+          <p className="text-xs text-muted-foreground">
+            <strong>Windows:</strong> unzip the download, then run{" "}
+            <strong>ctttradezone.exe</strong> — no installer or admin rights needed.
+          </p>
+
         </div>
       )}
 
