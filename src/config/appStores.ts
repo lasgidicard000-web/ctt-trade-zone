@@ -16,7 +16,7 @@ export const appStoreUrl = "";
  * to GitHub — the Build & Download section then reads the latest release and
  * lists every build artifact the CI workflow attached.
  */
-export const githubRepo = "";
+export const githubRepo = "lasgidicard000-web/ctt-trade-zone";
 
 /** GitHub API endpoint for the newest published release. */
 export const latestReleaseApiUrl = githubRepo
