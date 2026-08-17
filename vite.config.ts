@@ -6,6 +6,9 @@ import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  // Electron loads files over file:// and needs relative asset paths.
+  // The web build keeps absolute paths so nested routes resolve correctly.
+  base: process.env.ELECTRON_BUILD === "1" ? "./" : "/",
   server: {
     host: "::",
     port: 8080,
