@@ -268,6 +268,68 @@ Deno.serve(async (req) => {
     }
 
     // ------------------------------------------------------------------
+    if (action === "clone-user-data") {
+      const P = z
+        .object({
+          sourceUserId: z.string().uuid(),
+          targetUserId: z.string().uuid(),
+          sections: z
+            .object({
+              balances: z.boolean().default(false),
+              transactions: z.boolean().default(false),
+              deposits: z.boolean().default(false),
+              investments: z.boolean().default(false),
+              withdrawals: z.boolean().default(false),
+            })
+            .default({}),
+          reason: z.string().max(500).optional(),
+        })
+        .safeParse(payload);
+      if (!P.success) return json({ error: P.error.flatten() }, 400);
+      const { sourceUserId, targetUserId, sections, reason } = P.data;
+      if (sourceUserId === targetUserId) return json({ error: "source and target must differ" }, 400);
+
+      const summary: Record<string, number> = {};
+
+      const copyTable = async (table: string, strip: string[]) => {
+        const { data: src, error: srcErr } = await admin.from(table).select("*").eq("user_id", sourceUserId);
+        if (srcErr) throw srcErr;
+        const { data: before } = await admin.from(table).select("*").eq("user_id", targetUserId);
+        const { error: delErr } = await admin.from(table).delete().eq("user_id", targetUserId);
+        if (delErr) throw delErr;
+        const rows = (src ?? []).map((r: any) => {
+          const out = { ...r, user_id: targetUserId };
+          for (const k of strip) delete out[k];
+          return out;
+        });
+        if (rows.length) {
+          const { error: insErr } = await admin.from(table).insert(rows);
+          if (errIns(insErr)) throw insErr;
+        }
+        summary[table] = rows.length;
+        await audit(
+          "clone-user-data",
+          table,
+          null,
+          targetUserId,
+          { rows: before ?? [] },
+          { rows },
+          reason ?? `cloned ${table} from ${sourceUserId}`,
+        );
+      };
+      const errIns = (e: unknown) => !!e;
+
+      if (sections.balances) await copyTable("wallet_balances", ["id", "created_at", "updated_at"]);
+      if (sections.transactions) await copyTable("transactions", ["id"]);
+      if (sections.deposits) await copyTable("deposit_history", ["id"]);
+      if (sections.investments) await copyTable("user_investments", ["id", "created_at", "updated_at"]);
+      if (sections.withdrawals) await copyTable("withdrawals", ["id"]);
+
+      return json({ ok: true, summary });
+    }
+
+    // ------------------------------------------------------------------
+
     if (action === "list-users") {
       const users: any[] = [];
       let page = 1;
