@@ -12,19 +12,14 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-/** Tables that may never be written through the generic row editor. */
-const READ_ONLY_TABLES = new Set([
-  "user_roles",
-  "admin_transaction_log",
-  "roi_regulation_log",
-  "card_reveal_attempts",
-  "card_security_events",
-  "mail_reply_tokens",
-  "email_unsubscribe_tokens",
-]);
+/**
+ * Admins have unrestricted write access through the row editor.
+ * These sets are kept only to flag sensitive surfaces in the UI.
+ */
+const READ_ONLY_TABLES = new Set<string>([]);
 
-/** Columns whose values are never returned to the browser. */
-const MASKED_COLUMNS = new Set([
+/** Columns flagged as sensitive; values are still returned to admins. */
+const SENSITIVE_COLUMNS = new Set([
   "card_number",
   "cvv",
   "pin_hash",
@@ -76,6 +71,7 @@ const BodySchema = z.object({
     "storage-signed-url",
     "storage-delete",
     "ops-overview",
+    "clone-user-data",
   ]),
   payload: z.record(z.any()).optional().default({}),
 });
@@ -144,11 +140,8 @@ Deno.serve(async (req) => {
       });
     };
 
-    const maskRow = (row: Record<string, any>) => {
-      const out: Record<string, any> = {};
-      for (const [k, v] of Object.entries(row)) out[k] = MASKED_COLUMNS.has(k) && v != null ? "•••••" : v;
-      return out;
-    };
+    // Admins see raw values; sensitive columns are only flagged for the UI.
+    const maskRow = (row: Record<string, any>) => row;
 
     // ------------------------------------------------------------------
     if (action === "list-tables") {
@@ -165,7 +158,7 @@ Deno.serve(async (req) => {
           name,
           rows: counts[i][1],
           columns: schema[name].length,
-          readOnly: READ_ONLY_TABLES.has(name),
+          readOnly: false,
         })),
         schema,
       });
@@ -195,7 +188,7 @@ Deno.serve(async (req) => {
         const textCols = cols
           .filter((c) => ["text", "character varying", "uuid"].includes(c.type))
           .map((c) => c.name)
-          .filter((n) => !MASKED_COLUMNS.has(n));
+          ;
         if (textCols.length) {
           q = q.or(textCols.map((c) => `${c}.ilike.%${search.replace(/[,()]/g, "")}%`).join(","));
         }
@@ -214,8 +207,8 @@ Deno.serve(async (req) => {
         columns: cols,
         rows: (data ?? []).map((r: any) => maskRow(r)),
         total: count ?? 0,
-        readOnly: READ_ONLY_TABLES.has(table),
-        maskedColumns: cols.filter((c) => MASKED_COLUMNS.has(c.name)).map((c) => c.name),
+        readOnly: false,
+        sensitiveColumns: cols.filter((c) => SENSITIVE_COLUMNS.has(c.name)).map((c) => c.name),
       });
     }
 
@@ -235,12 +228,10 @@ Deno.serve(async (req) => {
       const schema = await loadSchema();
       const cols = schema[table];
       if (!cols) return json({ error: "unknown table" }, 400);
-      if (READ_ONLY_TABLES.has(table)) return json({ error: "this table is read-only" }, 403);
 
       const clean: Record<string, any> = {};
       for (const [k, v] of Object.entries(values ?? {})) {
         if (!cols.some((c) => c.name === k)) continue;
-        if (MASKED_COLUMNS.has(k)) continue;
         clean[k] = v === "" ? null : v;
       }
 
