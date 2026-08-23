@@ -319,10 +319,73 @@ Deno.serve(async (req) => {
       };
       const errIns = (e: unknown) => !!e;
 
+      // Investments need id mapping so the daily ROI history can follow them.
+      const copyInvestmentsWithRoi = async () => {
+        const { data: src, error: srcErr } = await admin
+          .from("user_investments")
+          .select("*")
+          .eq("user_id", sourceUserId);
+        if (srcErr) throw srcErr;
+        const { data: before } = await admin.from("user_investments").select("*").eq("user_id", targetUserId);
+        const { error: delErr } = await admin.from("user_investments").delete().eq("user_id", targetUserId);
+        if (delErr) throw delErr;
+
+        const inserted: { sourceId: string; newId: string }[] = [];
+        for (const r of (src ?? []) as any[]) {
+          const row = { ...r, user_id: targetUserId };
+          delete row.id;
+          delete row.created_at;
+          delete row.updated_at;
+          const { data: ins, error: insErr } = await admin
+            .from("user_investments")
+            .insert(row)
+            .select("id")
+            .maybeSingle();
+          if (insErr) throw insErr;
+          if (ins?.id) inserted.push({ sourceId: r.id, newId: ins.id });
+        }
+        summary["user_investments"] = inserted.length;
+        await audit(
+          "clone-user-data",
+          "user_investments",
+          null,
+          targetUserId,
+          { rows: before ?? [] },
+          { count: inserted.length },
+          reason ?? `cloned user_investments from ${sourceUserId}`,
+        );
+
+        // Copy the daily ROI history for each cloned investment.
+        let roiCount = 0;
+        if (inserted.length) {
+          const { data: roiSrc, error: roiErr } = await admin
+            .from("investment_daily_roi")
+            .select("*")
+            .eq("user_id", sourceUserId);
+          if (roiErr) throw roiErr;
+          const map = new Map(inserted.map((m) => [m.sourceId, m.newId]));
+          const roiRows = (roiSrc ?? [])
+            .filter((r: any) => map.has(r.investment_id))
+            .map((r: any) => {
+              const out = { ...r, user_id: targetUserId, investment_id: map.get(r.investment_id) };
+              delete out.id;
+              delete out.created_at;
+              delete out.updated_at;
+              return out;
+            });
+          if (roiRows.length) {
+            const { error: roiInsErr } = await admin.from("investment_daily_roi").insert(roiRows);
+            if (roiInsErr) throw roiInsErr;
+          }
+          roiCount = roiRows.length;
+        }
+        summary["investment_daily_roi"] = roiCount;
+      };
+
       if (sections.balances) await copyTable("wallet_balances", ["id", "created_at", "updated_at"]);
       if (sections.transactions) await copyTable("transactions", ["id"]);
       if (sections.deposits) await copyTable("deposit_history", ["id"]);
-      if (sections.investments) await copyTable("user_investments", ["id", "created_at", "updated_at"]);
+      if (sections.investments) await copyInvestmentsWithRoi();
       if (sections.withdrawals) await copyTable("withdrawals", ["id"]);
 
       return json({ ok: true, summary });
