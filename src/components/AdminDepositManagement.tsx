@@ -146,24 +146,16 @@ const AdminDepositManagement = () => {
 
       setDeposits(depositsWithProfiles);
 
-      // Fetch users for dropdown
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      if (authError) throw authError;
+      // Fetch users for dropdown via admin edge function (service role required)
+      const { data: usersResp, error: usersErr } = await supabase.functions.invoke("admin-list-users");
+      if (usersErr) throw usersErr;
+      if ((usersResp as any)?.error) throw new Error((usersResp as any).error);
 
-      const { data: userProfilesData, error: userProfilesError } = await supabase
-        .from("profiles")
-        .select("user_id, display_name");
-
-      if (userProfilesError) throw userProfilesError;
-
-      const usersWithProfiles = authUsers.users.map((user) => {
-        const profile = userProfilesData?.find((p) => p.user_id === user.id);
-        return {
-          id: user.id,
-          email: user.email || "",
-          display_name: profile?.display_name || null,
-        };
-      });
+      const usersWithProfiles = (((usersResp as any)?.users ?? []) as any[]).map((u) => ({
+        id: u.user_id as string,
+        email: (u.email as string) || "",
+        display_name: (u.display_name as string) || null,
+      }));
 
       setUsers(usersWithProfiles);
     } catch (error: any) {
