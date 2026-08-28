@@ -549,15 +549,27 @@ const AdminDepositManagement = () => {
                       <span className="text-sm">{deposit.confirmations}/6</span>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openEditDialog(deposit)}
-                      >
-                        <Edit className="w-3 h-3 mr-1" />
-                        Edit
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <DepositReceiptDialog
+                          deposit={deposit}
+                          accountName={deposit.profiles?.display_name || "N/A"}
+                          accountEmail={
+                            users.find((u) => u.id === deposit.user_id)?.email || ""
+                          }
+                          usdRate={null}
+                          triggerLabel="Receipt"
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openEditDialog(deposit)}
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Edit
+                        </Button>
+                      </div>
                     </TableCell>
+
                   </TableRow>
                 ))
               )}
