@@ -32,6 +32,9 @@ import { Plus, CheckCircle2, Clock, XCircle, Copy, ExternalLink, Edit } from "lu
 import { format } from "date-fns";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
+import { DepositReceiptDialog } from "@/components/DepositReceiptDialog";
+import { useRealtimePrices } from "@/hooks/useRealtimePrices";
+
 
 const depositSchema = z.object({
   user_id: z.string().uuid({ message: "Invalid user ID format" }),
