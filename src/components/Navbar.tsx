@@ -21,6 +21,8 @@ import {
   LogIn,
   Mail,
   Cloud,
+  CandlestickChart,
+  Bot,
 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
@@ -43,6 +45,8 @@ const navItems: NavItem[] = [
   { to: "/chat", label: "AI Advisor", icon: MessageCircle, requireAuth: true },
   { to: "/leaderboard", label: "Leaderboard", icon: Trophy, requireAuth: true },
   { to: "/simulator", label: "Simulator", icon: Gamepad2, requireAuth: true },
+  { to: "/demo-trading", label: "Demo Trade", icon: CandlestickChart, requireAuth: true },
+  { to: "/trading-bots", label: "Bots", icon: Bot, requireAuth: true },
   { to: "/admin", label: "Admin", icon: Shield, requireAdmin: true },
   { to: "/admin/webmail", label: "Webmail", icon: Mail, requireAdmin: true },
   { to: "/admin/cloud", label: "Cloud", icon: Cloud, requireAdmin: true },

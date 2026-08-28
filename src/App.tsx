@@ -37,6 +37,8 @@ import AdminCloud from "./pages/AdminCloud";
 import Unsubscribe from "./pages/Unsubscribe";
 import ReplyToMessage from "./pages/ReplyToMessage";
 import Downloads from "./pages/Downloads";
+import DemoTrading from "./pages/DemoTrading";
+import TradingBots from "./pages/TradingBots";
 
 
 
@@ -66,6 +68,8 @@ const App = () => (
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/simulator" element={<TradingSimulator />} />
+            <Route path="/demo-trading" element={<DemoTrading />} />
+            <Route path="/trading-bots" element={<TradingBots />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/transactions" element={<TransactionHistory />} />
             <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
