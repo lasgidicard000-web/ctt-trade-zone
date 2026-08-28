@@ -188,6 +188,24 @@ serve(async (req) => {
         throw new Error('Can only cancel pending withdrawals');
       }
 
+      // Live trading terminal withdrawals refund to the live balance, not the USDT wallet
+      if ((withdrawal.notes ?? '').startsWith('Live trading')) {
+        const { error: refundErr } = await supabaseClient.rpc('live_refund_withdrawal', {
+          _withdrawal_id: withdrawalId,
+          _status: 'cancelled',
+          _notes: 'Cancelled by user',
+        });
+        if (refundErr) throw refundErr;
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: 'Withdrawal cancelled and funds returned to your live trading balance',
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+
       // Refund to wallet
       const { data: balance } = await supabaseClient
         .from('wallet_balances')
