@@ -16,6 +16,8 @@ import { ExternalLink, Copy, CheckCircle2, Clock, XCircle, Download } from "luci
 import { toast } from "sonner";
 import { useRealtimePrices } from "@/hooks/useRealtimePrices";
 import { generateDepositReceipt } from "@/lib/depositReceipt";
+import { DepositReceiptDialog } from "@/components/DepositReceiptDialog";
+
 
 interface DepositRecord {
   id: string;
@@ -243,16 +245,26 @@ export const DepositHistory = () => {
                   </span>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => downloadReceipt(deposit)}
-                    aria-label={`Download receipt for ${deposit.coin_symbol} deposit`}
-                  >
-                    <Download className="w-3 h-3 mr-1" />
-                    Receipt
-                  </Button>
+                  <div className="flex items-center justify-end gap-2">
+                    <DepositReceiptDialog
+                      deposit={deposit}
+                      accountName={account.name}
+                      accountEmail={account.email}
+                      usdRate={getRate(deposit.coin_symbol)}
+                      triggerLabel="View"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => downloadReceipt(deposit)}
+                      aria-label={`Download receipt for ${deposit.coin_symbol} deposit`}
+                    >
+                      <Download className="w-3 h-3 mr-1" />
+                      PDF
+                    </Button>
+                  </div>
                 </TableCell>
+
               </TableRow>
 
             ))}

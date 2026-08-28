@@ -32,6 +32,9 @@ import { Plus, CheckCircle2, Clock, XCircle, Copy, ExternalLink, Edit } from "lu
 import { format } from "date-fns";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
+import { DepositReceiptDialog } from "@/components/DepositReceiptDialog";
+import { useRealtimePrices } from "@/hooks/useRealtimePrices";
+
 
 const depositSchema = z.object({
   user_id: z.string().uuid({ message: "Invalid user ID format" }),
@@ -92,7 +95,9 @@ interface User {
 
 const AdminDepositManagement = () => {
   const { toast } = useToast();
+  const { prices } = useRealtimePrices();
   const [deposits, setDeposits] = useState<DepositRecord[]>([]);
+
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -549,15 +554,34 @@ const AdminDepositManagement = () => {
                       <span className="text-sm">{deposit.confirmations}/6</span>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openEditDialog(deposit)}
-                      >
-                        <Edit className="w-3 h-3 mr-1" />
-                        Edit
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <DepositReceiptDialog
+                          deposit={deposit}
+                          accountName={deposit.profiles?.display_name || "N/A"}
+                          accountEmail={
+                            users.find((u) => u.id === deposit.user_id)?.email || ""
+                          }
+                          usdRate={
+                            prices.find(
+                              (p) =>
+                                p.symbol.toUpperCase() ===
+                                deposit.coin_symbol.toUpperCase()
+                            )?.price ?? null
+                          }
+
+                          triggerLabel="Receipt"
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openEditDialog(deposit)}
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Edit
+                        </Button>
+                      </div>
                     </TableCell>
+
                   </TableRow>
                 ))
               )}
