@@ -296,8 +296,7 @@ serve(async (req) => {
     }
 
     if (action === 'reject-withdrawal') {
-      const { withdrawalId, reason } = await req.json();
-      
+
       console.log('Admin rejecting withdrawal:', withdrawalId);
 
       // Check if user is admin
@@ -320,6 +319,24 @@ serve(async (req) => {
         .single();
 
       if (fetchError) throw fetchError;
+
+      // Live trading terminal withdrawals refund to the live balance, not the USDT wallet
+      if ((withdrawal.notes ?? '').startsWith('Live trading')) {
+        const { error: refundErr } = await supabaseClient.rpc('live_refund_withdrawal', {
+          _withdrawal_id: withdrawalId,
+          _status: 'rejected',
+          _notes: `Rejected by admin: ${reason}`,
+        });
+        if (refundErr) throw refundErr;
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: 'Withdrawal rejected and funds returned to the live trading balance',
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
 
       // Refund to user wallet
       const { data: balance } = await supabaseClient
