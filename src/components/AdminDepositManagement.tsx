@@ -95,7 +95,9 @@ interface User {
 
 const AdminDepositManagement = () => {
   const { toast } = useToast();
+  const { prices } = useRealtimePrices();
   const [deposits, setDeposits] = useState<DepositRecord[]>([]);
+
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
