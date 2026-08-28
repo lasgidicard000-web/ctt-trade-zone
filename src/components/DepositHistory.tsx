@@ -16,6 +16,8 @@ import { ExternalLink, Copy, CheckCircle2, Clock, XCircle, Download } from "luci
 import { toast } from "sonner";
 import { useRealtimePrices } from "@/hooks/useRealtimePrices";
 import { generateDepositReceipt } from "@/lib/depositReceipt";
+import { DepositReceiptDialog } from "@/components/DepositReceiptDialog";
+
 
 interface DepositRecord {
   id: string;
