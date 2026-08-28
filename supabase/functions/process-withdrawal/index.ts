@@ -51,7 +51,7 @@ serve(async (req) => {
       throw new Error('Not authenticated');
     }
 
-    const { action, amount, walletAddress, withdrawalId } = await req.json();
+    const { action, amount, walletAddress, withdrawalId, transactionHash, reason } = await req.json();
 
     if (action === 'request-withdrawal') {
       console.log('Processing withdrawal request for user:', user.id);
