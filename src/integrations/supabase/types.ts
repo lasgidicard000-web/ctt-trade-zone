@@ -118,6 +118,56 @@ export type Database = {
         }
         Relationships: []
       }
+      bot_trades: {
+        Row: {
+          amount_usd: number
+          bot_id: string
+          created_at: string
+          equity: number | null
+          id: string
+          note: string | null
+          pnl: number
+          price: number
+          qty: number
+          side: string
+          user_id: string
+        }
+        Insert: {
+          amount_usd: number
+          bot_id: string
+          created_at?: string
+          equity?: number | null
+          id?: string
+          note?: string | null
+          pnl?: number
+          price: number
+          qty: number
+          side: string
+          user_id: string
+        }
+        Update: {
+          amount_usd?: number
+          bot_id?: string
+          created_at?: string
+          equity?: number | null
+          id?: string
+          note?: string | null
+          pnl?: number
+          price?: number
+          qty?: number
+          side?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_trades_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "trading_bots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       card_reveal_attempts: {
         Row: {
           card_id: string
@@ -447,6 +497,186 @@ export type Database = {
           updated_at?: string
           user_id?: string
           wallet_address?: string
+        }
+        Relationships: []
+      }
+      demo_accounts: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          realized_pnl: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          realized_pnl?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          realized_pnl?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      demo_orders: {
+        Row: {
+          amount_usd: number
+          created_at: string
+          filled_at: string | null
+          filled_price: number | null
+          id: string
+          leverage: number
+          market: string
+          order_type: string
+          price: number | null
+          qty: number
+          side: string
+          status: string
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          amount_usd: number
+          created_at?: string
+          filled_at?: string | null
+          filled_price?: number | null
+          id?: string
+          leverage?: number
+          market?: string
+          order_type?: string
+          price?: number | null
+          qty: number
+          side: string
+          status?: string
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          amount_usd?: number
+          created_at?: string
+          filled_at?: string | null
+          filled_price?: number | null
+          id?: string
+          leverage?: number
+          market?: string
+          order_type?: string
+          price?: number | null
+          qty?: number
+          side?: string
+          status?: string
+          symbol?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      demo_positions: {
+        Row: {
+          close_price: number | null
+          close_reason: string | null
+          closed_at: string | null
+          entry_price: number
+          id: string
+          leverage: number
+          liq_price: number | null
+          margin: number
+          market: string
+          opened_at: string
+          pnl: number
+          qty: number
+          side: string
+          status: string
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          close_price?: number | null
+          close_reason?: string | null
+          closed_at?: string | null
+          entry_price: number
+          id?: string
+          leverage?: number
+          liq_price?: number | null
+          margin: number
+          market?: string
+          opened_at?: string
+          pnl?: number
+          qty: number
+          side: string
+          status?: string
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          close_price?: number | null
+          close_reason?: string | null
+          closed_at?: string | null
+          entry_price?: number
+          id?: string
+          leverage?: number
+          liq_price?: number | null
+          margin?: number
+          market?: string
+          opened_at?: string
+          pnl?: number
+          qty?: number
+          side?: string
+          status?: string
+          symbol?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      demo_trades: {
+        Row: {
+          amount_usd: number
+          created_at: string
+          fee: number
+          id: string
+          kind: string
+          market: string
+          pnl: number
+          price: number
+          qty: number
+          side: string
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          amount_usd: number
+          created_at?: string
+          fee?: number
+          id?: string
+          kind?: string
+          market: string
+          pnl?: number
+          price: number
+          qty: number
+          side: string
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          amount_usd?: number
+          created_at?: string
+          fee?: number
+          id?: string
+          kind?: string
+          market?: string
+          pnl?: number
+          price?: number
+          qty?: number
+          side?: string
+          symbol?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1261,6 +1491,75 @@ export type Database = {
         }
         Relationships: []
       }
+      trading_bots: {
+        Row: {
+          created_at: string
+          grid_count: number | null
+          grid_lower: number | null
+          grid_upper: number | null
+          id: string
+          interval_minutes: number
+          investment: number
+          last_tick_at: string | null
+          name: string
+          pnl: number
+          safety_orders: number | null
+          status: string
+          stop_loss_pct: number | null
+          stopped_at: string | null
+          strategy: string
+          symbol: string
+          take_profit_pct: number | null
+          trades_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          grid_count?: number | null
+          grid_lower?: number | null
+          grid_upper?: number | null
+          id?: string
+          interval_minutes?: number
+          investment: number
+          last_tick_at?: string | null
+          name: string
+          pnl?: number
+          safety_orders?: number | null
+          status?: string
+          stop_loss_pct?: number | null
+          stopped_at?: string | null
+          strategy: string
+          symbol: string
+          take_profit_pct?: number | null
+          trades_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          grid_count?: number | null
+          grid_lower?: number | null
+          grid_upper?: number | null
+          id?: string
+          interval_minutes?: number
+          investment?: number
+          last_tick_at?: string | null
+          name?: string
+          pnl?: number
+          safety_orders?: number | null
+          status?: string
+          stop_loss_pct?: number | null
+          stopped_at?: string | null
+          strategy?: string
+          symbol?: string
+          take_profit_pct?: number | null
+          trades_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -1629,6 +1928,26 @@ export type Database = {
         Args: { _global_pin?: string; _mode: string }
         Returns: Json
       }
+      bot_create: {
+        Args: {
+          _grid_count?: number
+          _grid_lower?: number
+          _grid_upper?: number
+          _interval_minutes?: number
+          _investment: number
+          _name: string
+          _safety_orders?: number
+          _stop_loss_pct?: number
+          _strategy: string
+          _symbol: string
+          _take_profit_pct?: number
+        }
+        Returns: Json
+      }
+      bot_set_status: {
+        Args: { _bot_id: string; _status: string }
+        Returns: Json
+      }
       card_spend: {
         Args: { _amount_usd: number; _card_id: string; _merchant: string }
         Returns: Json
@@ -1637,6 +1956,43 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      demo_cancel_order: { Args: { _order_id: string }; Returns: Json }
+      demo_close_position: {
+        Args: { _position_id: string; _reason?: string }
+        Returns: Json
+      }
+      demo_engine_tick: { Args: never; Returns: Json }
+      demo_get_account: {
+        Args: never
+        Returns: {
+          balance: number
+          created_at: string
+          id: string
+          realized_pnl: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "demo_accounts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      demo_place_order: {
+        Args: {
+          _amount_usd: number
+          _leverage?: number
+          _limit_price?: number
+          _market: string
+          _order_type: string
+          _side: string
+          _symbol: string
+        }
+        Returns: Json
+      }
+      demo_price: { Args: { _symbol: string }; Returns: number }
+      demo_reset_account: { Args: never; Returns: Json }
       email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
