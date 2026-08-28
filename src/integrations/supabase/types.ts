@@ -2289,6 +2289,10 @@ export type Database = {
         Returns: Json
       }
       live_price: { Args: { _symbol: string }; Returns: number }
+      live_refund_withdrawal: {
+        Args: { _notes: string; _status: string; _withdrawal_id: string }
+        Returns: Json
+      }
       live_withdraw: {
         Args: { _address: string; _amount: number }
         Returns: Json
