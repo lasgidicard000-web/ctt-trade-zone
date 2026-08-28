@@ -561,7 +561,14 @@ const AdminDepositManagement = () => {
                           accountEmail={
                             users.find((u) => u.id === deposit.user_id)?.email || ""
                           }
-                          usdRate={null}
+                          usdRate={
+                            prices.find(
+                              (p) =>
+                                p.symbol.toUpperCase() ===
+                                deposit.coin_symbol.toUpperCase()
+                            )?.price ?? null
+                          }
+
                           triggerLabel="Receipt"
                         />
                         <Button
