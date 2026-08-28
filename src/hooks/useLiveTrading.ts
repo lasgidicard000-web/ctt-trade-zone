@@ -81,8 +81,10 @@ export const useLiveTrading = () => {
       db
         .from("withdrawals")
         .select("id, amount, wallet_address, fee, status, created_at")
+        .like("notes", "Live trading%")
         .order("created_at", { ascending: false })
         .limit(40),
+
     ]);
 
     if (acc) {
