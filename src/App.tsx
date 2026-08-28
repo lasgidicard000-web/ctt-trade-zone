@@ -39,6 +39,7 @@ import ReplyToMessage from "./pages/ReplyToMessage";
 import Downloads from "./pages/Downloads";
 import DemoTrading from "./pages/DemoTrading";
 import TradingBots from "./pages/TradingBots";
+import LiveTrading from "./pages/LiveTrading";
 
 
 
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/chat" element={<Chat />} />
             <Route path="/simulator" element={<TradingSimulator />} />
             <Route path="/demo-trading" element={<DemoTrading />} />
+            <Route path="/live-trading" element={<LiveTrading />} />
             <Route path="/trading-bots" element={<TradingBots />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/transactions" element={<TransactionHistory />} />

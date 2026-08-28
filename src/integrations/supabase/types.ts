@@ -850,6 +850,188 @@ export type Database = {
           },
         ]
       }
+      live_accounts: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          realized_pnl: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          realized_pnl?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          realized_pnl?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      live_funding: {
+        Row: {
+          amount_btc: number
+          amount_usd: number
+          btc_rate: number
+          card_id: string
+          created_at: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_btc: number
+          amount_usd: number
+          btc_rate: number
+          card_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_btc?: number
+          amount_usd?: number
+          btc_rate?: number
+          card_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_funding_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "virtual_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_holdings: {
+        Row: {
+          avg_price: number
+          coin_symbol: string
+          created_at: string
+          id: string
+          qty: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avg_price?: number
+          coin_symbol: string
+          created_at?: string
+          id?: string
+          qty?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avg_price?: number
+          coin_symbol?: string
+          created_at?: string
+          id?: string
+          qty?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      live_orders: {
+        Row: {
+          amount_usd: number
+          created_at: string
+          filled_at: string | null
+          filled_price: number | null
+          id: string
+          order_type: string
+          price: number | null
+          qty: number
+          side: string
+          status: string
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          amount_usd: number
+          created_at?: string
+          filled_at?: string | null
+          filled_price?: number | null
+          id?: string
+          order_type: string
+          price?: number | null
+          qty: number
+          side: string
+          status?: string
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          amount_usd?: number
+          created_at?: string
+          filled_at?: string | null
+          filled_price?: number | null
+          id?: string
+          order_type?: string
+          price?: number | null
+          qty?: number
+          side?: string
+          status?: string
+          symbol?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      live_trades: {
+        Row: {
+          amount_usd: number
+          created_at: string
+          fee: number
+          id: string
+          pnl: number
+          price: number
+          qty: number
+          side: string
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          amount_usd: number
+          created_at?: string
+          fee?: number
+          id?: string
+          pnl?: number
+          price: number
+          qty: number
+          side: string
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          amount_usd?: number
+          created_at?: string
+          fee?: number
+          id?: string
+          pnl?: number
+          price?: number
+          qty?: number
+          side?: string
+          symbol?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mail_drafts: {
         Row: {
           body: string | null
@@ -2073,6 +2255,44 @@ export type Database = {
         Returns: boolean
       }
       issue_virtual_card: { Args: never; Returns: Json }
+      live_cancel_order: { Args: { _order_id: string }; Returns: Json }
+      live_engine_tick: { Args: never; Returns: Json }
+      live_fund_from_card: {
+        Args: { _amount_usd: number; _card_id: string }
+        Returns: Json
+      }
+      live_get_account: {
+        Args: never
+        Returns: {
+          balance: number
+          created_at: string
+          id: string
+          realized_pnl: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "live_accounts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      live_place_order: {
+        Args: {
+          _amount_usd: number
+          _limit_price?: number
+          _order_type: string
+          _side: string
+          _symbol: string
+        }
+        Returns: Json
+      }
+      live_price: { Args: { _symbol: string }; Returns: number }
+      live_withdraw: {
+        Args: { _address: string; _amount: number }
+        Returns: Json
+      }
       log_card_event: {
         Args: {
           _action: string
