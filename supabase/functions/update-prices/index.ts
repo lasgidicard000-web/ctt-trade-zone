@@ -96,6 +96,7 @@ serve(async (req) => {
         .update({
           price: priceStr,
           change_24h: change24h.toFixed(2),
+          price_source: 'live',
           updated_at: new Date().toISOString(),
         })
         .eq('id', coin.id);
