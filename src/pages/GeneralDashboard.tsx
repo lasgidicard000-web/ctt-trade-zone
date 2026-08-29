@@ -61,6 +61,9 @@ const GeneralDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [portrait, setPortrait] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
   const [displayName, setDisplayName] = useState("");
   const [, setTick] = useState(0);
   const { byInvestment } = useDailyRoi(user?.id);
