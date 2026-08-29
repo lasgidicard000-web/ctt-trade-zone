@@ -739,6 +739,7 @@ const Wallet = () => {
           </div>
         )}
 
+        {user && <SpendCardMerchants userId={user.id} />}
 
 
         <Card className="mb-6 border-border bg-gradient-to-br from-primary/10 to-accent/10 p-6">
