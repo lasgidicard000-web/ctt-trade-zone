@@ -157,6 +157,37 @@ const GeneralDashboard = () => {
     `${r.inv.plan_id ?? ""} ${r.inv.plan_name ?? ""}`.toLowerCase().includes("general")
   );
 
+  const onPickPhoto = async (file: File | undefined) => {
+    if (!file || !user?.id) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/portrait-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { error: dbErr } = await supabase
+        .from("profiles")
+        .update({ avatar_url: path } as never)
+        .eq("user_id", user.id);
+      if (dbErr) throw dbErr;
+      const { data: signed } = await supabase.storage.from("avatars").createSignedUrl(path, 3600);
+      setPortrait(signed?.signedUrl ?? null);
+      toast.success("Profile photo updated");
+    } catch (err) {
+      console.error("General portrait upload failed:", err);
+      toast.error("Could not update photo");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
   if (loading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -166,6 +197,7 @@ const GeneralDashboard = () => {
   }
 
   const generalBadge = planBadgeUrl("general");
+
 
   return (
     <div className="general-theme relative min-h-screen bg-background p-4">
