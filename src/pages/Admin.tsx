@@ -427,13 +427,27 @@ const Admin = () => {
           <TabsContent value="prices" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Manage Coin Prices</CardTitle>
+                <CardTitle className="flex flex-wrap items-center justify-between gap-3">
+                  <span>Manage Coin Prices</span>
+                  <Button variant="outline" size="sm" onClick={handleSyncPrices} disabled={syncing}>
+                    {syncing ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                    )}
+                    Sync live prices now
+                  </Button>
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Live market prices refresh automatically every 2 minutes. Lock a coin to hold an
+                  admin-set price; unlock it to return to the real market price.
+                </p>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {coinPrices.map((coin) => (
-                    <div key={coin.id} className="flex items-end gap-4 p-4 border border-border rounded-lg">
-                      <div className="flex-1">
+                    <div key={coin.id} className="flex flex-wrap items-end gap-4 p-4 border border-border rounded-lg">
+                      <div className="flex-1 min-w-[240px]">
                         <Label htmlFor={`price-${coin.id}`}>
                           {coin.symbol} - {coin.name}
                         </Label>
@@ -456,6 +470,27 @@ const Admin = () => {
                             Update
                           </Button>
                         </div>
+                        <div className="mt-3 flex items-center gap-2">
+                          <Switch
+                            id={`lock-${coin.id}`}
+                            checked={!!coin.locked}
+                            onCheckedChange={(v) => handleToggleLock(coin, v)}
+                          />
+                          <Label
+                            htmlFor={`lock-${coin.id}`}
+                            className="flex items-center gap-1 text-sm text-muted-foreground"
+                          >
+                            {coin.locked ? (
+                              <>
+                                <Lock className="h-3.5 w-3.5" /> Manual (locked)
+                              </>
+                            ) : (
+                              <>
+                                <Unlock className="h-3.5 w-3.5" /> Live market price
+                              </>
+                            )}
+                          </Label>
+                        </div>
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-muted-foreground">Current Price</p>
@@ -466,6 +501,14 @@ const Admin = () => {
                           24h: {coin.change_24h > 0 ? "+" : ""}
                           {coin.change_24h}%
                         </p>
+                        <Badge variant={coin.locked ? "secondary" : "outline"} className="mt-1">
+                          {coin.locked ? "manual" : "live"}
+                        </Badge>
+                        {coin.updated_at && (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Updated {new Date(coin.updated_at).toLocaleString()}
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))}
