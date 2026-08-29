@@ -193,7 +193,7 @@ serve(async (req) => {
         const { error: refundErr } = await supabaseClient.rpc('live_refund_withdrawal', {
           _withdrawal_id: withdrawalId,
           _status: 'cancelled',
-          _notes: 'Cancelled by user',
+          _notes: 'Live trading terminal withdrawal — cancelled by user',
         });
         if (refundErr) throw refundErr;
         return new Response(
@@ -325,7 +325,7 @@ serve(async (req) => {
         const { error: refundErr } = await supabaseClient.rpc('live_refund_withdrawal', {
           _withdrawal_id: withdrawalId,
           _status: 'rejected',
-          _notes: `Rejected by admin: ${reason}`,
+          _notes: `Live trading terminal withdrawal — rejected by admin: ${reason}`,
         });
         if (refundErr) throw refundErr;
         return new Response(
