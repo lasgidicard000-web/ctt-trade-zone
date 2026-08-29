@@ -392,8 +392,11 @@ export type Database = {
           created_at: string
           icon_url: string | null
           id: string
+          locked: boolean
+          manual_by: string | null
           name: string
           price: number
+          price_source: string
           symbol: string
           updated_at: string
         }
@@ -402,8 +405,11 @@ export type Database = {
           created_at?: string
           icon_url?: string | null
           id?: string
+          locked?: boolean
+          manual_by?: string | null
           name: string
           price: number
+          price_source?: string
           symbol: string
           updated_at?: string
         }
@@ -412,8 +418,11 @@ export type Database = {
           created_at?: string
           icon_url?: string | null
           id?: string
+          locked?: boolean
+          manual_by?: string | null
           name?: string
           price?: number
+          price_source?: string
           symbol?: string
           updated_at?: string
         }
