@@ -90,6 +90,21 @@ const GeneralDashboard = () => {
       if (alive) setInvestments(((data as any) ?? []) as Investment[]);
     };
     load();
+    (async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name, avatar_url")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!alive) return;
+      setDisplayName(profile?.display_name ?? "");
+      const raw = (profile as { avatar_url?: string | null })?.avatar_url ?? null;
+      if (!raw) return setPortrait(null);
+      if (raw.startsWith("http") || raw.startsWith("/")) return setPortrait(raw);
+      const { data: signed } = await supabase.storage.from("avatars").createSignedUrl(raw, 3600);
+      if (alive) setPortrait(signed?.signedUrl ?? null);
+    })();
+
     const channel = supabase
       .channel(`general_dash_${user.id}`)
       .on(
