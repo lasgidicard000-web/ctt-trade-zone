@@ -111,3 +111,43 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* ---- General member dashboard: premium dark + gold surface ---- */
+@layer base {
+  .general-theme {
+    --background: 235 60% 4%;
+    --foreground: 45 30% 96%;
+
+    --card: 235 45% 8%;
+    --card-foreground: 45 25% 95%;
+
+    --popover: 235 55% 6%;
+    --popover-foreground: 45 25% 95%;
+
+    --primary: 42 88% 55%;
+    --primary-foreground: 235 60% 6%;
+
+    --secondary: 235 35% 12%;
+    --secondary-foreground: 45 25% 94%;
+
+    --muted: 235 30% 12%;
+    --muted-foreground: 42 20% 72%;
+
+    --accent: 42 80% 62%;
+    --accent-foreground: 235 60% 6%;
+
+    --border: 42 45% 22%;
+    --input: 42 45% 22%;
+    --ring: 42 88% 60%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(42 88% 55%), hsl(35 90% 45%));
+    --glow-gold: 0 0 48px hsl(42 88% 55% / 0.28);
+
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--background));
+  }
+
+  .general-theme .general-glow {
+    box-shadow: var(--glow-gold);
+  }
+}

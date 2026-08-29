@@ -58,9 +58,12 @@ const GeneralDashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [investments, setInvestments] = useState<Investment[]>([]);
+  const [portrait, setPortrait] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState("");
   const [, setTick] = useState(0);
   const { byInvestment } = useDailyRoi(user?.id);
   const { entitlements } = useEntitlements(user?.id);
+
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
@@ -87,6 +90,21 @@ const GeneralDashboard = () => {
       if (alive) setInvestments(((data as any) ?? []) as Investment[]);
     };
     load();
+    (async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name, avatar_url")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!alive) return;
+      setDisplayName(profile?.display_name ?? "");
+      const raw = (profile as { avatar_url?: string | null })?.avatar_url ?? null;
+      if (!raw) return setPortrait(null);
+      if (raw.startsWith("http") || raw.startsWith("/")) return setPortrait(raw);
+      const { data: signed } = await supabase.storage.from("avatars").createSignedUrl(raw, 3600);
+      if (alive) setPortrait(signed?.signedUrl ?? null);
+    })();
+
     const channel = supabase
       .channel(`general_dash_${user.id}`)
       .on(
@@ -150,29 +168,59 @@ const GeneralDashboard = () => {
   const generalBadge = planBadgeUrl("general");
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-500/[0.07] via-background to-background p-4">
-      <div className="container mx-auto max-w-6xl py-10">
+    <div className="general-theme relative min-h-screen bg-background p-4">
+      {/* ambient gold glow */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[420px] opacity-70"
+        style={{
+          background:
+            "radial-gradient(60% 100% at 50% 0%, hsl(42 88% 55% / 0.18), transparent 70%)",
+        }}
+      />
+      <div className="container relative mx-auto max-w-6xl py-10">
         {/* Header */}
-        <Card className="mb-6 overflow-hidden border-amber-500/40 bg-gradient-to-br from-amber-500/15 via-primary/10 to-transparent">
+        <Card className="general-glow mb-6 overflow-hidden border-primary/40 bg-gradient-to-br from-primary/15 via-card to-card">
           <div className="flex flex-wrap items-center justify-between gap-6 p-6">
-            <div className="flex items-center gap-4">
-              {generalBadge ? (
-                <img src={generalBadge} alt="General plan badge" className="h-16 w-16 drop-shadow" />
-              ) : (
-                <span className="rounded-full bg-amber-500/20 p-4">
-                  <Crown className="h-8 w-8 text-amber-500" />
-                </span>
-              )}
+            <div className="flex items-center gap-5">
+              <div className="relative shrink-0">
+                <div className="rounded-2xl bg-gradient-to-br from-primary to-primary/20 p-[2px]">
+                  <div className="h-24 w-24 overflow-hidden rounded-2xl bg-muted sm:h-28 sm:w-28">
+                    {portrait ? (
+                      <img
+                        src={portrait}
+                        alt="General plan member portrait with gold plan shields"
+                        className="h-full w-full object-cover object-top"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Crown className="h-8 w-8 text-primary" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {generalBadge && (
+                  <img
+                    src={generalBadge}
+                    alt="General plan badge"
+                    className="absolute -bottom-2 -right-2 h-10 w-10 drop-shadow"
+                  />
+                )}
+              </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-3xl font-bold leading-tight">General Member Dashboard</h1>
-                  <Badge className="bg-amber-500/20 text-amber-600 hover:bg-amber-500/20">
-                    Tier {entitlements.tier_rank || 5}
+                  <Badge className="bg-primary/20 text-primary hover:bg-primary/20">
+                    <Crown className="mr-1 h-3 w-3" /> Tier {entitlements.tier_rank || 5}
                   </Badge>
-                  <span className="flex items-center gap-1 rounded-full bg-accent/20 px-2 py-1 text-xs text-accent">
+                  <span className="flex items-center gap-1 rounded-full bg-accent/15 px-2 py-1 text-xs text-accent">
                     <Radio className="h-3 w-3 animate-pulse" /> Live
                   </span>
                 </div>
+                <p className="mt-1 text-sm font-medium text-primary">
+                  {displayName || "General member"}
+                </p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {hasGeneral
                     ? "Highest tier active — full operating privileges unlocked."
@@ -191,6 +239,7 @@ const GeneralDashboard = () => {
             </div>
           </div>
         </Card>
+
 
         {/* Totals */}
         <div className="mb-6 grid gap-4 md:grid-cols-3">
