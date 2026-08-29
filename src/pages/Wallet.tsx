@@ -708,6 +708,17 @@ const Wallet = () => {
         )}
 
         {user && (
+          <GeneralUpgradeBanner
+            userId={user.id}
+            availableUsd={walletUsd}
+            btcBalance={Number(walletBalances.find((b) => b.coin_symbol === "BTC")?.balance ?? 0)}
+            usdtBalance={Number(walletBalances.find((b) => b.coin_symbol === "USDT")?.balance ?? 0)}
+            btcPrice={Number(coinPrices.find((c) => c.symbol === "BTC")?.price ?? 0)}
+            onUpgraded={fetchData}
+          />
+        )}
+
+        {user && (
           <div className="mb-6">
             <ReferralLinkCard userId={user.id} />
             <div className="mt-1 flex justify-end">
