@@ -210,9 +210,10 @@ const Admin = () => {
       return;
     }
 
+    // A manual price edit locks the coin so the live market sync won't overwrite it
     const { error } = await supabase
       .from("coin_prices")
-      .update({ price: newPrice })
+      .update({ price: newPrice, price_source: "manual", locked: true, manual_by: user?.id ?? null } as any)
       .eq("id", coinId);
 
     if (error) {
@@ -223,12 +224,52 @@ const Admin = () => {
       });
     } else {
       toast({
-        title: "Success",
-        description: "Price updated successfully",
+        title: "Price locked to manual value",
+        description: "This coin is now excluded from the live market sync until unlocked.",
       });
       fetchData();
     }
   };
+
+  const handleToggleLock = async (coin: CoinPrice, locked: boolean) => {
+    const { error } = await supabase
+      .from("coin_prices")
+      .update({
+        locked,
+        price_source: locked ? "manual" : "live",
+        manual_by: locked ? user?.id ?? null : null,
+      } as any)
+      .eq("id", coin.id);
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to change price source", variant: "destructive" });
+      return;
+    }
+    toast({
+      title: locked ? `${coin.symbol} locked to manual price` : `${coin.symbol} back on live market price`,
+      description: locked
+        ? "The market sync will skip this coin."
+        : "The next sync will pull the real market price.",
+    });
+    fetchData();
+  };
+
+  const handleSyncPrices = async () => {
+    setSyncing(true);
+    const { data, error } = await supabase.functions.invoke("update-prices");
+    setSyncing(false);
+
+    if (error) {
+      toast({ title: "Sync failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({
+      title: "Live prices synced",
+      description: `${(data as any)?.updated_count ?? 0} updated · ${(data as any)?.locked_count ?? 0} locked (manual).`,
+    });
+    fetchData();
+  };
+
 
   const handleApproveWithdrawal = async () => {
     if (!selectedWithdrawal) return;
