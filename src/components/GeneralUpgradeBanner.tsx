@@ -95,7 +95,12 @@ export const GeneralUpgradeBanner = ({
     );
   }
 
-  if (availableUsd < required) return null;
+  // Only offer the upgrade when a supported funding source (USDT or BTC) can
+  // actually cover the principal — otherwise Accept would always fail.
+  const btcUsd = btcPrice > 0 ? btcBalance * btcPrice : 0;
+  const payableUsd = Math.max(usdtBalance, btcUsd);
+
+  if (availableUsd < required || payableUsd < required) return null;
 
   const accept = async () => {
     setBusy(true);
