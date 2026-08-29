@@ -114,6 +114,7 @@ serve(async (req) => {
         message: 'Prices updated from CoinMarketCap',
         updated_count: updated,
         skipped_count: skipped,
+        locked_count: lockedCount,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
