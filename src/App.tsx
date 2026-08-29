@@ -40,6 +40,7 @@ import Downloads from "./pages/Downloads";
 import DemoTrading from "./pages/DemoTrading";
 import TradingBots from "./pages/TradingBots";
 import LiveTrading from "./pages/LiveTrading";
+import GeneralDashboard from "./pages/GeneralDashboard";
 
 
 
@@ -67,6 +68,7 @@ const App = () => (
             <Route path="/redemption-history" element={<RedemptionHistory />} />
             <Route path="/trade" element={<Trade />} />
             <Route path="/wallet" element={<Wallet />} />
+            <Route path="/general" element={<GeneralDashboard />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/simulator" element={<TradingSimulator />} />
             <Route path="/demo-trading" element={<DemoTrading />} />

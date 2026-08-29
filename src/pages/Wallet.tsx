@@ -21,6 +21,8 @@ import { PurchasePlanDialog } from "@/components/PurchasePlanDialog";
 import { PortfolioBreakdown } from "@/components/PortfolioBreakdown";
 import { useDailyRoi } from "@/hooks/useDailyRoi";
 import { CommissionersTopUpBanner } from "@/components/CommissionersTopUpBanner";
+import { GeneralUpgradeBanner } from "@/components/GeneralUpgradeBanner";
+import { SpendCardMerchants } from "@/components/SpendCardMerchants";
 import { CttDebitCard } from "@/components/CttDebitCard";
 import { MemberProfileCard } from "@/components/MemberProfileCard";
 
@@ -706,6 +708,17 @@ const Wallet = () => {
         )}
 
         {user && (
+          <GeneralUpgradeBanner
+            userId={user.id}
+            availableUsd={walletUsd}
+            btcBalance={Number(walletBalances.find((b) => b.coin_symbol === "BTC")?.balance ?? 0)}
+            usdtBalance={Number(walletBalances.find((b) => b.coin_symbol === "USDT")?.balance ?? 0)}
+            btcPrice={Number(coinPrices.find((c) => c.symbol === "BTC")?.price ?? 0)}
+            onUpgraded={fetchData}
+          />
+        )}
+
+        {user && (
           <div className="mb-6">
             <ReferralLinkCard userId={user.id} />
             <div className="mt-1 flex justify-end">
@@ -726,6 +739,7 @@ const Wallet = () => {
           </div>
         )}
 
+        {user && <SpendCardMerchants userId={user.id} />}
 
 
         <Card className="mb-6 border-border bg-gradient-to-br from-primary/10 to-accent/10 p-6">
