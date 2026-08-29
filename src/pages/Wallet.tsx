@@ -882,6 +882,19 @@ const Wallet = () => {
 
         {user && <div className="mb-6"><DepositHistory /></div>}
 
+        {coinPrices.length > 0 && (
+          <p className="mb-2 text-xs text-muted-foreground">
+            Live market prices · last updated{" "}
+            {new Date(
+              Math.max(
+                ...coinPrices
+                  .map((c) => new Date((c as any).updated_at ?? 0).getTime())
+                  .filter((t) => !Number.isNaN(t)),
+              ),
+            ).toLocaleTimeString()}
+          </p>
+        )}
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {getCoinData().map((coin) => {
             const priceChange = priceChanges.get(coin.symbol);

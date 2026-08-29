@@ -571,7 +571,21 @@ const TradingSimulator = () => {
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Available Coins</h2>
+              <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-2xl font-bold">Available Coins</h2>
+                {coinPrices.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Live market prices · updated{" "}
+                    {new Date(
+                      Math.max(
+                        ...coinPrices
+                          .map((c) => new Date((c as any).updated_at ?? 0).getTime())
+                          .filter((t) => !Number.isNaN(t)),
+                      ),
+                    ).toLocaleTimeString()}
+                  </p>
+                )}
+              </div>
               <ScrollArea className="h-[500px] pr-4">
                 <div className="space-y-2">
                   {coinPrices.map((coin) => (
