@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, LogOut, Save, CheckCircle, XCircle } from "lucide-react";
+import { Shield, LogOut, Save, CheckCircle, XCircle, RefreshCw, Lock, Unlock, Loader2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface CoinPrice {
