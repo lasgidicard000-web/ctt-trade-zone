@@ -221,8 +221,14 @@ const GeneralDashboard = () => {
           <div className="flex flex-wrap items-center justify-between gap-6 p-6">
             <div className="flex items-center gap-5">
               <div className="relative shrink-0">
-                <div className="rounded-2xl bg-gradient-to-br from-primary to-primary/20 p-[2px]">
-                  <div className="h-24 w-24 overflow-hidden rounded-2xl bg-muted sm:h-28 sm:w-28">
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading}
+                  aria-label="Upload profile photo"
+                  className="group block rounded-2xl bg-gradient-to-br from-primary to-primary/20 p-[2px] transition-transform hover:scale-[1.02] disabled:opacity-70"
+                >
+                  <div className="relative h-24 w-24 overflow-hidden rounded-2xl bg-muted sm:h-28 sm:w-28">
                     {portrait ? (
                       <img
                         src={portrait}
@@ -235,16 +241,46 @@ const GeneralDashboard = () => {
                         <Crown className="h-8 w-8 text-primary" />
                       </div>
                     )}
+                    <span className="absolute inset-0 flex items-center justify-center bg-background/70 opacity-0 transition-opacity group-hover:opacity-100">
+                      {uploading ? (
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      ) : (
+                        <Camera className="h-5 w-5 text-primary" />
+                      )}
+                    </span>
+                    {uploading && (
+                      <span className="absolute inset-0 flex items-center justify-center bg-background/70">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      </span>
+                    )}
                   </div>
-                </div>
+                </button>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => onPickPhoto(e.target.files?.[0])}
+                />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="mt-2 h-7 w-full gap-1.5 px-2 text-[11px]"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading}
+                >
+                  <Camera className="h-3 w-3" />
+                  {uploading ? "Uploading" : portrait ? "Change photo" : "Upload photo"}
+                </Button>
                 {generalBadge && (
                   <img
                     src={generalBadge}
                     alt="General plan badge"
-                    className="absolute -bottom-2 -right-2 h-10 w-10 drop-shadow"
+                    className="pointer-events-none absolute -right-2 top-16 h-10 w-10 drop-shadow sm:top-20"
                   />
                 )}
               </div>
+
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-3xl font-bold leading-tight">General Member Dashboard</h1>
