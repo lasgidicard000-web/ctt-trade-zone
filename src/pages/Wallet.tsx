@@ -21,6 +21,8 @@ import { PurchasePlanDialog } from "@/components/PurchasePlanDialog";
 import { PortfolioBreakdown } from "@/components/PortfolioBreakdown";
 import { useDailyRoi } from "@/hooks/useDailyRoi";
 import { CommissionersTopUpBanner } from "@/components/CommissionersTopUpBanner";
+import { GeneralUpgradeBanner } from "@/components/GeneralUpgradeBanner";
+import { SpendCardMerchants } from "@/components/SpendCardMerchants";
 import { CttDebitCard } from "@/components/CttDebitCard";
 import { MemberProfileCard } from "@/components/MemberProfileCard";
 
