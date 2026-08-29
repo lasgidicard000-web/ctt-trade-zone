@@ -37,7 +37,11 @@ serve(async (req) => {
 
     // Exclude internal token CCT (Caltex Token) — managed by update-cct-price-history
     const internalSymbols = new Set(['CCT', 'CTT']);
-    const externalCoins = coins.filter((c: any) => !internalSymbols.has(c.symbol?.toUpperCase()));
+    // Admin-locked coins keep their manually set price and are skipped entirely
+    const externalCoins = coins.filter(
+      (c: any) => !internalSymbols.has(c.symbol?.toUpperCase()) && c.locked !== true,
+    );
+    const lockedCount = coins.filter((c: any) => c.locked === true).length;
     const symbols = externalCoins.map((c: any) => c.symbol.toUpperCase());
 
     if (symbols.length === 0) {
