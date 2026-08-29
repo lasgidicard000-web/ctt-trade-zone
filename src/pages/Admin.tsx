@@ -79,6 +79,7 @@ const Admin = () => {
   const [transactionHash, setTransactionHash] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
