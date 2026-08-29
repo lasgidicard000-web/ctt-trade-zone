@@ -19,6 +19,8 @@ import { useEntitlements } from "@/hooks/useEntitlements";
 import { planBadgeUrl } from "@/lib/planBadges";
 import {
   Crown,
+  Camera,
+  Loader2,
   TrendingUp,
   Radio,
   ArrowRight,
