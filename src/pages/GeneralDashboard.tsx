@@ -58,9 +58,12 @@ const GeneralDashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [investments, setInvestments] = useState<Investment[]>([]);
+  const [portrait, setPortrait] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState("");
   const [, setTick] = useState(0);
   const { byInvestment } = useDailyRoi(user?.id);
   const { entitlements } = useEntitlements(user?.id);
+
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
