@@ -29,6 +29,9 @@ interface CoinPrice {
   name: string;
   price: number;
   change_24h: number;
+  price_source?: string | null;
+  locked?: boolean | null;
+  updated_at?: string | null;
 }
 
 interface Transaction {
