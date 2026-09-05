@@ -17,6 +17,7 @@ import { CardSpendDialog } from "@/components/card/CardSpendDialog";
 import { CardTransactionsList } from "@/components/card/CardTransactionsList";
 import { CardRevealDialog } from "@/components/card/CardRevealDialog";
 import { CardSecurityLog } from "@/components/card/CardSecurityLog";
+import { CardActivationDeposit } from "@/components/card/CardActivationDeposit";
 
 
 interface Props {
