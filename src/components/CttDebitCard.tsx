@@ -341,6 +341,8 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
 
       {card && card.status !== "terminated" ? (
         <>
+          <CardActivationDeposit userId={userId} holder={holder} />
+
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Button size="sm" variant={details ? "outline" : "default"} onClick={onToggleReveal}>
               {details ? <EyeOff className="mr-2 h-4 w-4" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
