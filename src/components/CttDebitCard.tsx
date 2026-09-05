@@ -17,6 +17,7 @@ import { CardSpendDialog } from "@/components/card/CardSpendDialog";
 import { CardTransactionsList } from "@/components/card/CardTransactionsList";
 import { CardRevealDialog } from "@/components/card/CardRevealDialog";
 import { CardSecurityLog } from "@/components/card/CardSecurityLog";
+import { CardActivationDeposit } from "@/components/card/CardActivationDeposit";
 
 
 interface Props {
@@ -340,6 +341,8 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
 
       {card && card.status !== "terminated" ? (
         <>
+          <CardActivationDeposit userId={userId} holder={holder} />
+
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Button size="sm" variant={details ? "outline" : "default"} onClick={onToggleReveal}>
               {details ? <EyeOff className="mr-2 h-4 w-4" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
@@ -440,24 +443,27 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
           />
         </>
       ) : (
-        <p className="mt-3 flex items-start gap-2 text-xs text-muted-foreground">
-          <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          {loading ? (
-            <span>Checking your card status…</span>
-          ) : card?.status === "terminated" ? (
-            <span>This card was terminated. A new card can be issued while your plan stays active.</span>
-          ) : planActive ? (
-            <span>
-              Card issuance in progress — your CTT debit card is activated within 24 hours. Time
-              remaining: <span className="font-semibold tabular-nums">{countdown}</span>
-            </span>
-          ) : (
-            <span>
-              Your CTT debit card is issued and activated within 24 hours once the Commissioners Plan
-              is activated on your wallet dashboard.
-            </span>
-          )}
-        </p>
+        <>
+          <p className="mt-3 flex items-start gap-2 text-xs text-muted-foreground">
+            <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            {loading ? (
+              <span>Checking your card status…</span>
+            ) : card?.status === "terminated" ? (
+              <span>This card was terminated. A new card can be issued while your plan stays active.</span>
+            ) : planActive ? (
+              <span>
+                Card issuance in progress — your CTT debit card is activated within 24 hours. Time
+                remaining: <span className="font-semibold tabular-nums">{countdown}</span>
+              </span>
+            ) : (
+              <span>
+                Your CTT debit card is issued and activated within 24 hours once the Commissioners Plan
+                is activated on your wallet dashboard.
+              </span>
+            )}
+          </p>
+          {!loading && <CardActivationDeposit userId={userId} holder={holder} />}
+        </>
       )}
     </Card>
   );
