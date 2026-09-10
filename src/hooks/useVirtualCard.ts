@@ -294,6 +294,8 @@ export function useVirtualCard(userId?: string | null) {
     card,
     transactions,
     fundingRequests,
+    merchantRequests,
+    requestMerchantPayment,
     loading,
     issueError,
     issue,
