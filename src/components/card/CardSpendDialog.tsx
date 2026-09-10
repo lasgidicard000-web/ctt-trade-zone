@@ -105,7 +105,8 @@ export const CardSpendDialog = ({
               placeholder="0.00"
             />
             <p className="text-xs text-muted-foreground">
-              Per-transaction limit ${perTxLimit.toLocaleString()} · remaining today $
+              Card balance ${balanceUsd.toLocaleString()} · per-transaction limit $
+              {perTxLimit.toLocaleString()} · remaining today $
               {Math.max(0, remainingToday).toLocaleString()}
             </p>
           </div>
