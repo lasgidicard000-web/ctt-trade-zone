@@ -8,7 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { CreditCard, Wifi, Clock, Eye, EyeOff, Copy, ChevronDown, Receipt, ShieldCheck, Check, History } from "lucide-react";
+import { CreditCard, Wifi, Clock, Eye, EyeOff, Copy, ChevronDown, Receipt, ShieldCheck, Check, History, Wallet } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import logoAsset from "@/assets/ctttradezone-logo.png.asset.json";
 import { useVirtualCard } from "@/hooks/useVirtualCard";
@@ -18,6 +18,7 @@ import { CardTransactionsList } from "@/components/card/CardTransactionsList";
 import { CardRevealDialog } from "@/components/card/CardRevealDialog";
 import { CardSecurityLog } from "@/components/card/CardSecurityLog";
 import { CardActivationDeposit } from "@/components/card/CardActivationDeposit";
+import { CardFundingHistory } from "@/components/card/CardFundingHistory";
 
 
 interface Props {
@@ -428,6 +429,20 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="w-full justify-between px-0">
                 <span className="flex items-center gap-2 text-sm">
+                  <Wallet className="h-4 w-4 text-primary" /> Card deposits ({fundingRequests.length})
+                </span>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardFundingHistory requests={fundingRequests} />
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Collapsible className="mt-1">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-full justify-between px-0">
+                <span className="flex items-center gap-2 text-sm">
                   <Receipt className="h-4 w-4 text-primary" /> Card transactions ({transactions.length})
                 </span>
                 <ChevronDown className="h-4 w-4" />
@@ -437,6 +452,7 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
               <CardTransactionsList transactions={transactions} />
             </CollapsibleContent>
           </Collapsible>
+
 
           <Collapsible className="mt-1">
             <CollapsibleTrigger asChild>
