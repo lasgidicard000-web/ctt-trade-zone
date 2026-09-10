@@ -146,13 +146,13 @@ export const AdminCards = () => {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                <TableCell colSpan={9} className="text-center text-muted-foreground">
                   Loading…
                 </TableCell>
               </TableRow>
             ) : cards.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                <TableCell colSpan={9} className="text-center text-muted-foreground">
                   No cards issued yet
                 </TableCell>
               </TableRow>
@@ -253,7 +253,7 @@ export const AdminCards = () => {
                 </TableRow>
                 {pinCard === c.id && (
                   <TableRow>
-                    <TableCell colSpan={8}>
+                    <TableCell colSpan={9}>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-xs text-muted-foreground">
                           New 4-digit PIN for •••• {c.last4}
@@ -282,7 +282,7 @@ export const AdminCards = () => {
                 )}
                 {openLog === c.id && (
                   <TableRow>
-                    <TableCell colSpan={8}>
+                    <TableCell colSpan={9}>
                       <CardSecurityLog cardId={c.id} />
                     </TableCell>
                   </TableRow>
