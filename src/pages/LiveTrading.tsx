@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -78,6 +78,37 @@ const LiveTrading = () => {
   const marketInfo = priceMap.get(symbol);
   const lastPrice = marketInfo?.price ?? 0;
   const change = marketInfo?.change ?? 0;
+
+  // Freshest market timestamp across all tracked coins
+  const lastSyncedAt = useMemo(() => {
+    const stamps = prices
+      .map((p) => new Date(p.updated_at ?? 0).getTime())
+      .filter((t) => Number.isFinite(t) && t > 0);
+    return stamps.length ? Math.max(...stamps) : 0;
+  }, [prices]);
+
+  const [syncingPrices, setSyncingPrices] = useState(false);
+
+  const syncMarketPrices = useCallback(async () => {
+    setSyncingPrices(true);
+    try {
+      await supabase.functions.invoke("update-prices");
+    } catch {
+      /* realtime keeps the last known price */
+    } finally {
+      setSyncingPrices(false);
+    }
+  }, []);
+
+  // Keep coin_prices fresh while the terminal is open, so fills and P&L use real market prices
+  useEffect(() => {
+    const check = () => {
+      if (Date.now() - lastSyncedAt > 45000) syncMarketPrices();
+    };
+    check();
+    const id = setInterval(check, 30000);
+    return () => clearInterval(id);
+  }, [lastSyncedAt, syncMarketPrices]);
 
   useEffect(() => {
     if (lastPrice && !limitPrice) setLimitPrice(lastPrice.toFixed(lastPrice >= 1000 ? 2 : 4));
@@ -258,6 +289,19 @@ const LiveTrading = () => {
                 {heldQty.toFixed(6)} {symbol}
               </div>
             </div>
+          </div>
+          <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+            <span>
+              {syncingPrices
+                ? "Syncing market prices…"
+                : lastSyncedAt
+                  ? `Live market · updated ${new Date(lastSyncedAt).toLocaleTimeString()}`
+                  : "Waiting for market prices"}
+            </span>
+            <Button variant="ghost" size="sm" onClick={syncMarketPrices} disabled={syncingPrices}>
+              <Zap className="mr-1 h-3.5 w-3.5" />
+              Refresh
+            </Button>
           </div>
         </Card>
 
