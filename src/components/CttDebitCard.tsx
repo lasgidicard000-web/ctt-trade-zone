@@ -132,7 +132,7 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
 
 
   const planActive = Boolean(planStartedAt);
-  const isActive = card?.status === "active";
+  const isActive = card?.status === "active" && Boolean(card?.activated_at);
   const isFrozen = card?.status === "frozen";
 
   let countdown = "";
@@ -162,6 +162,12 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
       return (
         <Badge variant="secondary" className="bg-destructive/15 text-destructive">
           TERMINATED
+        </Badge>
+      );
+    if (card && !card.activated_at)
+      return (
+        <Badge variant="secondary" className="bg-amber-500/15 text-amber-600 dark:text-amber-400">
+          AWAITING ACTIVATION DEPOSIT
         </Badge>
       );
     return (
