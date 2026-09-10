@@ -46,12 +46,22 @@ export const SpendCardMerchants = ({ userId }: { userId?: string | null }) => {
     () => (card ? Math.max(0, card.daily_limit - card.spent_today) : 0),
     [card]
   );
+  const activated = Boolean(card?.activated_at);
+  const balance = card?.balance_usd ?? 0;
 
   const openMerchant = (m: Merchant) => {
     if (!card) {
       toast({
         title: "No active CTT spend card",
         description: "Activate your CTT spend card to pay these merchants.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!activated) {
+      toast({
+        title: "Card not activated yet",
+        description: `Deposit $${usd(card.activation_required_usd)} worth of USDT (TRC20) to activate your card.`,
         variant: "destructive",
       });
       return;
@@ -78,6 +88,14 @@ export const SpendCardMerchants = ({ userId }: { userId?: string | null }) => {
       toast({
         title: "Daily limit reached",
         description: `Only $${usd(remainingToday)} left today.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    if (amt > balance) {
+      toast({
+        title: "Insufficient card balance",
+        description: `Your card balance is $${usd(balance)}. Top it up with USDT (TRC20).`,
         variant: "destructive",
       });
       return;
