@@ -136,14 +136,19 @@ export function useVirtualCard(userId?: string | null) {
         credited_usd: Number((row as any).credited_usd ?? 0),
       };
       setCard(c);
-      await Promise.all([loadTransactions(c.id), loadFunding(c.id)]);
+      await Promise.all([
+        loadTransactions(c.id),
+        loadFunding(c.id),
+        loadMerchantRequests(c.id),
+      ]);
     } else {
       setCard(null);
       setTransactions([]);
       setFundingRequests([]);
+      setMerchantRequests([]);
     }
     setLoading(false);
-  }, [userId, loadTransactions, loadFunding]);
+  }, [userId, loadTransactions, loadFunding, loadMerchantRequests]);
 
   useEffect(() => {
     refresh();
