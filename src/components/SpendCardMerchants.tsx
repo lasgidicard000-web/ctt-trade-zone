@@ -190,8 +190,8 @@ export const SpendCardMerchants = ({ userId }: { userId?: string | null }) => {
                 placeholder="0.00"
               />
               <p className="text-xs text-muted-foreground">
-                Per-transaction limit ${usd(card?.per_tx_limit ?? 0)} · remaining today $
-                {usd(remainingToday)}
+                Card balance ${usd(balance)} · per-transaction limit ${usd(card?.per_tx_limit ?? 0)} ·
+                remaining today ${usd(remainingToday)}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
