@@ -277,12 +277,40 @@ jobs:
           ELECTRON_BUILD: "1"
         run: npm run build
 
+      - name: Generate Windows app icon
+        id: winicon
+        shell: bash
+        run: |
+          if npx --yes png-to-ico resources/icon.png > resources/icon.ico 2>/dev/null && [ -s resources/icon.ico ]; then
+            echo "icon=resources/icon.ico" >> "$GITHUB_OUTPUT"
+          else
+            echo "Icon conversion failed - packaging with the default icon."
+            rm -f resources/icon.ico
+            echo "icon=" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Package Windows desktop app
         shell: bash
         run: |
+          TAG="${GITHUB_REF_NAME:-manual}"
+          VERSION="$(echo "$TAG" | sed 's/^v//')"
+          case "$VERSION" in
+            [0-9]*) ;;
+            *) VERSION="1.0.0" ;;
+          esac
+          ICON_FLAG=""
+          if [ -n "${{ steps.winicon.outputs.icon }}" ]; then
+            ICON_FLAG="--icon=${{ steps.winicon.outputs.icon }}"
+          fi
           npx @electron/packager . ctttradezone \
             --platform=win32 --arch=x64 \
             --out=electron-release --overwrite \
+            $ICON_FLAG \
+            --app-version="$VERSION" \
+            --app-copyright="Copyright (c) CTT Trade Zone" \
+            --win32metadata.CompanyName="CTT Trade Zone" \
+            --win32metadata.ProductName="CTT Trade Zone" \
+            --win32metadata.FileDescription="CTT Trade Zone desktop app" \
             --ignore='^/src' --ignore='^/public' \
             --ignore='^/android' --ignore='^/ios' \
             --ignore='^/electron-release'
@@ -294,6 +322,21 @@ jobs:
           mkdir -p artifacts
           TAG="${GITHUB_REF_NAME:-manual}"
           DIR="$(ls -d electron-release/* | head -1)"
+          cat > "$DIR/README.txt" <<'TXT'
+          CTT Trade Zone - Windows portable app
+          =====================================
+
+          1. Extract this whole folder somewhere on your PC (Desktop is fine).
+          2. Open the folder and run ctttradezone.exe.
+          3. The first launch may show a blue "Windows protected your PC" notice
+             because this build is not code-signed. Click "More info" and then
+             "Run anyway". This happens only once.
+
+          Tip: right-click ctttradezone.exe and choose "Pin to Taskbar" for quick access.
+
+          The app loads the live ctttradezone.com service, so it always shows the
+          latest version of the platform - no reinstall needed for updates.
+          TXT
           (cd "$(dirname "$DIR")" && 7z a -tzip "../artifacts/ctttradezone-$TAG-windows-x64.zip" "$(basename "$DIR")")
           ls -la artifacts
 
