@@ -65,7 +65,9 @@ export const AdminCards = () => {
     const [{ data: c }, { data: t }] = await Promise.all([
       supabase
         .from("virtual_cards")
-        .select("id, user_id, last4, status, network, daily_limit, per_tx_limit, issued_at")
+        .select(
+          "id, user_id, last4, status, network, daily_limit, per_tx_limit, issued_at, balance_usd, activated_at"
+        )
         .order("issued_at", { ascending: false }),
       supabase.from("card_transactions").select("card_id, amount_usd, status, created_at"),
     ]);
@@ -134,6 +136,7 @@ export const AdminCards = () => {
               <TableHead>User ID</TableHead>
               <TableHead>Card</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Balance</TableHead>
               <TableHead>Limits</TableHead>
               <TableHead>Spend today</TableHead>
               <TableHead>Lifetime</TableHead>
@@ -168,6 +171,15 @@ export const AdminCards = () => {
                     <Badge variant="outline" className={badge(c.status)}>
                       {c.status}
                     </Badge>
+                    <div className="mt-1 text-[10px] text-muted-foreground">
+                      {c.activated_at ? "activated" : "not activated"}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-xs font-semibold tabular-nums">
+                    ${Number(c.balance_usd ?? 0).toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </TableCell>
                   <TableCell className="text-xs">
                     ${Number(c.daily_limit).toLocaleString()}/day
