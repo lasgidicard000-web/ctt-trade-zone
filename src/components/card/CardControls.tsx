@@ -32,6 +32,7 @@ export const CardControls = ({ card, onSetStatus, onSetPin, onOpenSpend }: Props
   const [pin, setPin] = useState("");
 
   const frozen = card.status === "frozen";
+  const activated = Boolean(card.activated_at);
   const pct = card.daily_limit > 0 ? Math.min(100, (card.spent_today / card.daily_limit) * 100) : 0;
 
   const toggleFreeze = async () => {
@@ -63,6 +64,29 @@ export const CardControls = ({ card, onSetStatus, onSetPin, onOpenSpend }: Props
 
   return (
     <div className="mt-4 space-y-4">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg border border-border bg-muted/30 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            Available balance
+          </p>
+          <p className="mt-0.5 text-lg font-bold tabular-nums">
+            ${card.balance_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+        </div>
+        <div className="rounded-lg border border-border bg-muted/30 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            Daily limit
+          </p>
+          <p className="mt-0.5 text-lg font-bold tabular-nums">${card.daily_limit.toLocaleString()}</p>
+        </div>
+        <div className="rounded-lg border border-border bg-muted/30 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            Per transaction
+          </p>
+          <p className="mt-0.5 text-lg font-bold tabular-nums">${card.per_tx_limit.toLocaleString()}</p>
+        </div>
+      </div>
+
       <div>
         <div className="mb-1.5 flex items-center justify-between text-xs">
           <span className="text-muted-foreground">Daily spend</span>
@@ -72,13 +96,12 @@ export const CardControls = ({ card, onSetStatus, onSetPin, onOpenSpend }: Props
         </div>
         <Progress value={pct} className="h-2" />
         <p className="mt-1.5 text-xs text-muted-foreground">
-          Per-transaction limit ${card.per_tx_limit.toLocaleString()} · lifetime spend $
-          {card.spent_total.toLocaleString()}
+          Lifetime spend ${card.spent_total.toLocaleString()}
         </p>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" onClick={onOpenSpend} disabled={frozen}>
+        <Button size="sm" onClick={onOpenSpend} disabled={frozen || !activated}>
           <ShoppingBag className="mr-2 h-4 w-4" /> Make a purchase
         </Button>
         <Button size="sm" variant="outline" onClick={toggleFreeze} disabled={busy}>

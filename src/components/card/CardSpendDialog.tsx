@@ -22,10 +22,18 @@ interface Props {
   onOpenChange: (o: boolean) => void;
   perTxLimit: number;
   remainingToday: number;
+  balanceUsd?: number;
   onSpend: (merchant: string, amount: number) => Promise<{ error?: string; result?: any }>;
 }
 
-export const CardSpendDialog = ({ open, onOpenChange, perTxLimit, remainingToday, onSpend }: Props) => {
+export const CardSpendDialog = ({
+  open,
+  onOpenChange,
+  perTxLimit,
+  remainingToday,
+  balanceUsd = 0,
+  onSpend,
+}: Props) => {
   const [merchant, setMerchant] = useState("");
   const [amount, setAmount] = useState("");
   const [busy, setBusy] = useState(false);
@@ -53,9 +61,12 @@ export const CardSpendDialog = ({ open, onOpenChange, perTxLimit, remainingToday
     }
     toast({
       title: "Purchase approved",
-      description: `$${parsed.data.amount.toLocaleString()} at ${parsed.data.merchant} (${Number(
-        result?.btc ?? 0
-      ).toFixed(8)} BTC)`,
+      description: `$${parsed.data.amount.toLocaleString()} at ${
+        parsed.data.merchant
+      } · new card balance $${Number(result?.newBalance ?? 0).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`,
     });
     setMerchant("");
     setAmount("");
@@ -68,7 +79,7 @@ export const CardSpendDialog = ({ open, onOpenChange, perTxLimit, remainingToday
         <DialogHeader>
           <DialogTitle>Card purchase</DialogTitle>
           <DialogDescription>
-            Charged to your CTT card and debited from your BTC balance at the live rate.
+            Charged to your CTT card and deducted from your card balance.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -94,7 +105,8 @@ export const CardSpendDialog = ({ open, onOpenChange, perTxLimit, remainingToday
               placeholder="0.00"
             />
             <p className="text-xs text-muted-foreground">
-              Per-transaction limit ${perTxLimit.toLocaleString()} · remaining today $
+              Card balance ${balanceUsd.toLocaleString()} · per-transaction limit $
+              {perTxLimit.toLocaleString()} · remaining today $
               {Math.max(0, remainingToday).toLocaleString()}
             </p>
           </div>

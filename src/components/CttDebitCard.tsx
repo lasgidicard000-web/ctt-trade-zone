@@ -8,7 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { CreditCard, Wifi, Clock, Eye, EyeOff, Copy, ChevronDown, Receipt, ShieldCheck, Check, History } from "lucide-react";
+import { CreditCard, Wifi, Clock, Eye, EyeOff, Copy, ChevronDown, Receipt, ShieldCheck, Check, History, Wallet } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import logoAsset from "@/assets/ctttradezone-logo.png.asset.json";
 import { useVirtualCard } from "@/hooks/useVirtualCard";
@@ -18,6 +18,7 @@ import { CardTransactionsList } from "@/components/card/CardTransactionsList";
 import { CardRevealDialog } from "@/components/card/CardRevealDialog";
 import { CardSecurityLog } from "@/components/card/CardSecurityLog";
 import { CardActivationDeposit } from "@/components/card/CardActivationDeposit";
+import { CardFundingHistory } from "@/components/card/CardFundingHistory";
 
 
 interface Props {
@@ -49,8 +50,18 @@ const usd = (n: number) =>
 const groupPan = (pan: string) => pan.replace(/(.{4})/g, "$1 ").trim();
 
 export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
-  const { card, transactions, loading, setStatus, setPin, spend, reveal, logEvent } =
-    useVirtualCard(userId);
+  const {
+    card,
+    transactions,
+    fundingRequests,
+    loading,
+    setStatus,
+    setPin,
+    spend,
+    requestFunding,
+    reveal,
+    logEvent,
+  } = useVirtualCard(userId);
   const [holder, setHolder] = useState<string>("CTT MEMBER");
   const [planStartedAt, setPlanStartedAt] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
@@ -283,8 +294,8 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
           </div>
 
           <div>
-            <p className="text-[10px] uppercase tracking-widest opacity-70">Spendable balance</p>
-            <p className="text-2xl font-bold tabular-nums">${usd(portfolioUsd)}</p>
+            <p className="text-[10px] uppercase tracking-widest opacity-70">Card balance</p>
+            <p className="text-2xl font-bold tabular-nums">${usd(card?.balance_usd ?? 0)}</p>
           </div>
 
           <div className="flex items-end justify-between gap-3">
@@ -341,7 +352,17 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
 
       {card && card.status !== "terminated" ? (
         <>
-          <CardActivationDeposit userId={userId} holder={holder} />
+          <CardActivationDeposit
+            holder={holder}
+            depositAddress={card.deposit_address}
+            creditedUsd={card.credited_usd}
+            requiredUsd={card.activation_required_usd}
+            activatedAt={card.activated_at}
+            pendingUsd={fundingRequests
+              .filter((r) => r.status === "pending")
+              .reduce((s, r) => s + r.amount_usd, 0)}
+            onRequestFunding={requestFunding}
+          />
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Button size="sm" variant={details ? "outline" : "default"} onClick={onToggleReveal}>
@@ -408,6 +429,20 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="w-full justify-between px-0">
                 <span className="flex items-center gap-2 text-sm">
+                  <Wallet className="h-4 w-4 text-primary" /> Card deposits ({fundingRequests.length})
+                </span>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardFundingHistory requests={fundingRequests} />
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Collapsible className="mt-1">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-full justify-between px-0">
+                <span className="flex items-center gap-2 text-sm">
                   <Receipt className="h-4 w-4 text-primary" /> Card transactions ({transactions.length})
                 </span>
                 <ChevronDown className="h-4 w-4" />
@@ -417,6 +452,7 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
               <CardTransactionsList transactions={transactions} />
             </CollapsibleContent>
           </Collapsible>
+
 
           <Collapsible className="mt-1">
             <CollapsibleTrigger asChild>
@@ -439,6 +475,7 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
             onOpenChange={setSpendOpen}
             perTxLimit={card.per_tx_limit}
             remainingToday={card.daily_limit - card.spent_today}
+            balanceUsd={card.balance_usd}
             onSpend={spend}
           />
         </>
@@ -462,7 +499,7 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
               </span>
             )}
           </p>
-          {!loading && <CardActivationDeposit userId={userId} holder={holder} />}
+          
         </>
       )}
     </Card>

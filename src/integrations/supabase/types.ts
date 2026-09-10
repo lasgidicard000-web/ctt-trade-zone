@@ -168,6 +168,62 @@ export type Database = {
           },
         ]
       }
+      card_funding_requests: {
+        Row: {
+          admin_note: string | null
+          amount_usd: number
+          card_id: string
+          coin_symbol: string
+          created_at: string
+          credited_at: string | null
+          deposit_address: string
+          id: string
+          network: string
+          status: string
+          tx_hash: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount_usd: number
+          card_id: string
+          coin_symbol?: string
+          created_at?: string
+          credited_at?: string | null
+          deposit_address: string
+          id?: string
+          network?: string
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount_usd?: number
+          card_id?: string
+          coin_symbol?: string
+          created_at?: string
+          credited_at?: string | null
+          deposit_address?: string
+          id?: string
+          network?: string
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_funding_requests_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "virtual_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       card_reveal_attempts: {
         Row: {
           card_id: string
@@ -1910,10 +1966,14 @@ export type Database = {
       }
       virtual_cards: {
         Row: {
+          activated_at: string | null
+          activation_required_usd: number
+          balance_usd: number
           card_number: string
           created_at: string
           cvv: string
           daily_limit: number
+          deposit_address: string | null
           expiry_month: number
           expiry_year: number
           id: string
@@ -1927,10 +1987,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          activated_at?: string | null
+          activation_required_usd?: number
+          balance_usd?: number
           card_number: string
           created_at?: string
           cvv: string
           daily_limit?: number
+          deposit_address?: string | null
           expiry_month: number
           expiry_year: number
           id?: string
@@ -1944,10 +2008,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          activated_at?: string | null
+          activation_required_usd?: number
+          balance_usd?: number
           card_number?: string
           created_at?: string
           cvv?: string
           daily_limit?: number
+          deposit_address?: string | null
           expiry_month?: number
           expiry_year?: number
           id?: string
@@ -2097,6 +2165,10 @@ export type Database = {
         Args: { _action: string; _admin_id: string; _payload: Json }
         Returns: Json
       }
+      admin_credit_card_funding: {
+        Args: { _approve: boolean; _note?: string; _request_id: string }
+        Returns: Json
+      }
       admin_get_card_pin_policy: { Args: never; Returns: Json }
       admin_list_tables: {
         Args: never
@@ -2137,6 +2209,10 @@ export type Database = {
       }
       bot_set_status: {
         Args: { _bot_id: string; _status: string }
+        Returns: Json
+      }
+      card_request_funding: {
+        Args: { _amount_usd: number; _card_id: string; _tx_hash?: string }
         Returns: Json
       }
       card_spend: {
@@ -2207,7 +2283,12 @@ export type Database = {
       get_my_card: {
         Args: never
         Returns: {
+          activated_at: string
+          activation_required_usd: number
+          balance_usd: number
+          credited_usd: number
           daily_limit: number
+          deposit_address: string
           expiry_month: number
           expiry_year: number
           has_pin: boolean

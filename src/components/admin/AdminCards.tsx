@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Snowflake, Play, Trash2, RefreshCw, History, KeyRound, KeySquare } from "lucide-react";
 import { CardSecurityLog } from "@/components/card/CardSecurityLog";
 import { CardPinPolicy } from "@/components/admin/CardPinPolicy";
+import { AdminCardFunding } from "@/components/admin/AdminCardFunding";
 import { Fragment } from "react";
 
 
@@ -20,6 +21,8 @@ interface CardRow {
   daily_limit: number;
   per_tx_limit: number;
   issued_at: string;
+  balance_usd: number;
+  activated_at: string | null;
 }
 
 interface TxRow {
@@ -62,7 +65,9 @@ export const AdminCards = () => {
     const [{ data: c }, { data: t }] = await Promise.all([
       supabase
         .from("virtual_cards")
-        .select("id, user_id, last4, status, network, daily_limit, per_tx_limit, issued_at")
+        .select(
+          "id, user_id, last4, status, network, daily_limit, per_tx_limit, issued_at, balance_usd, activated_at"
+        )
         .order("issued_at", { ascending: false }),
       supabase.from("card_transactions").select("card_id, amount_usd, status, created_at"),
     ]);
@@ -112,6 +117,7 @@ export const AdminCards = () => {
 
   return (
     <>
+      <AdminCardFunding onChanged={load} />
       <CardPinPolicy onChanged={load} />
       <div className="mb-2 flex items-center justify-between">
 
@@ -130,6 +136,7 @@ export const AdminCards = () => {
               <TableHead>User ID</TableHead>
               <TableHead>Card</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Balance</TableHead>
               <TableHead>Limits</TableHead>
               <TableHead>Spend today</TableHead>
               <TableHead>Lifetime</TableHead>
@@ -139,13 +146,13 @@ export const AdminCards = () => {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                <TableCell colSpan={9} className="text-center text-muted-foreground">
                   Loading…
                 </TableCell>
               </TableRow>
             ) : cards.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                <TableCell colSpan={9} className="text-center text-muted-foreground">
                   No cards issued yet
                 </TableCell>
               </TableRow>
@@ -164,6 +171,15 @@ export const AdminCards = () => {
                     <Badge variant="outline" className={badge(c.status)}>
                       {c.status}
                     </Badge>
+                    <div className="mt-1 text-[10px] text-muted-foreground">
+                      {c.activated_at ? "activated" : "not activated"}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-xs font-semibold tabular-nums">
+                    ${Number(c.balance_usd ?? 0).toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </TableCell>
                   <TableCell className="text-xs">
                     ${Number(c.daily_limit).toLocaleString()}/day
@@ -237,7 +253,7 @@ export const AdminCards = () => {
                 </TableRow>
                 {pinCard === c.id && (
                   <TableRow>
-                    <TableCell colSpan={8}>
+                    <TableCell colSpan={9}>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-xs text-muted-foreground">
                           New 4-digit PIN for •••• {c.last4}
@@ -266,7 +282,7 @@ export const AdminCards = () => {
                 )}
                 {openLog === c.id && (
                   <TableRow>
-                    <TableCell colSpan={8}>
+                    <TableCell colSpan={9}>
                       <CardSecurityLog cardId={c.id} />
                     </TableCell>
                   </TableRow>
