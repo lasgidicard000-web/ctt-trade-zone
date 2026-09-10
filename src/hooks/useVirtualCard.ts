@@ -102,6 +102,20 @@ export function useVirtualCard(userId?: string | null) {
     );
   }, []);
 
+  const loadMerchantRequests = useCallback(async (cardId: string) => {
+    const { data } = await supabase
+      .from("merchant_payment_requests")
+      .select(
+        "id, merchant, category, amount_usd, reference, status, admin_note, decided_at, created_at"
+      )
+      .eq("card_id", cardId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    setMerchantRequests(
+      (data ?? []).map((r: any) => ({ ...r, amount_usd: Number(r.amount_usd) })) as MerchantPaymentRequest[]
+    );
+  }, []);
+
   const refresh = useCallback(async () => {
     if (!userId) {
       setCard(null);
