@@ -1,4 +1,6 @@
 import AdminUserManagement from "@/components/AdminUserManagement";
+import { AdminOverview } from "@/components/admin/AdminOverview";
+import { AdminMembers, useAdminMembers } from "@/components/admin/AdminMembers";
 import AdminDepositManagement from "@/components/AdminDepositManagement";
 import AdminTransactions from "@/pages/AdminTransactions";
 import { useEffect, useState } from "react";
@@ -80,6 +82,12 @@ const Admin = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [processing, setProcessing] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const {
+    members,
+    totals,
+    loading: membersLoading,
+    reload: reloadMembers,
+  } = useAdminMembers();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
