@@ -61,9 +61,12 @@ export const CardSpendDialog = ({
     }
     toast({
       title: "Purchase approved",
-      description: `$${parsed.data.amount.toLocaleString()} at ${parsed.data.merchant} (${Number(
-        result?.btc ?? 0
-      ).toFixed(8)} BTC)`,
+      description: `$${parsed.data.amount.toLocaleString()} at ${
+        parsed.data.merchant
+      } · new card balance $${Number(result?.newBalance ?? 0).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`,
     });
     setMerchant("");
     setAmount("");
@@ -76,7 +79,7 @@ export const CardSpendDialog = ({
         <DialogHeader>
           <DialogTitle>Card purchase</DialogTitle>
           <DialogDescription>
-            Charged to your CTT card and debited from your BTC balance at the live rate.
+            Charged to your CTT card and deducted from your card balance.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
