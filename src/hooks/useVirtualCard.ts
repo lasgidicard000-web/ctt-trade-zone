@@ -14,6 +14,11 @@ export interface VirtualCard {
   issued_at: string;
   spent_today: number;
   spent_total: number;
+  balance_usd: number;
+  deposit_address: string | null;
+  activation_required_usd: number;
+  activated_at: string | null;
+  credited_usd: number;
 }
 
 export interface CardTransaction {
@@ -27,9 +32,23 @@ export interface CardTransaction {
   created_at: string;
 }
 
+export interface CardFundingRequest {
+  id: string;
+  amount_usd: number;
+  coin_symbol: string;
+  network: string;
+  deposit_address: string;
+  tx_hash: string | null;
+  status: string;
+  admin_note: string | null;
+  credited_at: string | null;
+  created_at: string;
+}
+
 export function useVirtualCard(userId?: string | null) {
   const [card, setCard] = useState<VirtualCard | null>(null);
   const [transactions, setTransactions] = useState<CardTransaction[]>([]);
+  const [fundingRequests, setFundingRequests] = useState<CardFundingRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [issueError, setIssueError] = useState<string | null>(null);
 
@@ -50,6 +69,20 @@ export function useVirtualCard(userId?: string | null) {
     );
   }, []);
 
+  const loadFunding = useCallback(async (cardId: string) => {
+    const { data } = await supabase
+      .from("card_funding_requests")
+      .select(
+        "id, amount_usd, coin_symbol, network, deposit_address, tx_hash, status, admin_note, credited_at, created_at"
+      )
+      .eq("card_id", cardId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    setFundingRequests(
+      (data ?? []).map((r) => ({ ...r, amount_usd: Number(r.amount_usd) })) as CardFundingRequest[]
+    );
+  }, []);
+
   const refresh = useCallback(async () => {
     if (!userId) {
       setCard(null);
@@ -65,15 +98,19 @@ export function useVirtualCard(userId?: string | null) {
         per_tx_limit: Number((row as any).per_tx_limit),
         spent_today: Number((row as any).spent_today ?? 0),
         spent_total: Number((row as any).spent_total ?? 0),
+        balance_usd: Number((row as any).balance_usd ?? 0),
+        activation_required_usd: Number((row as any).activation_required_usd ?? 1000),
+        credited_usd: Number((row as any).credited_usd ?? 0),
       };
       setCard(c);
-      await loadTransactions(c.id);
+      await Promise.all([loadTransactions(c.id), loadFunding(c.id)]);
     } else {
       setCard(null);
       setTransactions([]);
+      setFundingRequests([]);
     }
     setLoading(false);
-  }, [userId, loadTransactions]);
+  }, [userId, loadTransactions, loadFunding]);
 
   useEffect(() => {
     refresh();
@@ -141,6 +178,21 @@ export function useVirtualCard(userId?: string | null) {
     [card, refresh]
   );
 
+  const requestFunding = useCallback(
+    async (amountUsd: number, txHash?: string) => {
+      if (!card) return { error: "No card" };
+      const { error } = await supabase.rpc("card_request_funding", {
+        _card_id: card.id,
+        _amount_usd: amountUsd,
+        _tx_hash: txHash?.trim() || null,
+      });
+      if (error) return { error: error.message };
+      await refresh();
+      return {};
+    },
+    [card, refresh]
+  );
+
   const reveal = useCallback(
     async (pin: string) => {
       if (!card) return { error: "No card", code: "no_card" as const };
@@ -184,15 +236,16 @@ export function useVirtualCard(userId?: string | null) {
   return {
     card,
     transactions,
+    fundingRequests,
     loading,
     issueError,
     issue,
     setStatus,
     setPin,
     spend,
+    requestFunding,
     reveal,
     logEvent,
     refresh,
   };
 }
-
