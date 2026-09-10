@@ -28,6 +28,7 @@ import CryptoComCard from "./pages/crypto-cards/CryptoComCard";
 import MexcCard from "./pages/crypto-cards/MexcCard";
 import CoinbaseCard from "./pages/crypto-cards/CoinbaseCard";
 import SpendCard from "./pages/SpendCard";
+import MerchantPayments from "./pages/MerchantPayments";
 import InvestmentPlans from "./pages/InvestmentPlans";
 import AdminPlans from "./pages/AdminPlans";
 import AdminRoiAudit from "./pages/AdminRoiAudit";
