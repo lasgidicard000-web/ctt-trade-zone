@@ -2286,6 +2286,10 @@ export type Database = {
         Args: { _bot_id: string; _status: string }
         Returns: Json
       }
+      card_convert_btc_to_usdt: {
+        Args: { _amount_usd: number; _card_id: string; _investment_id?: string }
+        Returns: Json
+      }
       card_request_funding: {
         Args: { _amount_usd: number; _card_id: string; _tx_hash?: string }
         Returns: Json

@@ -235,6 +235,34 @@ export function useVirtualCard(userId?: string | null) {
     [card, refresh]
   );
 
+  const convertBtcToCard = useCallback(
+    async (amountUsd: number, investmentId?: string) => {
+      if (!card) return { error: "No card" };
+      const { data, error } = await supabase.rpc("card_convert_btc_to_usdt" as any, {
+        _card_id: card.id,
+        _amount_usd: amountUsd,
+        _investment_id: investmentId ?? null,
+      });
+      if (error) return { error: error.message };
+      const res = data as any;
+      await refresh();
+      if (res && res.ok === false) {
+        const reason =
+          res.reason === "card_not_active"
+            ? "Your card is not active yet."
+            : res.reason === "insufficient_btc"
+            ? `Not enough BTC. Available ${Number(res.availableUsd ?? 0).toLocaleString("en-US", {
+                style: "currency",
+                currency: "USD",
+              })}.`
+            : "Conversion could not be completed.";
+        return { error: reason };
+      }
+      return { result: res };
+    },
+    [card, refresh]
+  );
+
   const requestFunding = useCallback(
     async (amountUsd: number, txHash?: string) => {
       if (!card) return { error: "No card" };
@@ -296,6 +324,7 @@ export function useVirtualCard(userId?: string | null) {
     fundingRequests,
     merchantRequests,
     requestMerchantPayment,
+    convertBtcToCard,
     loading,
     issueError,
     issue,
