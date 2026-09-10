@@ -1,4 +1,6 @@
 import AdminUserManagement from "@/components/AdminUserManagement";
+import { AdminOverview } from "@/components/admin/AdminOverview";
+import { AdminMembers, useAdminMembers } from "@/components/admin/AdminMembers";
 import AdminDepositManagement from "@/components/AdminDepositManagement";
 import AdminTransactions from "@/pages/AdminTransactions";
 import { useEffect, useState } from "react";
@@ -80,6 +82,12 @@ const Admin = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [processing, setProcessing] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const {
+    members,
+    totals,
+    loading: membersLoading,
+    reload: reloadMembers,
+  } = useAdminMembers();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -414,8 +422,10 @@ const Admin = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="prices" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="members">Members</TabsTrigger>
             <TabsTrigger value="prices">Coin Prices</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
             <TabsTrigger value="deposits">Deposits</TabsTrigger>
@@ -423,6 +433,15 @@ const Admin = () => {
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="overview" className="space-y-4">
+            <AdminOverview totals={totals} reloadMembers={reloadMembers} />
+          </TabsContent>
+
+          <TabsContent value="members" className="space-y-4">
+            <AdminMembers members={members} loading={membersLoading} reload={reloadMembers} />
+          </TabsContent>
+
 
           <TabsContent value="prices" className="space-y-4">
             <Card>

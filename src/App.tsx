@@ -28,6 +28,7 @@ import CryptoComCard from "./pages/crypto-cards/CryptoComCard";
 import MexcCard from "./pages/crypto-cards/MexcCard";
 import CoinbaseCard from "./pages/crypto-cards/CoinbaseCard";
 import SpendCard from "./pages/SpendCard";
+import MerchantPayments from "./pages/MerchantPayments";
 import InvestmentPlans from "./pages/InvestmentPlans";
 import AdminPlans from "./pages/AdminPlans";
 import AdminRoiAudit from "./pages/AdminRoiAudit";
@@ -88,6 +89,7 @@ const App = () => (
             <Route path="/crypto-cards/mexc" element={<MexcCard />} />
             <Route path="/crypto-cards/coinbase" element={<CoinbaseCard />} />
             <Route path="/spend-card" element={<SpendCard />} />
+            <Route path="/merchant-payments" element={<MerchantPayments />} />
             <Route path="/investment-plans" element={<InvestmentPlans />} />
             <Route path="/admin/plans" element={<AdminPlans />} />
             <Route path="/admin/roi-audit" element={<AdminRoiAudit />} />

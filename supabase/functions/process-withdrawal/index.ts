@@ -264,6 +264,17 @@ serve(async (req) => {
         throw new Error('Unauthorized - Admin access required');
       }
 
+      // Load the withdrawal so we keep its origin marker and credit the right owner
+      const { data: target, error: targetError } = await supabaseClient
+        .from('withdrawals')
+        .select('user_id, notes')
+        .eq('id', withdrawalId)
+        .single();
+
+      if (targetError) throw targetError;
+
+      const isLive = (target.notes ?? '').startsWith('Live trading');
+
       // Update withdrawal status
       const { error: updateError } = await supabaseClient
         .from('withdrawals')
@@ -271,18 +282,21 @@ serve(async (req) => {
           status: 'completed',
           transaction_hash: transactionHash,
           processed_at: new Date().toISOString(),
-          notes: `Approved by admin ${user.email}`,
+          notes: isLive
+            ? `Live trading terminal withdrawal — approved by admin ${user.email}`
+            : `Approved by admin ${user.email}`,
         })
         .eq('id', withdrawalId);
 
       if (updateError) throw updateError;
 
-      // Update transaction status
+      // Update the withdrawing member's pending withdrawal transaction
       await supabaseClient
         .from('transactions')
         .update({ status: 'completed' })
-        .eq('user_id', user.id)
-        .eq('type', 'withdrawal');
+        .eq('user_id', target.user_id)
+        .eq('type', 'withdrawal')
+        .eq('status', 'pending');
 
       console.log('Withdrawal approved successfully');
 
