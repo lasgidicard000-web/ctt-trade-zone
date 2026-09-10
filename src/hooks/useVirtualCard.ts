@@ -324,6 +324,7 @@ export function useVirtualCard(userId?: string | null) {
     fundingRequests,
     merchantRequests,
     requestMerchantPayment,
+    convertBtcToCard,
     loading,
     issueError,
     issue,
