@@ -1969,6 +1969,12 @@ export type Database = {
           activated_at: string | null
           activation_required_usd: number
           balance_usd: number
+          billing_city: string | null
+          billing_country: string | null
+          billing_state: string | null
+          billing_street: string | null
+          billing_suburb: string | null
+          billing_zip: string | null
           card_number: string
           created_at: string
           cvv: string
@@ -1990,6 +1996,12 @@ export type Database = {
           activated_at?: string | null
           activation_required_usd?: number
           balance_usd?: number
+          billing_city?: string | null
+          billing_country?: string | null
+          billing_state?: string | null
+          billing_street?: string | null
+          billing_suburb?: string | null
+          billing_zip?: string | null
           card_number: string
           created_at?: string
           cvv: string
@@ -2011,6 +2023,12 @@ export type Database = {
           activated_at?: string | null
           activation_required_usd?: number
           balance_usd?: number
+          billing_city?: string | null
+          billing_country?: string | null
+          billing_state?: string | null
+          billing_street?: string | null
+          billing_suburb?: string | null
+          billing_zip?: string | null
           card_number?: string
           created_at?: string
           cvv?: string
@@ -2286,6 +2304,12 @@ export type Database = {
           activated_at: string
           activation_required_usd: number
           balance_usd: number
+          billing_city: string
+          billing_country: string
+          billing_state: string
+          billing_street: string
+          billing_suburb: string
+          billing_zip: string
           credited_usd: number
           daily_limit: number
           deposit_address: string

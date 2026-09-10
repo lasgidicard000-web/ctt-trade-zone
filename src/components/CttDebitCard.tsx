@@ -8,7 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { CreditCard, Wifi, Clock, Eye, EyeOff, Copy, ChevronDown, Receipt, ShieldCheck, Check, History, Wallet } from "lucide-react";
+import { CreditCard, Wifi, Clock, Eye, EyeOff, Copy, ChevronDown, Receipt, ShieldCheck, Check, History, Wallet, MapPin } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import logoAsset from "@/assets/ctttradezone-logo.png.asset.json";
 import { useVirtualCard } from "@/hooks/useVirtualCard";
@@ -430,6 +430,44 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
             onSetPin={setPin}
             onOpenSpend={() => setSpendOpen(true)}
           />
+
+          {(() => {
+            const parts = [
+              card.billing_street,
+              card.billing_suburb,
+              [card.billing_city, card.billing_state, card.billing_zip].filter(Boolean).join(" "),
+              card.billing_country,
+            ].filter(Boolean) as string[];
+            const formatted = parts.join(", ");
+            return (
+              <div className="mt-4 rounded-md border border-border bg-muted/40 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2 text-sm font-medium">
+                    <MapPin className="h-4 w-4 text-primary" /> Billing address
+                  </span>
+                  {formatted && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(formatted);
+                        await track("copy_billing_address");
+                        toast({ title: "Billing address copied" });
+                      }}
+                    >
+                      <Copy className="mr-1 h-3.5 w-3.5" /> Copy
+                    </Button>
+                  )}
+                </div>
+                {formatted ? (
+                  <p className="mt-1.5 text-xs text-muted-foreground">{formatted}</p>
+                ) : (
+                  <p className="mt-1.5 text-xs text-muted-foreground">No billing address on file.</p>
+                )}
+              </div>
+            );
+          })()}
 
           <Collapsible className="mt-4">
             <CollapsibleTrigger asChild>
