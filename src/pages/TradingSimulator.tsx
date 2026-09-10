@@ -154,7 +154,7 @@ const TradingSimulator = () => {
   const fetchCoinPrices = async () => {
     const { data, error } = await supabase
       .from("coin_prices")
-      .select("symbol, name, price, change_24h")
+      .select("symbol, name, price, change_24h, updated_at")
       .order("symbol");
 
     if (error) {
