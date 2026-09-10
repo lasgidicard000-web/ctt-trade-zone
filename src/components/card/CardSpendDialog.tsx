@@ -22,10 +22,18 @@ interface Props {
   onOpenChange: (o: boolean) => void;
   perTxLimit: number;
   remainingToday: number;
+  balanceUsd?: number;
   onSpend: (merchant: string, amount: number) => Promise<{ error?: string; result?: any }>;
 }
 
-export const CardSpendDialog = ({ open, onOpenChange, perTxLimit, remainingToday, onSpend }: Props) => {
+export const CardSpendDialog = ({
+  open,
+  onOpenChange,
+  perTxLimit,
+  remainingToday,
+  balanceUsd = 0,
+  onSpend,
+}: Props) => {
   const [merchant, setMerchant] = useState("");
   const [amount, setAmount] = useState("");
   const [busy, setBusy] = useState(false);
