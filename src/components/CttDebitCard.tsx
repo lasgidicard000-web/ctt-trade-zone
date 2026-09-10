@@ -475,6 +475,7 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
             onOpenChange={setSpendOpen}
             perTxLimit={card.per_tx_limit}
             remainingToday={card.daily_limit - card.spent_today}
+            balanceUsd={card.balance_usd}
             onSpend={spend}
           />
         </>
