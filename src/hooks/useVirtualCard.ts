@@ -51,10 +51,23 @@ export interface CardFundingRequest {
   created_at: string;
 }
 
+export interface MerchantPaymentRequest {
+  id: string;
+  merchant: string;
+  category: string;
+  amount_usd: number;
+  reference: string | null;
+  status: string;
+  admin_note: string | null;
+  decided_at: string | null;
+  created_at: string;
+}
+
 export function useVirtualCard(userId?: string | null) {
   const [card, setCard] = useState<VirtualCard | null>(null);
   const [transactions, setTransactions] = useState<CardTransaction[]>([]);
   const [fundingRequests, setFundingRequests] = useState<CardFundingRequest[]>([]);
+  const [merchantRequests, setMerchantRequests] = useState<MerchantPaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [issueError, setIssueError] = useState<string | null>(null);
 
