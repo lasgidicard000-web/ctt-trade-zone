@@ -19,6 +19,12 @@ export interface VirtualCard {
   activation_required_usd: number;
   activated_at: string | null;
   credited_usd: number;
+  billing_street: string | null;
+  billing_suburb: string | null;
+  billing_city: string | null;
+  billing_state: string | null;
+  billing_zip: string | null;
+  billing_country: string | null;
 }
 
 export interface CardTransaction {
