@@ -1,6 +1,7 @@
 import AdminUserManagement from "@/components/AdminUserManagement";
 import { AdminOverview } from "@/components/admin/AdminOverview";
 import { AdminMembers, useAdminMembers } from "@/components/admin/AdminMembers";
+import AdminMerchantPayments from "@/components/admin/AdminMerchantPayments";
 import AdminDepositManagement from "@/components/AdminDepositManagement";
 import AdminTransactions from "@/pages/AdminTransactions";
 import { useEffect, useState } from "react";
@@ -88,6 +89,7 @@ const Admin = () => {
     loading: membersLoading,
     reload: reloadMembers,
   } = useAdminMembers();
+  const [merchantPending, setMerchantPending] = useState<number>(0);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -423,9 +425,12 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
+            <TabsTrigger value="merchant">
+              Merchant Payments{merchantPending > 0 ? ` (${merchantPending})` : ""}
+            </TabsTrigger>
             <TabsTrigger value="prices">Coin Prices</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
             <TabsTrigger value="deposits">Deposits</TabsTrigger>
@@ -440,6 +445,13 @@ const Admin = () => {
 
           <TabsContent value="members" className="space-y-4">
             <AdminMembers members={members} loading={membersLoading} reload={reloadMembers} />
+          </TabsContent>
+
+          <TabsContent value="merchant" className="space-y-4">
+            <AdminMerchantPayments
+              reloadMembers={reloadMembers}
+              onPendingCount={setMerchantPending}
+            />
           </TabsContent>
 
 
