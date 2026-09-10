@@ -117,9 +117,9 @@ export const SpendCardMerchants = ({ userId }: { userId?: string | null }) => {
     }
     toast({
       title: `Approved at ${active.name}`,
-      description: `$${usd(amt)} charged to card ••${card?.last4} (${Number(
-        (result as any)?.btc ?? 0
-      ).toFixed(8)} BTC)`,
+      description: `$${usd(amt)} charged to card ••${card?.last4} · new card balance $${usd(
+        Number((result as any)?.newBalance ?? 0)
+      )}`,
     });
     setActive(null);
   };
@@ -134,14 +134,18 @@ export const SpendCardMerchants = ({ userId }: { userId?: string | null }) => {
           <div>
             <h3 className="font-semibold">Spend your CTT card</h3>
             <p className="text-xs text-muted-foreground">
-              Pay exchanges, retail and subscriptions directly from your BTC balance
+              Pay exchanges, retail and subscriptions straight from your card balance
             </p>
           </div>
         </div>
-        {card ? (
+        {card && activated ? (
           <Badge variant="outline" className="border-emerald-500/40 text-emerald-500">
-            <ShieldCheck className="mr-1 h-3 w-3" /> Card ••{card.last4} · ${usd(remainingToday)} left
-            today
+            <ShieldCheck className="mr-1 h-3 w-3" /> Card ••{card.last4} · ${usd(balance)} balance · $
+            {usd(remainingToday)} left today
+          </Badge>
+        ) : card ? (
+          <Badge variant="outline" className="border-amber-500/40 text-amber-500">
+            Card ••{card.last4} · activation deposit required
           </Badge>
         ) : (
           <Badge variant="outline">No active card</Badge>
@@ -170,8 +174,7 @@ export const SpendCardMerchants = ({ userId }: { userId?: string | null }) => {
           <DialogHeader>
             <DialogTitle>Pay {active?.name}</DialogTitle>
             <DialogDescription>
-              Charged to your CTT spend card and debited from your BTC balance at the live
-              rate.
+              Charged to your CTT spend card and deducted from your card balance.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
