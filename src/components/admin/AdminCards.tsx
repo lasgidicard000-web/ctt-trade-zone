@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Snowflake, Play, Trash2, RefreshCw, History, KeyRound, KeySquare } from "lucide-react";
 import { CardSecurityLog } from "@/components/card/CardSecurityLog";
 import { CardPinPolicy } from "@/components/admin/CardPinPolicy";
+import { AdminCardFunding } from "@/components/admin/AdminCardFunding";
 import { Fragment } from "react";
 
 
@@ -20,6 +21,8 @@ interface CardRow {
   daily_limit: number;
   per_tx_limit: number;
   issued_at: string;
+  balance_usd: number;
+  activated_at: string | null;
 }
 
 interface TxRow {
@@ -112,6 +115,7 @@ export const AdminCards = () => {
 
   return (
     <>
+      <AdminCardFunding onChanged={load} />
       <CardPinPolicy onChanged={load} />
       <div className="mb-2 flex items-center justify-between">
 
