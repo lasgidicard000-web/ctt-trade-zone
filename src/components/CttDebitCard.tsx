@@ -49,8 +49,18 @@ const usd = (n: number) =>
 const groupPan = (pan: string) => pan.replace(/(.{4})/g, "$1 ").trim();
 
 export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
-  const { card, transactions, loading, setStatus, setPin, spend, reveal, logEvent } =
-    useVirtualCard(userId);
+  const {
+    card,
+    transactions,
+    fundingRequests,
+    loading,
+    setStatus,
+    setPin,
+    spend,
+    requestFunding,
+    reveal,
+    logEvent,
+  } = useVirtualCard(userId);
   const [holder, setHolder] = useState<string>("CTT MEMBER");
   const [planStartedAt, setPlanStartedAt] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
@@ -283,8 +293,8 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
           </div>
 
           <div>
-            <p className="text-[10px] uppercase tracking-widest opacity-70">Spendable balance</p>
-            <p className="text-2xl font-bold tabular-nums">${usd(portfolioUsd)}</p>
+            <p className="text-[10px] uppercase tracking-widest opacity-70">Card balance</p>
+            <p className="text-2xl font-bold tabular-nums">${usd(card?.balance_usd ?? 0)}</p>
           </div>
 
           <div className="flex items-end justify-between gap-3">
@@ -341,7 +351,17 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
 
       {card && card.status !== "terminated" ? (
         <>
-          <CardActivationDeposit userId={userId} holder={holder} />
+          <CardActivationDeposit
+            holder={holder}
+            depositAddress={card.deposit_address}
+            creditedUsd={card.credited_usd}
+            requiredUsd={card.activation_required_usd}
+            activatedAt={card.activated_at}
+            pendingUsd={fundingRequests
+              .filter((r) => r.status === "pending")
+              .reduce((s, r) => s + r.amount_usd, 0)}
+            onRequestFunding={requestFunding}
+          />
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Button size="sm" variant={details ? "outline" : "default"} onClick={onToggleReveal}>
@@ -462,7 +482,7 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
               </span>
             )}
           </p>
-          {!loading && <CardActivationDeposit userId={userId} holder={holder} />}
+          
         </>
       )}
     </Card>
