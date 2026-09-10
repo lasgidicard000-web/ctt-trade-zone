@@ -47,16 +47,28 @@ const IosInstructions = ({ highlighted }: { highlighted?: boolean }) => (
       )}
     </div>
     <ol className="list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
-      <li>Download the <strong>IPA</strong> file if one is listed.</li>
-      <li>Install it with a sideloading tool (AltStore or Sideloadly) on a computer.</li>
       <li>
-        Trust the developer profile under Settings → General → VPN &amp; Device
-        Management.
+        Download the <strong>iPhone build</strong> above (the file ending in
+        <strong> .ipa</strong>) onto a Mac or PC.
+      </li>
+      <li>
+        Install <strong>AltStore</strong> or <strong>Sideloadly</strong> on that computer,
+        connect your iPhone by cable and sign in with your Apple ID.
+      </li>
+      <li>Drag the .ipa into the tool and let it install onto the phone.</li>
+      <li>
+        On the iPhone, trust the profile under Settings → General → VPN &amp; Device
+        Management, then open the app.
       </li>
     </ol>
     <p className="mt-3 text-xs text-muted-foreground">
-      No IPA yet? Open this site in Safari and tap Share → <strong>Add to Home Screen</strong>{" "}
-      to use it like an app.
+      This build is unsigned, which is why a sideloading tool is needed. A one-tap App
+      Store install requires an Apple Developer membership — once that is in place the same
+      build is delivered signed, with no extra tools.
+    </p>
+    <p className="mt-2 text-xs text-muted-foreground">
+      Quickest option today: open this site in Safari and tap Share →{" "}
+      <strong>Add to Home Screen</strong> to use it like an app.
     </p>
   </Card>
 );
