@@ -216,6 +216,25 @@ export function useVirtualCard(userId?: string | null) {
     [card, refresh]
   );
 
+  const requestMerchantPayment = useCallback(
+    async (merchant: string, category: string, amountUsd: number, reference?: string) => {
+      if (!card) return { error: "No card" };
+      const { data, error } = await supabase.rpc("merchant_request_payment", {
+        _card_id: card.id,
+        _merchant: merchant,
+        _category: category,
+        _amount_usd: amountUsd,
+        _reference: reference?.trim() || null,
+      });
+      if (error) return { error: error.message };
+      await refresh();
+      const res = data as any;
+      if (res && res.ok === false) return { error: res.reason as string };
+      return { result: res };
+    },
+    [card, refresh]
+  );
+
   const requestFunding = useCallback(
     async (amountUsd: number, txHash?: string) => {
       if (!card) return { error: "No card" };
