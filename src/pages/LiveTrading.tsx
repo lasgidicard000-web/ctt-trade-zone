@@ -290,6 +290,19 @@ const LiveTrading = () => {
               </div>
             </div>
           </div>
+          <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+            <span>
+              {syncingPrices
+                ? "Syncing market prices…"
+                : lastSyncedAt
+                  ? `Live market · updated ${new Date(lastSyncedAt).toLocaleTimeString()}`
+                  : "Waiting for market prices"}
+            </span>
+            <Button variant="ghost" size="sm" onClick={syncMarketPrices} disabled={syncingPrices}>
+              <Zap className="mr-1 h-3.5 w-3.5" />
+              Refresh
+            </Button>
+          </div>
         </Card>
 
         <div className="grid gap-4 lg:grid-cols-12">
