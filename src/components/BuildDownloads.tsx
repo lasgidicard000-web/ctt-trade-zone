@@ -173,13 +173,15 @@ const BuildDownloads = ({ compact, hideHeading, platform }: BuildDownloadsProps)
           )}
           {shown.length > 0 && os === "ios" && (
             <p className="text-xs text-muted-foreground">
-              iOS builds install with a sideloading tool (AltStore or Sideloadly) from a
-              computer.
+              <strong>iPhone:</strong> download the .ipa on a computer and install it with
+              AltStore or Sideloadly using your Apple ID. Or tap Share →{" "}
+              <strong>Add to Home Screen</strong> in Safari for instant access.
             </p>
           )}
           <p className="text-xs text-muted-foreground">
             <strong>Windows:</strong> unzip the download, then run{" "}
-            <strong>ctttradezone.exe</strong> — no installer or admin rights needed.
+            <strong>ctttradezone.exe</strong> — no installer or admin rights needed. The
+            folder includes a README with the same steps.
           </p>
 
         </div>
