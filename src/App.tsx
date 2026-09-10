@@ -89,6 +89,7 @@ const App = () => (
             <Route path="/crypto-cards/mexc" element={<MexcCard />} />
             <Route path="/crypto-cards/coinbase" element={<CoinbaseCard />} />
             <Route path="/spend-card" element={<SpendCard />} />
+            <Route path="/merchant-payments" element={<MerchantPayments />} />
             <Route path="/investment-plans" element={<InvestmentPlans />} />
             <Route path="/admin/plans" element={<AdminPlans />} />
             <Route path="/admin/roi-audit" element={<AdminRoiAudit />} />
