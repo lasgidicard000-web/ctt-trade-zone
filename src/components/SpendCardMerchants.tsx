@@ -1,19 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 import { useVirtualCard } from "@/hooks/useVirtualCard";
-import { Store, ShieldCheck, Loader2 } from "lucide-react";
+import { Store, ShieldCheck, ArrowRight } from "lucide-react";
 
 interface Merchant {
   name: string;
@@ -35,12 +26,10 @@ const MERCHANTS: Merchant[] = [
 const usd = (n: number) =>
   n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-/** Merchant tiles that spend directly from the CTT spend card. */
+/** Merchant tiles that open the merchant payments page for the CTT spend card. */
 export const SpendCardMerchants = ({ userId }: { userId?: string | null }) => {
-  const { card, spend } = useVirtualCard(userId);
-  const [active, setActive] = useState<Merchant | null>(null);
-  const [amount, setAmount] = useState("");
-  const [busy, setBusy] = useState(false);
+  const navigate = useNavigate();
+  const { card } = useVirtualCard(userId);
 
   const remainingToday = useMemo(
     () => (card ? Math.max(0, card.daily_limit - card.spent_today) : 0),
@@ -48,81 +37,6 @@ export const SpendCardMerchants = ({ userId }: { userId?: string | null }) => {
   );
   const activated = Boolean(card?.activated_at);
   const balance = card?.balance_usd ?? 0;
-
-  const openMerchant = (m: Merchant) => {
-    if (!card) {
-      toast({
-        title: "No active CTT spend card",
-        description: "Activate your CTT spend card to pay these merchants.",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (!activated) {
-      toast({
-        title: "Card not activated yet",
-        description: `Deposit $${usd(card.activation_required_usd)} worth of USDT (TRC20) to activate your card.`,
-        variant: "destructive",
-      });
-      return;
-    }
-    setActive(m);
-    setAmount("");
-  };
-
-  const submit = async () => {
-    const amt = Number(amount);
-    if (!active || !Number.isFinite(amt) || amt <= 0) {
-      toast({ title: "Enter a valid amount", variant: "destructive" });
-      return;
-    }
-    if (card && amt > card.per_tx_limit) {
-      toast({
-        title: "Over per-transaction limit",
-        description: `Maximum $${usd(card.per_tx_limit)} per purchase.`,
-        variant: "destructive",
-      });
-      return;
-    }
-    if (amt > remainingToday) {
-      toast({
-        title: "Daily limit reached",
-        description: `Only $${usd(remainingToday)} left today.`,
-        variant: "destructive",
-      });
-      return;
-    }
-    if (amt > balance) {
-      toast({
-        title: "Insufficient card balance",
-        description: `Your card balance is $${usd(balance)}. Top it up with USDT (TRC20).`,
-        variant: "destructive",
-      });
-      return;
-    }
-    setBusy(true);
-    const { error, result } = await spend(active.name, amt);
-    setBusy(false);
-    if (error) {
-      toast({ title: "Purchase failed", description: error, variant: "destructive" });
-      return;
-    }
-    if ((result as any)?.declined) {
-      toast({
-        title: "Declined",
-        description: (result as any).reason,
-        variant: "destructive",
-      });
-      return;
-    }
-    toast({
-      title: `Approved at ${active.name}`,
-      description: `$${usd(amt)} charged to card ••${card?.last4} · new card balance $${usd(
-        Number((result as any)?.newBalance ?? 0)
-      )}`,
-    });
-    setActive(null);
-  };
 
   return (
     <Card className="mb-6 border-border p-6">
@@ -157,62 +71,19 @@ export const SpendCardMerchants = ({ userId }: { userId?: string | null }) => {
           <button
             key={m.name}
             type="button"
-            onClick={() => openMerchant(m)}
+            onClick={() => navigate("/merchant-payments")}
             className="group rounded-xl border border-border bg-muted/30 p-4 text-left transition-colors hover:border-primary/50 hover:bg-primary/5"
           >
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              {m.category}
-            </p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">{m.category}</p>
             <p className="mt-1 font-semibold group-hover:text-primary">{m.name}</p>
             <p className="text-[11px] text-muted-foreground">{m.hint}</p>
           </button>
         ))}
       </div>
 
-      <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Pay {active?.name}</DialogTitle>
-            <DialogDescription>
-              Charged to your CTT spend card and deducted from your card balance.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="merchant-amount">Amount (USD)</Label>
-              <Input
-                id="merchant-amount"
-                type="number"
-                min="0"
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
-              />
-              <p className="text-xs text-muted-foreground">
-                Card balance ${usd(balance)} · per-transaction limit ${usd(card?.per_tx_limit ?? 0)} ·
-                remaining today ${usd(remainingToday)}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {[25, 50, 100, 250].map((v) => (
-                <Button key={v} variant="outline" size="sm" onClick={() => setAmount(String(v))}>
-                  ${v}
-                </Button>
-              ))}
-            </div>
-            <Button className="w-full" onClick={submit} disabled={busy}>
-              {busy ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Authorizing...
-                </>
-              ) : (
-                `Authorize payment`
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <Button className="mt-4 w-full sm:w-auto" onClick={() => navigate("/merchant-payments")}>
+        Open merchant payments <ArrowRight className="ml-2 h-4 w-4" />
+      </Button>
     </Card>
   );
 };
