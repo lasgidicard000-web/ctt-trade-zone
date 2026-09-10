@@ -1330,6 +1330,59 @@ export type Database = {
         }
         Relationships: []
       }
+      merchant_payment_requests: {
+        Row: {
+          admin_note: string | null
+          amount_usd: number
+          card_id: string
+          category: string
+          created_at: string
+          decided_at: string | null
+          id: string
+          merchant: string
+          reference: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount_usd: number
+          card_id: string
+          category?: string
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          merchant: string
+          reference?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount_usd?: number
+          card_id?: string
+          category?: string
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          merchant?: string
+          reference?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "merchant_payment_requests_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "virtual_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       milestones: {
         Row: {
           created_at: string
@@ -2187,6 +2240,10 @@ export type Database = {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: Json
       }
+      admin_decide_merchant_payment: {
+        Args: { _approve: boolean; _note?: string; _request_id: string }
+        Returns: Json
+      }
       admin_get_card_pin_policy: { Args: never; Returns: Json }
       admin_list_tables: {
         Args: never
@@ -2420,6 +2477,16 @@ export type Database = {
           _user_agent?: string
         }
         Returns: undefined
+      }
+      merchant_request_payment: {
+        Args: {
+          _amount_usd?: number
+          _card_id: string
+          _category?: string
+          _merchant: string
+          _reference?: string
+        }
+        Returns: Json
       }
       move_to_dlq: {
         Args: {
