@@ -89,6 +89,8 @@ export function useVirtualCard(userId?: string | null) {
   const [transactions, setTransactions] = useState<CardTransaction[]>([]);
   const [fundingRequests, setFundingRequests] = useState<CardFundingRequest[]>([]);
   const [merchantRequests, setMerchantRequests] = useState<MerchantPaymentRequest[]>([]);
+  const [bankAccount, setBankAccount] = useState<CardBankAccount | null>(null);
+  const [bankWithdrawals, setBankWithdrawals] = useState<CardBankWithdrawal[]>([]);
   const [loading, setLoading] = useState(true);
   const [issueError, setIssueError] = useState<string | null>(null);
 
