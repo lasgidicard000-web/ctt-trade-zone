@@ -2,6 +2,7 @@ import AdminUserManagement from "@/components/AdminUserManagement";
 import { AdminOverview } from "@/components/admin/AdminOverview";
 import { AdminMembers, useAdminMembers } from "@/components/admin/AdminMembers";
 import AdminMerchantPayments from "@/components/admin/AdminMerchantPayments";
+import AdminBankWithdrawals from "@/components/admin/AdminBankWithdrawals";
 import AdminDepositManagement from "@/components/AdminDepositManagement";
 import AdminTransactions from "@/pages/AdminTransactions";
 import { useEffect, useState } from "react";
@@ -441,6 +442,7 @@ const Admin = () => {
 
           <TabsContent value="overview" className="space-y-4">
             <AdminOverview totals={totals} reloadMembers={reloadMembers} />
+            <AdminBankWithdrawals reloadMembers={reloadMembers} />
           </TabsContent>
 
           <TabsContent value="members" className="space-y-4">

@@ -66,6 +66,10 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
     merchantRequests,
     requestMerchantPayment,
     convertBtcToCard,
+    bankAccount,
+    bankWithdrawals,
+    saveBankAccount,
+    requestBankWithdrawal,
   } = useVirtualCard(userId);
   const [holder, setHolder] = useState<string>("CTT MEMBER");
   const [planStartedAt, setPlanStartedAt] = useState<string | null>(null);
@@ -380,6 +384,24 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
             card={card}
             merchantRequests={merchantRequests}
             onRequest={requestMerchantPayment}
+            onConvert={convertBtcToCard}
+          />
+
+          <BankWithdrawalDialog
+            userId={userId}
+            card={card}
+            bankAccount={bankAccount}
+            bankWithdrawals={bankWithdrawals}
+            pendingHeld={
+              merchantRequests
+                .filter((r) => r.status === "pending")
+                .reduce((s, r) => s + r.amount_usd, 0) +
+              bankWithdrawals
+                .filter((w) => w.status === "pending")
+                .reduce((s, w) => s + w.amount_usd, 0)
+            }
+            onSaveBank={saveBankAccount}
+            onWithdraw={requestBankWithdrawal}
             onConvert={convertBtcToCard}
           />
 
