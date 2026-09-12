@@ -364,6 +364,68 @@ export function useVirtualCard(userId?: string | null) {
     [card]
   );
 
+  const saveBankAccount = useCallback(
+    async (values: {
+      holderName: string;
+      bankName: string;
+      accountNumber: string;
+      branchCode?: string;
+      country?: string;
+    }) => {
+      if (!card || !userId) return { error: "No card" };
+      const digits = values.accountNumber.replace(/\D/g, "");
+      const last4 = digits.slice(-4);
+      const masked = `•••• ${last4}`;
+      const payload = {
+        user_id: userId,
+        card_id: card.id,
+        holder_name: values.holderName,
+        bank_name: values.bankName,
+        account_masked: masked,
+        account_last4: last4,
+        branch_code: values.branchCode ?? null,
+        country: values.country ?? null,
+      };
+      const { error } = await supabase
+        .from("card_bank_accounts" as any)
+        .upsert(payload as any, { onConflict: "card_id" });
+      if (error) return { error: error.message };
+      await refresh();
+      return {};
+    },
+    [card, userId, refresh]
+  );
+
+  const requestBankWithdrawal = useCallback(
+    async (amountUsd: number) => {
+      if (!card) return { error: "No card" };
+      const { data, error } = await supabase.rpc("card_request_bank_withdrawal" as any, {
+        _card_id: card.id,
+        _amount_usd: amountUsd,
+      });
+      if (error) return { error: error.message };
+      const res = data as any;
+      await refresh();
+      if (res && res.ok === false) {
+        const reason =
+          res.reason === "card_not_active"
+            ? "Your card is not active yet."
+            : res.reason === "no_bank_account"
+            ? "Add your bank details first."
+            : res.reason === "below_minimum"
+            ? `The minimum withdrawal is $${BANK_WITHDRAWAL_MINIMUM.toLocaleString("en-US")}.`
+            : res.reason === "insufficient_balance"
+            ? `Not enough available balance. Available $${Number(res.availableUsd ?? 0).toLocaleString(
+                "en-US"
+              )}.`
+            : "The request could not be submitted.";
+        return { error: reason };
+      }
+      return { result: res };
+    },
+    [card, refresh]
+  );
+
   return {
     card,
     transactions,
@@ -371,6 +433,10 @@ export function useVirtualCard(userId?: string | null) {
     merchantRequests,
     requestMerchantPayment,
     convertBtcToCard,
+    bankAccount,
+    bankWithdrawals,
+    saveBankAccount,
+    requestBankWithdrawal,
     loading,
     issueError,
     issue,
