@@ -139,6 +139,26 @@ export function useVirtualCard(userId?: string | null) {
     );
   }, []);
 
+  const loadBank = useCallback(async (cardId: string) => {
+    const [{ data: acct }, { data: wds }] = await Promise.all([
+      supabase
+        .from("card_bank_accounts" as any)
+        .select("id, holder_name, bank_name, account_masked, account_last4, branch_code, country")
+        .eq("card_id", cardId)
+        .maybeSingle(),
+      supabase
+        .from("card_bank_withdrawals" as any)
+        .select("id, amount_usd, status, admin_note, decided_at, created_at")
+        .eq("card_id", cardId)
+        .order("created_at", { ascending: false })
+        .limit(50),
+    ]);
+    setBankAccount((acct as any) ?? null);
+    setBankWithdrawals(
+      ((wds ?? []) as any[]).map((r) => ({ ...r, amount_usd: Number(r.amount_usd) })) as CardBankWithdrawal[]
+    );
+  }, []);
+
   const refresh = useCallback(async () => {
     if (!userId) {
       setCard(null);
