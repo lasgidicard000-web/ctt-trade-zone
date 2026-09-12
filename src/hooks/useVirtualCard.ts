@@ -63,6 +63,27 @@ export interface MerchantPaymentRequest {
   created_at: string;
 }
 
+export interface CardBankAccount {
+  id: string;
+  holder_name: string;
+  bank_name: string;
+  account_masked: string;
+  account_last4: string;
+  branch_code: string | null;
+  country: string | null;
+}
+
+export interface CardBankWithdrawal {
+  id: string;
+  amount_usd: number;
+  status: string;
+  admin_note: string | null;
+  decided_at: string | null;
+  created_at: string;
+}
+
+export const BANK_WITHDRAWAL_MINIMUM = 20000;
+
 export function useVirtualCard(userId?: string | null) {
   const [card, setCard] = useState<VirtualCard | null>(null);
   const [transactions, setTransactions] = useState<CardTransaction[]>([]);
