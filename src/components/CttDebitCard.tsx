@@ -20,6 +20,7 @@ import { CardSecurityLog } from "@/components/card/CardSecurityLog";
 import { CardActivationDeposit } from "@/components/card/CardActivationDeposit";
 import { CardFundingHistory } from "@/components/card/CardFundingHistory";
 import { CardMerchantTile } from "@/components/card/CardMerchantTile";
+import { BankWithdrawalDialog } from "@/components/card/BankWithdrawalDialog";
 
 
 interface Props {
