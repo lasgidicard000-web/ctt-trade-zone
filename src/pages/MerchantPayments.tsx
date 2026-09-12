@@ -44,6 +44,8 @@ const MERCHANTS = [
   { name: "Booking.com", category: "Travel", hint: "Hotels & flights" },
 ];
 
+import { ConvertBtcToCardDialog } from "@/components/card/ConvertBtcToCardDialog";
+
 const usd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
 
