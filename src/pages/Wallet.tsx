@@ -24,6 +24,7 @@ import { CommissionersTopUpBanner } from "@/components/CommissionersTopUpBanner"
 import { GeneralUpgradeBanner } from "@/components/GeneralUpgradeBanner";
 import { SpendCardMerchants } from "@/components/SpendCardMerchants";
 import { CttDebitCard } from "@/components/CttDebitCard";
+import { MerchantPaymentsRow } from "@/components/wallet/MerchantPaymentsRow";
 import { MemberProfileCard } from "@/components/MemberProfileCard";
 
 import { ReferralLinkCard } from "@/components/ReferralLinkCard";
@@ -740,6 +741,12 @@ const Wallet = () => {
         )}
 
         {user && <SpendCardMerchants userId={user.id} />}
+
+        {user && (
+          <div className="mb-6">
+            <MerchantPaymentsRow userId={user.id} />
+          </div>
+        )}
 
 
         <Card className="mb-6 border-border bg-gradient-to-br from-primary/10 to-accent/10 p-6">

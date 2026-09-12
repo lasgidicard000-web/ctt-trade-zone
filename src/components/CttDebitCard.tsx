@@ -19,6 +19,7 @@ import { CardRevealDialog } from "@/components/card/CardRevealDialog";
 import { CardSecurityLog } from "@/components/card/CardSecurityLog";
 import { CardActivationDeposit } from "@/components/card/CardActivationDeposit";
 import { CardFundingHistory } from "@/components/card/CardFundingHistory";
+import { CardMerchantTile } from "@/components/card/CardMerchantTile";
 
 
 interface Props {
@@ -61,6 +62,9 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
     requestFunding,
     reveal,
     logEvent,
+    merchantRequests,
+    requestMerchantPayment,
+    convertBtcToCard,
   } = useVirtualCard(userId);
   const [holder, setHolder] = useState<string>("CTT MEMBER");
   const [planStartedAt, setPlanStartedAt] = useState<string | null>(null);
@@ -368,6 +372,14 @@ export const CttDebitCard = ({ userId, portfolioUsd }: Props) => {
               .filter((r) => r.status === "pending")
               .reduce((s, r) => s + r.amount_usd, 0)}
             onRequestFunding={requestFunding}
+          />
+
+          <CardMerchantTile
+            userId={userId}
+            card={card}
+            merchantRequests={merchantRequests}
+            onRequest={requestMerchantPayment}
+            onConvert={convertBtcToCard}
           />
 
           <div className="mt-3 flex flex-wrap items-center gap-2">

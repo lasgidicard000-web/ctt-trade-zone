@@ -44,6 +44,8 @@ const MERCHANTS = [
   { name: "Booking.com", category: "Travel", hint: "Hotels & flights" },
 ];
 
+import { ConvertBtcToCardDialog } from "@/components/card/ConvertBtcToCardDialog";
+
 const usd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
 
@@ -51,7 +53,8 @@ const MerchantPayments = () => {
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
-  const { card, merchantRequests, requestMerchantPayment, loading } = useVirtualCard(userId);
+  const { card, merchantRequests, requestMerchantPayment, convertBtcToCard, loading } =
+    useVirtualCard(userId);
 
   const [active, setActive] = useState<(typeof MERCHANTS)[number] | null>(null);
   const [amount, setAmount] = useState("");
@@ -218,6 +221,9 @@ const MerchantPayments = () => {
                 </div>
               </div>
             )}
+          </div>
+          <div className="mt-4">
+            <ConvertBtcToCardDialog userId={userId} card={card} onConvert={convertBtcToCard} />
           </div>
         </Card>
 
