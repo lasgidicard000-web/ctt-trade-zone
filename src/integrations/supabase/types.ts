@@ -168,6 +168,110 @@ export type Database = {
           },
         ]
       }
+      card_bank_accounts: {
+        Row: {
+          account_last4: string
+          account_masked: string
+          bank_name: string
+          branch_code: string | null
+          card_id: string
+          country: string | null
+          created_at: string
+          holder_name: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_last4: string
+          account_masked: string
+          bank_name: string
+          branch_code?: string | null
+          card_id: string
+          country?: string | null
+          created_at?: string
+          holder_name: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_last4?: string
+          account_masked?: string
+          bank_name?: string
+          branch_code?: string | null
+          card_id?: string
+          country?: string | null
+          created_at?: string
+          holder_name?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_bank_accounts_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: true
+            referencedRelation: "virtual_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_bank_withdrawals: {
+        Row: {
+          admin_note: string | null
+          amount_usd: number
+          bank_account_id: string | null
+          card_id: string
+          created_at: string
+          decided_at: string | null
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount_usd: number
+          bank_account_id?: string | null
+          card_id: string
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount_usd?: number
+          bank_account_id?: string | null
+          card_id?: string
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_bank_withdrawals_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "card_bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_bank_withdrawals_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "virtual_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       card_funding_requests: {
         Row: {
           admin_note: string | null
@@ -2240,6 +2344,10 @@ export type Database = {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: Json
       }
+      admin_decide_bank_withdrawal: {
+        Args: { _approve: boolean; _note?: string; _withdrawal_id: string }
+        Returns: Json
+      }
       admin_decide_merchant_payment: {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: Json
@@ -2288,6 +2396,10 @@ export type Database = {
       }
       card_convert_btc_to_usdt: {
         Args: { _amount_usd: number; _card_id: string; _investment_id?: string }
+        Returns: Json
+      }
+      card_request_bank_withdrawal: {
+        Args: { _amount_usd: number; _card_id: string }
         Returns: Json
       }
       card_request_funding: {

@@ -63,11 +63,34 @@ export interface MerchantPaymentRequest {
   created_at: string;
 }
 
+export interface CardBankAccount {
+  id: string;
+  holder_name: string;
+  bank_name: string;
+  account_masked: string;
+  account_last4: string;
+  branch_code: string | null;
+  country: string | null;
+}
+
+export interface CardBankWithdrawal {
+  id: string;
+  amount_usd: number;
+  status: string;
+  admin_note: string | null;
+  decided_at: string | null;
+  created_at: string;
+}
+
+export const BANK_WITHDRAWAL_MINIMUM = 20000;
+
 export function useVirtualCard(userId?: string | null) {
   const [card, setCard] = useState<VirtualCard | null>(null);
   const [transactions, setTransactions] = useState<CardTransaction[]>([]);
   const [fundingRequests, setFundingRequests] = useState<CardFundingRequest[]>([]);
   const [merchantRequests, setMerchantRequests] = useState<MerchantPaymentRequest[]>([]);
+  const [bankAccount, setBankAccount] = useState<CardBankAccount | null>(null);
+  const [bankWithdrawals, setBankWithdrawals] = useState<CardBankWithdrawal[]>([]);
   const [loading, setLoading] = useState(true);
   const [issueError, setIssueError] = useState<string | null>(null);
 
@@ -116,6 +139,26 @@ export function useVirtualCard(userId?: string | null) {
     );
   }, []);
 
+  const loadBank = useCallback(async (cardId: string) => {
+    const [{ data: acct }, { data: wds }] = await Promise.all([
+      supabase
+        .from("card_bank_accounts" as any)
+        .select("id, holder_name, bank_name, account_masked, account_last4, branch_code, country")
+        .eq("card_id", cardId)
+        .maybeSingle(),
+      supabase
+        .from("card_bank_withdrawals" as any)
+        .select("id, amount_usd, status, admin_note, decided_at, created_at")
+        .eq("card_id", cardId)
+        .order("created_at", { ascending: false })
+        .limit(50),
+    ]);
+    setBankAccount((acct as any) ?? null);
+    setBankWithdrawals(
+      ((wds ?? []) as any[]).map((r) => ({ ...r, amount_usd: Number(r.amount_usd) })) as CardBankWithdrawal[]
+    );
+  }, []);
+
   const refresh = useCallback(async () => {
     if (!userId) {
       setCard(null);
@@ -140,15 +183,18 @@ export function useVirtualCard(userId?: string | null) {
         loadTransactions(c.id),
         loadFunding(c.id),
         loadMerchantRequests(c.id),
+        loadBank(c.id),
       ]);
     } else {
       setCard(null);
       setTransactions([]);
       setFundingRequests([]);
       setMerchantRequests([]);
+      setBankAccount(null);
+      setBankWithdrawals([]);
     }
     setLoading(false);
-  }, [userId, loadTransactions, loadFunding, loadMerchantRequests]);
+  }, [userId, loadTransactions, loadFunding, loadMerchantRequests, loadBank]);
 
   useEffect(() => {
     refresh();
@@ -318,6 +364,68 @@ export function useVirtualCard(userId?: string | null) {
     [card]
   );
 
+  const saveBankAccount = useCallback(
+    async (values: {
+      holderName: string;
+      bankName: string;
+      accountNumber: string;
+      branchCode?: string;
+      country?: string;
+    }) => {
+      if (!card || !userId) return { error: "No card" };
+      const digits = values.accountNumber.replace(/\D/g, "");
+      const last4 = digits.slice(-4);
+      const masked = `•••• ${last4}`;
+      const payload = {
+        user_id: userId,
+        card_id: card.id,
+        holder_name: values.holderName,
+        bank_name: values.bankName,
+        account_masked: masked,
+        account_last4: last4,
+        branch_code: values.branchCode ?? null,
+        country: values.country ?? null,
+      };
+      const { error } = await supabase
+        .from("card_bank_accounts" as any)
+        .upsert(payload as any, { onConflict: "card_id" });
+      if (error) return { error: error.message };
+      await refresh();
+      return {};
+    },
+    [card, userId, refresh]
+  );
+
+  const requestBankWithdrawal = useCallback(
+    async (amountUsd: number) => {
+      if (!card) return { error: "No card" };
+      const { data, error } = await supabase.rpc("card_request_bank_withdrawal" as any, {
+        _card_id: card.id,
+        _amount_usd: amountUsd,
+      });
+      if (error) return { error: error.message };
+      const res = data as any;
+      await refresh();
+      if (res && res.ok === false) {
+        const reason =
+          res.reason === "card_not_active"
+            ? "Your card is not active yet."
+            : res.reason === "no_bank_account"
+            ? "Add your bank details first."
+            : res.reason === "below_minimum"
+            ? `The minimum withdrawal is $${BANK_WITHDRAWAL_MINIMUM.toLocaleString("en-US")}.`
+            : res.reason === "insufficient_balance"
+            ? `Not enough available balance. Available $${Number(res.availableUsd ?? 0).toLocaleString(
+                "en-US"
+              )}.`
+            : "The request could not be submitted.";
+        return { error: reason };
+      }
+      return { result: res };
+    },
+    [card, refresh]
+  );
+
   return {
     card,
     transactions,
@@ -325,6 +433,10 @@ export function useVirtualCard(userId?: string | null) {
     merchantRequests,
     requestMerchantPayment,
     convertBtcToCard,
+    bankAccount,
+    bankWithdrawals,
+    saveBankAccount,
+    requestBankWithdrawal,
     loading,
     issueError,
     issue,
