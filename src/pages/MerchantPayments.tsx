@@ -5,16 +5,7 @@ import { useVirtualCard } from "@/hooks/useVirtualCard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -32,34 +23,28 @@ import {
   Store,
   AlertCircle,
 } from "lucide-react";
-
-const MERCHANTS = [
-  { name: "Binance", category: "Exchange", hint: "Buy crypto with your card" },
-  { name: "Bybit", category: "Exchange", hint: "Fund your derivatives account" },
-  { name: "Amazon", category: "Retail", hint: "Checkout worldwide" },
-  { name: "Apple", category: "Digital", hint: "App Store & iCloud" },
-  { name: "Netflix", category: "Subscription", hint: "Monthly billing" },
-  { name: "Steam", category: "Gaming", hint: "Wallet top-up" },
-  { name: "Uber", category: "Travel", hint: "Rides & Uber Eats" },
-  { name: "Booking.com", category: "Travel", hint: "Hotels & flights" },
-];
-
 import { ConvertBtcToCardDialog } from "@/components/card/ConvertBtcToCardDialog";
+import { MerchantRequestForm, merchantBlockedReason } from "@/components/card/MerchantRequestForm";
+import { usd } from "@/components/card/merchants";
 
-const usd = (n: number) =>
-  n.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
+type Filter = "all" | "pending" | "approved" | "declined";
+
+const statusBadge = (s: string) =>
+  s === "approved" ? (
+    <Badge variant="outline" className="border-emerald-500/40 text-emerald-500">Paid</Badge>
+  ) : s === "declined" ? (
+    <Badge variant="outline" className="border-destructive/40 text-destructive">Declined</Badge>
+  ) : (
+    <Badge variant="outline" className="border-amber-500/40 text-amber-500">Pending review</Badge>
+  );
 
 const MerchantPayments = () => {
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
+  const [filter, setFilter] = useState<Filter>("all");
   const { card, merchantRequests, requestMerchantPayment, convertBtcToCard, loading } =
     useVirtualCard(userId);
-
-  const [active, setActive] = useState<(typeof MERCHANTS)[number] | null>(null);
-  const [amount, setAmount] = useState("");
-  const [reference, setReference] = useState("");
-  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -81,81 +66,30 @@ const MerchantPayments = () => {
   );
 
   const activated = Boolean(card?.activated_at);
-  const spendable = card?.status === "active" && activated;
-  const remainingToday = card ? Math.max(0, card.daily_limit - card.spent_today - pendingHeld) : 0;
+  const blockedReason = merchantBlockedReason(card);
 
-  const blockedReason = !card
-    ? "You don't have a CTT spend card yet."
-    : !activated
-    ? `Your card needs its activation deposit of ${usd(card.activation_required_usd)} before you can pay merchants.`
-    : card.status === "frozen"
-    ? "Your card is frozen. Unfreeze it from the card section to pay merchants."
-    : card.status !== "active"
-    ? "Your card is not active."
-    : null;
+  const filteredRequests = useMemo(() => {
+    if (filter === "all") return merchantRequests;
+    return merchantRequests.filter((r) => r.status === filter);
+  }, [merchantRequests, filter]);
 
-  const open = (m: (typeof MERCHANTS)[number]) => {
-    if (blockedReason) {
-      toast({ title: "Payment unavailable", description: blockedReason, variant: "destructive" });
-      return;
-    }
-    setActive(m);
-    setAmount("");
-    setReference("");
-  };
-
-  const submit = async () => {
-    const amt = Number(amount);
-    if (!active || !Number.isFinite(amt) || amt <= 0) {
-      toast({ title: "Enter a valid amount", variant: "destructive" });
-      return;
-    }
-    if (card && amt > card.per_tx_limit) {
-      toast({
-        title: "Over per-transaction limit",
-        description: `Maximum ${usd(card.per_tx_limit)} per payment.`,
-        variant: "destructive",
-      });
-      return;
-    }
-    if (amt > remainingToday) {
-      toast({
-        title: "Daily limit reached",
-        description: `Only ${usd(remainingToday)} left today.`,
-        variant: "destructive",
-      });
-      return;
-    }
-    if (card && amt > card.balance_usd) {
-      toast({
-        title: "Insufficient card balance",
-        description: `Your card balance is ${usd(card.balance_usd)}. Top it up with USDT (TRC20).`,
-        variant: "destructive",
-      });
-      return;
-    }
-    setBusy(true);
-    const { error } = await requestMerchantPayment(active.name, active.category, amt, reference);
-    setBusy(false);
+  const handleRequest = async (
+    merchant: string,
+    category: string,
+    amountUsd: number,
+    reference?: string
+  ) => {
+    const { error } = await requestMerchantPayment(merchant, category, amountUsd, reference);
     if (error) {
       toast({ title: "Payment not submitted", description: error, variant: "destructive" });
-      return;
+      return { error };
     }
     toast({
-      title: `Payment to ${active.name} submitted`,
-      description: `${usd(amt)} is held on your card while the payment is processed.`,
+      title: `Payment to ${merchant} submitted`,
+      description: `${usd(amountUsd)} is held on your card while the payment is processed.`,
     });
-    setActive(null);
+    return {};
   };
-
-  const statusBadge = (s: string) =>
-    s === "approved" ? (
-      <Badge variant="outline" className="border-emerald-500/40 text-emerald-500">Paid</Badge>
-    ) : s === "declined" ? (
-      <Badge variant="outline" className="border-destructive/40 text-destructive">Declined</Badge>
-    ) : (
-      <Badge variant="outline" className="border-amber-500/40 text-amber-500">Pending</Badge>
-    );
 
   if (!checked || loading) {
     return (
@@ -213,7 +147,9 @@ const MerchantPayments = () => {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Left today</p>
-                  <p className="font-semibold tabular-nums">{usd(remainingToday)}</p>
+                  <p className="font-semibold tabular-nums">
+                    {usd(Math.max(0, card.daily_limit - card.spent_today - pendingHeld))}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Per payment</p>
@@ -245,24 +181,31 @@ const MerchantPayments = () => {
           <Store className="h-4 w-4 text-primary" />
           <h2 className="font-semibold">Choose a merchant</h2>
         </div>
-        <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {MERCHANTS.map((m) => (
-            <button
-              key={m.name}
-              type="button"
-              onClick={() => open(m)}
-              disabled={!spendable}
-              className="group rounded-xl border border-border bg-muted/30 p-4 text-left transition-colors hover:border-primary/50 hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">{m.category}</p>
-              <p className="mt-1 font-semibold group-hover:text-primary">{m.name}</p>
-              <p className="text-[11px] text-muted-foreground">{m.hint}</p>
-            </button>
-          ))}
+        <div className="mb-8">
+          <MerchantRequestForm
+            card={card}
+            pendingHeld={pendingHeld}
+            blockedReason={blockedReason}
+            onSubmit={handleRequest}
+          />
         </div>
 
         <Card className="border-border p-6">
-          <h2 className="mb-4 font-semibold">Your payment requests</h2>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-semibold">Your payment requests</h2>
+            <div className="flex flex-wrap gap-2">
+              {(["all", "pending", "approved", "declined"] as Filter[]).map((f) => (
+                <Button
+                  key={f}
+                  variant={filter === f ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilter(f)}
+                >
+                  {f === "all" ? "All" : f === "approved" ? "Paid" : f.charAt(0).toUpperCase() + f.slice(1)}
+                </Button>
+              ))}
+            </div>
+          </div>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -276,14 +219,14 @@ const MerchantPayments = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {merchantRequests.length === 0 ? (
+                {filteredRequests.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center text-muted-foreground">
-                      No merchant payments yet
+                      No merchant payments{filter !== "all" ? ` for ${filter}` : ""}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  merchantRequests.map((r) => (
+                  filteredRequests.map((r) => (
                     <TableRow key={r.id}>
                       <TableCell className="text-xs">
                         {new Date(r.created_at).toLocaleString()}
@@ -310,61 +253,6 @@ const MerchantPayments = () => {
           </div>
         </Card>
       </main>
-
-      <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Pay {active?.name}</DialogTitle>
-            <DialogDescription>
-              Charged to your CTT spend card. The amount is held immediately.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="merchant-amount">Amount (USD)</Label>
-              <Input
-                id="merchant-amount"
-                type="number"
-                min="0"
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
-              />
-              <p className="text-xs text-muted-foreground">
-                Balance {usd(card?.balance_usd ?? 0)} · per payment {usd(card?.per_tx_limit ?? 0)} ·
-                left today {usd(remainingToday)}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {[25, 50, 100, 250].map((v) => (
-                <Button key={v} variant="outline" size="sm" onClick={() => setAmount(String(v))}>
-                  ${v}
-                </Button>
-              ))}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="merchant-ref">Reference (optional)</Label>
-              <Input
-                id="merchant-ref"
-                maxLength={200}
-                value={reference}
-                onChange={(e) => setReference(e.target.value)}
-                placeholder="Order number or account email"
-              />
-            </div>
-            <Button className="w-full" onClick={submit} disabled={busy}>
-              {busy ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...
-                </>
-              ) : (
-                "Submit payment"
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
