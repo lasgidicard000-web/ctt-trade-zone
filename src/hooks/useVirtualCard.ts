@@ -183,15 +183,18 @@ export function useVirtualCard(userId?: string | null) {
         loadTransactions(c.id),
         loadFunding(c.id),
         loadMerchantRequests(c.id),
+        loadBank(c.id),
       ]);
     } else {
       setCard(null);
       setTransactions([]);
       setFundingRequests([]);
       setMerchantRequests([]);
+      setBankAccount(null);
+      setBankWithdrawals([]);
     }
     setLoading(false);
-  }, [userId, loadTransactions, loadFunding, loadMerchantRequests]);
+  }, [userId, loadTransactions, loadFunding, loadMerchantRequests, loadBank]);
 
   useEffect(() => {
     refresh();
