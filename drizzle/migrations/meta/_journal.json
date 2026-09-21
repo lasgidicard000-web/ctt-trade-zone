@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790014034366,
+      "tag": "0000_live_trading_admin_controls",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790014258883,
+      "tag": "0001_grant_live_settings_read",
+      "breakpoints": true
+    }
+  ]
+}

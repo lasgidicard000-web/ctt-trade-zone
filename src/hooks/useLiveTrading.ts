@@ -8,6 +8,8 @@ export interface LiveAccount {
   user_id: string;
   balance: number;
   realized_pnl: number;
+  frozen?: boolean;
+  frozen_reason?: string | null;
 }
 
 export interface LiveHolding {
@@ -62,7 +64,28 @@ export interface LiveWithdrawal {
 
 const num = (v: unknown) => (typeof v === "number" ? v : parseFloat(String(v ?? 0)) || 0);
 
+export interface LiveSettings {
+  enabled: boolean;
+  fee_pct: number;
+  min_order_usd: number;
+  min_funding_usd: number;
+  min_withdrawal_usd: number;
+  withdrawal_fee_pct: number;
+  withdrawal_fee_min: number;
+}
+
+export const LIVE_SETTINGS_DEFAULTS: LiveSettings = {
+  enabled: true,
+  fee_pct: 0.1,
+  min_order_usd: 10,
+  min_funding_usd: 10,
+  min_withdrawal_usd: 10,
+  withdrawal_fee_pct: 1,
+  withdrawal_fee_min: 1,
+};
+
 export const useLiveTrading = () => {
+  const [settings, setSettings] = useState<LiveSettings>(LIVE_SETTINGS_DEFAULTS);
   const [account, setAccount] = useState<LiveAccount | null>(null);
   const [holdings, setHoldings] = useState<LiveHolding[]>([]);
   const [orders, setOrders] = useState<LiveOrder[]>([]);
@@ -72,7 +95,7 @@ export const useLiveTrading = () => {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    const [{ data: acc }, hold, ords, trds, fund, wds] = await Promise.all([
+    const [{ data: acc }, hold, ords, trds, fund, wds, { data: cfg }] = await Promise.all([
       db.rpc("live_get_account"),
       db.from("live_holdings").select("*").order("coin_symbol"),
       db.from("live_orders").select("*").order("created_at", { ascending: false }).limit(60),
@@ -84,11 +107,31 @@ export const useLiveTrading = () => {
         .like("notes", "Live trading%")
         .order("created_at", { ascending: false })
         .limit(40),
-
+      db.rpc("live_settings"),
     ]);
 
+    if (cfg) {
+      setSettings({
+        ...LIVE_SETTINGS_DEFAULTS,
+        ...cfg,
+        fee_pct: num(cfg.fee_pct ?? LIVE_SETTINGS_DEFAULTS.fee_pct),
+        min_order_usd: num(cfg.min_order_usd ?? LIVE_SETTINGS_DEFAULTS.min_order_usd),
+        min_funding_usd: num(cfg.min_funding_usd ?? LIVE_SETTINGS_DEFAULTS.min_funding_usd),
+        min_withdrawal_usd: num(cfg.min_withdrawal_usd ?? LIVE_SETTINGS_DEFAULTS.min_withdrawal_usd),
+        withdrawal_fee_pct: num(cfg.withdrawal_fee_pct ?? LIVE_SETTINGS_DEFAULTS.withdrawal_fee_pct),
+        withdrawal_fee_min: num(cfg.withdrawal_fee_min ?? LIVE_SETTINGS_DEFAULTS.withdrawal_fee_min),
+        enabled: cfg.enabled !== false,
+      });
+    }
+
     if (acc) {
-      setAccount({ ...acc, balance: num(acc.balance), realized_pnl: num(acc.realized_pnl) });
+      setAccount({
+        ...acc,
+        balance: num(acc.balance),
+        realized_pnl: num(acc.realized_pnl),
+        frozen: acc.frozen === true,
+        frozen_reason: acc.frozen_reason ?? null,
+      });
     }
     setHoldings(
       (hold.data ?? [])
@@ -201,6 +244,7 @@ export const useLiveTrading = () => {
   const openOrders = orders.filter((o) => o.status === "open");
 
   return {
+    settings,
     account,
     holdings,
     orders,

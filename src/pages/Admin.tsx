@@ -3,6 +3,7 @@ import { AdminOverview } from "@/components/admin/AdminOverview";
 import { AdminMembers, useAdminMembers } from "@/components/admin/AdminMembers";
 import AdminMerchantPayments from "@/components/admin/AdminMerchantPayments";
 import AdminBankWithdrawals from "@/components/admin/AdminBankWithdrawals";
+import AdminLiveTrading from "@/components/admin/AdminLiveTrading";
 import AdminDepositManagement from "@/components/AdminDepositManagement";
 import AdminTransactions from "@/pages/AdminTransactions";
 import { useEffect, useState } from "react";
@@ -91,6 +92,7 @@ const Admin = () => {
     reload: reloadMembers,
   } = useAdminMembers();
   const [merchantPending, setMerchantPending] = useState<number>(0);
+  const [livePending, setLivePending] = useState<number>(0);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -426,9 +428,12 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-10">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
+            <TabsTrigger value="live">
+              Live Trading{livePending > 0 ? ` (${livePending})` : ""}
+            </TabsTrigger>
             <TabsTrigger value="merchant">
               Merchant Payments{merchantPending > 0 ? ` (${merchantPending})` : ""}
             </TabsTrigger>
@@ -447,6 +452,10 @@ const Admin = () => {
 
           <TabsContent value="members" className="space-y-4">
             <AdminMembers members={members} loading={membersLoading} reload={reloadMembers} />
+          </TabsContent>
+
+          <TabsContent value="live" className="space-y-4">
+            <AdminLiveTrading reloadMembers={reloadMembers} onPendingCount={setLivePending} />
           </TabsContent>
 
           <TabsContent value="merchant" className="space-y-4">
