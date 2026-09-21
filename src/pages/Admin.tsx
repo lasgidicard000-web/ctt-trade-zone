@@ -454,6 +454,10 @@ const Admin = () => {
             <AdminMembers members={members} loading={membersLoading} reload={reloadMembers} />
           </TabsContent>
 
+          <TabsContent value="live" className="space-y-4">
+            <AdminLiveTrading reloadMembers={reloadMembers} onPendingCount={setLivePending} />
+          </TabsContent>
+
           <TabsContent value="merchant" className="space-y-4">
             <AdminMerchantPayments
               reloadMembers={reloadMembers}
