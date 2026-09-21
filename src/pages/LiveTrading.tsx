@@ -126,11 +126,13 @@ const LiveTrading = () => {
   const heldQty = holdings.find((h) => h.coin_symbol === symbol)?.qty ?? 0;
 
   const cardActive = !!card && card.status === "active";
+  const accountFrozen = account?.frozen === true;
+  const tradingBlocked = !settings.enabled || accountFrozen;
 
   const submitOrder = async (side: "buy" | "sell") => {
     const amt = parseFloat(amount);
-    if (!amt || amt < 10) {
-      toast({ title: "Minimum order is $10", variant: "destructive" });
+    if (!amt || amt < settings.min_order_usd) {
+      toast({ title: `Minimum order is $${settings.min_order_usd}`, variant: "destructive" });
       return;
     }
     setSubmitting(true);
