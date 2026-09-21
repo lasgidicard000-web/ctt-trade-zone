@@ -544,6 +544,131 @@ export const AdminLiveTrading = ({
         ))}
       </div>
 
+      {/* Profit & loss review */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            Profit &amp; loss review
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ["Total profit", usd(pnlTotals.profit), "text-green-600"],
+              ["Total loss", usd(pnlTotals.loss), "text-red-600"],
+              ["Net profit / loss", usd(pnlTotals.net), pnlTotals.net >= 0 ? "text-green-600" : "text-red-600"],
+              ["Fees collected", usd(pnlTotals.fees), ""],
+            ].map(([label, value, cls]) => (
+              <div key={label} className="rounded-lg border p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+                <p className={`mt-1 text-lg font-semibold ${cls}`}>{value}</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Check a member's profit and loss here before approving any balance or withdrawal.
+          </p>
+
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Member</TableHead>
+                  <TableHead>Funded</TableHead>
+                  <TableHead>Realised</TableHead>
+                  <TableHead>Unrealised</TableHead>
+                  <TableHead>Net position</TableHead>
+                  <TableHead>Withdrawn</TableHead>
+                  <TableHead>Pending</TableHead>
+                  <TableHead>Verdict</TableHead>
+                  <TableHead className="text-right">Trades</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {visiblePnl.map((p) => (
+                  <>
+                    <TableRow key={p.user_id}>
+                      <TableCell>
+                        <p className="font-medium">{p.display_name || "Unnamed member"}</p>
+                        {payoutExceedsEarnings(p) && (
+                          <p className="flex items-center gap-1 text-xs font-medium text-red-600">
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            Payout above earnings
+                          </p>
+                        )}
+                      </TableCell>
+                      <TableCell>{usd(p.funded_total)}</TableCell>
+                      <TableCell className={p.realized_pnl >= 0 ? "text-green-600" : "text-red-600"}>
+                        {usd(p.realized_pnl)}
+                      </TableCell>
+                      <TableCell
+                        className={p.unrealized_pnl >= 0 ? "text-green-600" : "text-red-600"}
+                      >
+                        {usd(p.unrealized_pnl)}
+                      </TableCell>
+                      <TableCell className="font-medium">{usd(netPosition(p))}</TableCell>
+                      <TableCell>{usd(p.withdrawn_total)}</TableCell>
+                      <TableCell>{usd(p.pending_withdrawal_total)}</TableCell>
+                      <TableCell>{verdictBadge(p)}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => toggleExpanded(p.user_id)}
+                        >
+                          {p.trades_count}
+                          <ChevronDown
+                            className={`ml-1 h-4 w-4 transition-transform ${
+                              expanded === p.user_id ? "rotate-180" : ""
+                            }`}
+                          />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    {expanded === p.user_id && (
+                      <TableRow key={`${p.user_id}-detail`}>
+                        <TableCell colSpan={9} className="bg-muted/30">
+                          {(memberTrades[p.user_id] ?? []).length === 0 ? (
+                            <p className="py-2 text-sm text-muted-foreground">No trades recorded.</p>
+                          ) : (
+                            <div className="space-y-1 py-1 text-xs">
+                              {(memberTrades[p.user_id] ?? []).map((t) => (
+                                <div key={t.id} className="flex flex-wrap gap-x-4">
+                                  <span className="font-medium uppercase">{t.side}</span>
+                                  <span>{t.symbol}</span>
+                                  <span>{t.qty}</span>
+                                  <span>@ {usd(t.price)}</span>
+                                  <span>fee {usd(t.fee)}</span>
+                                  <span className={t.pnl >= 0 ? "text-green-600" : "text-red-600"}>
+                                    {usd(t.pnl)}
+                                  </span>
+                                  <span className="text-muted-foreground">
+                                    {new Date(t.created_at).toLocaleString()}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
+                ))}
+                {!loading && visiblePnl.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
+                      No live trading profit or loss to review yet.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Activity monitor */}
       <Card>
         <CardHeader>
