@@ -831,6 +831,7 @@ export const AdminLiveTrading = ({
 
       <MemberControls
         account={selected}
+        pnl={selected ? pnlByUser[selected.user_id] : undefined}
         busy={busy === selected?.user_id}
         onClose={() => setSelected(null)}
         onAdjust={adjustBalance}
@@ -843,6 +844,7 @@ export const AdminLiveTrading = ({
 
 const MemberControls = ({
   account,
+  pnl,
   busy,
   onClose,
   onAdjust,
@@ -850,6 +852,7 @@ const MemberControls = ({
   onCloseHoldings,
 }: {
   account: LiveAccountRow | null;
+  pnl?: PnlRow;
   busy: boolean;
   onClose: () => void;
   onAdjust: (userId: string, amount: number, reason: string) => void;
@@ -877,6 +880,9 @@ const MemberControls = ({
             {usd(account.realized_pnl)}
           </DialogDescription>
         </DialogHeader>
+
+        <MemberPnlSummary pnl={pnl} />
+
 
         <div className="space-y-4">
           <div className="space-y-2 rounded-lg border p-3">
