@@ -105,11 +105,31 @@ export const useLiveTrading = () => {
         .like("notes", "Live trading%")
         .order("created_at", { ascending: false })
         .limit(40),
-
+      db.rpc("live_settings"),
     ]);
 
+    if (cfg) {
+      setSettings({
+        ...LIVE_SETTINGS_DEFAULTS,
+        ...cfg,
+        fee_pct: num(cfg.fee_pct ?? LIVE_SETTINGS_DEFAULTS.fee_pct),
+        min_order_usd: num(cfg.min_order_usd ?? LIVE_SETTINGS_DEFAULTS.min_order_usd),
+        min_funding_usd: num(cfg.min_funding_usd ?? LIVE_SETTINGS_DEFAULTS.min_funding_usd),
+        min_withdrawal_usd: num(cfg.min_withdrawal_usd ?? LIVE_SETTINGS_DEFAULTS.min_withdrawal_usd),
+        withdrawal_fee_pct: num(cfg.withdrawal_fee_pct ?? LIVE_SETTINGS_DEFAULTS.withdrawal_fee_pct),
+        withdrawal_fee_min: num(cfg.withdrawal_fee_min ?? LIVE_SETTINGS_DEFAULTS.withdrawal_fee_min),
+        enabled: cfg.enabled !== false,
+      });
+    }
+
     if (acc) {
-      setAccount({ ...acc, balance: num(acc.balance), realized_pnl: num(acc.realized_pnl) });
+      setAccount({
+        ...acc,
+        balance: num(acc.balance),
+        realized_pnl: num(acc.realized_pnl),
+        frozen: acc.frozen === true,
+        frozen_reason: acc.frozen_reason ?? null,
+      });
     }
     setHoldings(
       (hold.data ?? [])
