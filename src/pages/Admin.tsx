@@ -428,9 +428,12 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-10">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
+            <TabsTrigger value="live">
+              Live Trading{livePending > 0 ? ` (${livePending})` : ""}
+            </TabsTrigger>
             <TabsTrigger value="merchant">
               Merchant Payments{merchantPending > 0 ? ` (${merchantPending})` : ""}
             </TabsTrigger>
