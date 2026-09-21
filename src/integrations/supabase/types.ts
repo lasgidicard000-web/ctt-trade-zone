@@ -1023,6 +1023,8 @@ export type Database = {
         Row: {
           balance: number
           created_at: string
+          frozen: boolean
+          frozen_reason: string | null
           id: string
           realized_pnl: number
           updated_at: string
@@ -1031,6 +1033,8 @@ export type Database = {
         Insert: {
           balance?: number
           created_at?: string
+          frozen?: boolean
+          frozen_reason?: string | null
           id?: string
           realized_pnl?: number
           updated_at?: string
@@ -1039,6 +1043,8 @@ export type Database = {
         Update: {
           balance?: number
           created_at?: string
+          frozen?: boolean
+          frozen_reason?: string | null
           id?: string
           realized_pnl?: number
           updated_at?: string
@@ -2336,10 +2342,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_adjust_live_balance: {
+        Args: { _amount: number; _reason: string; _user_id: string }
+        Returns: Json
+      }
       admin_apply_transaction_action: {
         Args: { _action: string; _admin_id: string; _payload: Json }
         Returns: Json
       }
+      admin_close_live_holdings: { Args: { _user_id: string }; Returns: Json }
       admin_credit_card_funding: {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: Json
@@ -2353,6 +2364,23 @@ export type Database = {
         Returns: Json
       }
       admin_get_card_pin_policy: { Args: never; Returns: Json }
+      admin_list_live_accounts: {
+        Args: never
+        Returns: {
+          balance: number
+          display_name: string
+          frozen: boolean
+          frozen_reason: string
+          funded_total: number
+          holdings_value: number
+          last_trade_at: string
+          open_orders: number
+          pending_withdrawals: number
+          realized_pnl: number
+          trades_count: number
+          user_id: string
+        }[]
+      }
       admin_list_tables: {
         Args: never
         Returns: {
@@ -2374,6 +2402,11 @@ export type Database = {
         Args: { _global_pin?: string; _mode: string }
         Returns: Json
       }
+      admin_set_live_freeze: {
+        Args: { _frozen: boolean; _reason: string; _user_id: string }
+        Returns: Json
+      }
+      admin_set_live_settings: { Args: { _settings: Json }; Returns: Json }
       bot_create: {
         Args: {
           _grid_count?: number
@@ -2542,6 +2575,7 @@ export type Database = {
         Returns: boolean
       }
       issue_virtual_card: { Args: never; Returns: Json }
+      live_assert_enabled: { Args: never; Returns: undefined }
       live_cancel_order: { Args: { _order_id: string }; Returns: Json }
       live_engine_tick: { Args: never; Returns: Json }
       live_fund_from_card: {
@@ -2553,6 +2587,8 @@ export type Database = {
         Returns: {
           balance: number
           created_at: string
+          frozen: boolean
+          frozen_reason: string | null
           id: string
           realized_pnl: number
           updated_at: string
@@ -2580,6 +2616,7 @@ export type Database = {
         Args: { _notes: string; _status: string; _withdrawal_id: string }
         Returns: Json
       }
+      live_settings: { Args: never; Returns: Json }
       live_withdraw: {
         Args: { _address: string; _amount: number }
         Returns: Json
