@@ -62,7 +62,28 @@ export interface LiveWithdrawal {
 
 const num = (v: unknown) => (typeof v === "number" ? v : parseFloat(String(v ?? 0)) || 0);
 
+export interface LiveSettings {
+  enabled: boolean;
+  fee_pct: number;
+  min_order_usd: number;
+  min_funding_usd: number;
+  min_withdrawal_usd: number;
+  withdrawal_fee_pct: number;
+  withdrawal_fee_min: number;
+}
+
+export const LIVE_SETTINGS_DEFAULTS: LiveSettings = {
+  enabled: true,
+  fee_pct: 0.1,
+  min_order_usd: 10,
+  min_funding_usd: 10,
+  min_withdrawal_usd: 10,
+  withdrawal_fee_pct: 1,
+  withdrawal_fee_min: 1,
+};
+
 export const useLiveTrading = () => {
+  const [settings, setSettings] = useState<LiveSettings>(LIVE_SETTINGS_DEFAULTS);
   const [account, setAccount] = useState<LiveAccount | null>(null);
   const [holdings, setHoldings] = useState<LiveHolding[]>([]);
   const [orders, setOrders] = useState<LiveOrder[]>([]);
