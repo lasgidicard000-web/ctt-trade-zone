@@ -78,6 +78,87 @@ interface WithdrawalRow {
   created_at: string;
 }
 
+interface PnlRow {
+  user_id: string;
+  display_name: string | null;
+  funded_total: number;
+  realized_pnl: number;
+  unrealized_pnl: number;
+  fees_total: number;
+  gross_profit: number;
+  gross_loss: number;
+  withdrawn_total: number;
+  pending_withdrawal_total: number;
+  trades_count: number;
+  last_trade_at: string | null;
+}
+
+interface MemberTrade {
+  id: string;
+  symbol: string;
+  side: string;
+  qty: number;
+  price: number;
+  fee: number;
+  pnl: number;
+  created_at: string;
+}
+
+const netPosition = (p: PnlRow) => p.funded_total + p.realized_pnl + p.unrealized_pnl;
+
+const payoutExceedsEarnings = (p: PnlRow) =>
+  p.pending_withdrawal_total > 0 &&
+  p.pending_withdrawal_total > p.funded_total + p.realized_pnl - p.withdrawn_total;
+
+const verdictBadge = (p: PnlRow) => {
+  const net = p.realized_pnl + p.unrealized_pnl;
+  if (net > 0.005)
+    return (
+      <Badge variant="outline" className="border-green-500/20 bg-green-500/10 text-green-600">
+        In profit
+      </Badge>
+    );
+  if (net < -0.005)
+    return (
+      <Badge variant="outline" className="border-red-500/20 bg-red-500/10 text-red-600">
+        At a loss
+      </Badge>
+    );
+  return <Badge variant="outline">Break even</Badge>;
+};
+
+const MemberPnlSummary = ({ pnl }: { pnl?: PnlRow }) => {
+  if (!pnl) return null;
+  const flagged = payoutExceedsEarnings(pnl);
+  return (
+    <div className="mt-2 rounded-md border bg-muted/40 p-2 text-xs">
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        <span>
+          Realised{" "}
+          <span className={pnl.realized_pnl >= 0 ? "text-green-600" : "text-red-600"}>
+            {usd(pnl.realized_pnl)}
+          </span>
+        </span>
+        <span>
+          Unrealised{" "}
+          <span className={pnl.unrealized_pnl >= 0 ? "text-green-600" : "text-red-600"}>
+            {usd(pnl.unrealized_pnl)}
+          </span>
+        </span>
+        <span>Funded {usd(pnl.funded_total)}</span>
+        <span>Net position {usd(netPosition(pnl))}</span>
+        <span>Withdrawn {usd(pnl.withdrawn_total)}</span>
+      </div>
+      {flagged && (
+        <p className="mt-1 flex items-center gap-1 font-medium text-red-600">
+          <AlertTriangle className="h-3.5 w-3.5" />
+          Payout exceeds what this account has funded and earned.
+        </p>
+      )}
+    </div>
+  );
+};
+
 const FILTERS = ["all", "pending", "completed", "rejected"] as const;
 type Filter = (typeof FILTERS)[number];
 const FILTER_LABELS: Record<Filter, string> = {
