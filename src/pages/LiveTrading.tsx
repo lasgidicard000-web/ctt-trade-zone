@@ -219,6 +219,25 @@ const LiveTrading = () => {
           </Card>
         )}
 
+        {tradingBlocked && (
+          <Card className="mb-4 border-amber-500/30 bg-amber-500/10 p-4">
+            <div className="flex items-start gap-2">
+              <Lock className="mt-0.5 h-4 w-4 text-amber-600" />
+              <div>
+                <p className="text-sm font-semibold text-amber-600">
+                  {settings.enabled ? "Live trading paused on your account" : "Live trading is under maintenance"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {settings.enabled
+                    ? account?.frozen_reason ||
+                      "Contact support to have live trading re-enabled on your account."
+                    : "New orders, funding and withdrawals are closed right now. Please check back shortly."}
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Balance strip */}
         <Card className="mb-4 grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-5">
           <div>
