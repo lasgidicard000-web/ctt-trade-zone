@@ -2394,6 +2394,23 @@ export type Database = {
           udt_name: string
         }[]
       }
+      admin_live_pnl_summary: {
+        Args: never
+        Returns: {
+          display_name: string
+          fees_total: number
+          funded_total: number
+          gross_loss: number
+          gross_profit: number
+          last_trade_at: string
+          pending_withdrawal_total: number
+          realized_pnl: number
+          trades_count: number
+          unrealized_pnl: number
+          user_id: string
+          withdrawn_total: number
+        }[]
+      }
       admin_set_card_pin: {
         Args: { _card_id: string; _pin: string }
         Returns: Json
