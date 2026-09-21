@@ -93,7 +93,7 @@ export const useLiveTrading = () => {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    const [{ data: acc }, hold, ords, trds, fund, wds] = await Promise.all([
+    const [{ data: acc }, hold, ords, trds, fund, wds, { data: cfg }] = await Promise.all([
       db.rpc("live_get_account"),
       db.from("live_holdings").select("*").order("coin_symbol"),
       db.from("live_orders").select("*").order("created_at", { ascending: false }).limit(60),
