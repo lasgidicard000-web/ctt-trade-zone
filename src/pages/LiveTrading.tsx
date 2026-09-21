@@ -37,6 +37,7 @@ const LiveTrading = () => {
   const [authChecked, setAuthChecked] = useState(false);
 
   const {
+    settings,
     account,
     holdings,
     openOrders,
@@ -240,7 +241,12 @@ const LiveTrading = () => {
             </div>
           </div>
           <div className="flex items-end gap-2">
-            <Button size="sm" className="flex-1" disabled={!cardActive} onClick={() => setFundOpen(true)}>
+            <Button
+              size="sm"
+              className="flex-1"
+              disabled={!cardActive || tradingBlocked}
+              onClick={() => setFundOpen(true)}
+            >
               <CreditCard className="mr-1.5 h-4 w-4" />
               Fund with card
             </Button>
@@ -248,7 +254,7 @@ const LiveTrading = () => {
               size="sm"
               variant="outline"
               className="flex-1"
-              disabled={balance < 10}
+              disabled={balance < settings.min_withdrawal_usd || tradingBlocked}
               onClick={() => setWithdrawOpen(true)}
             >
               <ArrowUpRight className="mr-1.5 h-4 w-4" />
@@ -545,17 +551,21 @@ const LiveTrading = () => {
                     ))}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Available {fmtUsd(balance)} · fee 0.10% · min $10
+                    Available {fmtUsd(balance)} · fee {settings.fee_pct.toFixed(2)}% · min $
+                    {settings.min_order_usd}
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  <Button disabled={submitting || balance <= 0} onClick={() => submitOrder("buy")}>
+                  <Button
+                    disabled={submitting || balance <= 0 || tradingBlocked}
+                    onClick={() => submitOrder("buy")}
+                  >
                     Buy {symbol}
                   </Button>
                   <Button
                     variant="destructive"
-                    disabled={submitting || heldQty <= 0}
+                    disabled={submitting || heldQty <= 0 || tradingBlocked}
                     onClick={() => submitOrder("sell")}
                   >
                     Sell {symbol}
@@ -576,7 +586,8 @@ const LiveTrading = () => {
                 Deposits
               </div>
               The CTT spend card is the only way to deposit into this terminal. Withdrawals go straight
-              to an external wallet — min $10, 1% fee (min $1) — with or without closing your positions.
+              to an external wallet — min ${settings.min_withdrawal_usd}, {settings.withdrawal_fee_pct}% fee
+              (min ${settings.withdrawal_fee_min}) — with or without closing your positions.
             </Card>
           </div>
         </div>
