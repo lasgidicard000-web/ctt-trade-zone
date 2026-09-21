@@ -3,6 +3,7 @@ import { AdminOverview } from "@/components/admin/AdminOverview";
 import { AdminMembers, useAdminMembers } from "@/components/admin/AdminMembers";
 import AdminMerchantPayments from "@/components/admin/AdminMerchantPayments";
 import AdminBankWithdrawals from "@/components/admin/AdminBankWithdrawals";
+import AdminLiveTrading from "@/components/admin/AdminLiveTrading";
 import AdminDepositManagement from "@/components/AdminDepositManagement";
 import AdminTransactions from "@/pages/AdminTransactions";
 import { useEffect, useState } from "react";
