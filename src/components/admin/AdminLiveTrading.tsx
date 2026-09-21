@@ -220,19 +220,24 @@ export const AdminLiveTrading = ({
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [selected, setSelected] = useState<LiveAccountRow | null>(null);
+  const [pnl, setPnl] = useState<PnlRow[]>([]);
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [memberTrades, setMemberTrades] = useState<Record<string, MemberTrade[]>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: setting }, { data: accs, error: accErr }, { data: wds }] = await Promise.all([
-      db.from("app_settings").select("value").eq("key", "live_trading_settings").maybeSingle(),
-      db.rpc("admin_list_live_accounts"),
-      db
-        .from("withdrawals")
-        .select("id, user_id, amount, fee, wallet_address, status, notes, created_at")
-        .like("notes", "Live trading%")
-        .order("created_at", { ascending: false })
-        .limit(150),
-    ]);
+    const [{ data: setting }, { data: accs, error: accErr }, { data: wds }, { data: pnlRows }] =
+      await Promise.all([
+        db.from("app_settings").select("value").eq("key", "live_trading_settings").maybeSingle(),
+        db.rpc("admin_list_live_accounts"),
+        db
+          .from("withdrawals")
+          .select("id, user_id, amount, fee, wallet_address, status, notes, created_at")
+          .like("notes", "Live trading%")
+          .order("created_at", { ascending: false })
+          .limit(150),
+        db.rpc("admin_live_pnl_summary"),
+      ]);
 
     if (setting?.value) {
       setSettings({ ...DEFAULTS, ...setting.value });
@@ -249,6 +254,20 @@ export const AdminLiveTrading = ({
         holdings_value: num(a.holdings_value),
         funded_total: num(a.funded_total),
         pending_withdrawals: num(a.pending_withdrawals),
+      })),
+    );
+    setPnl(
+      (pnlRows ?? []).map((p: any) => ({
+        ...p,
+        funded_total: num(p.funded_total),
+        realized_pnl: num(p.realized_pnl),
+        unrealized_pnl: num(p.unrealized_pnl),
+        fees_total: num(p.fees_total),
+        gross_profit: num(p.gross_profit),
+        gross_loss: num(p.gross_loss),
+        withdrawn_total: num(p.withdrawn_total),
+        pending_withdrawal_total: num(p.pending_withdrawal_total),
+        trades_count: num(p.trades_count),
       })),
     );
     setWithdrawals(
