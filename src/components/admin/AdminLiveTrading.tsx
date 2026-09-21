@@ -793,6 +793,7 @@ export const AdminLiveTrading = ({
                   </div>
                   {statusBadge(w.status)}
                 </div>
+                <MemberPnlSummary pnl={pnlByUser[w.user_id]} />
                 {w.status === "pending" && (
                   <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                     <Input
