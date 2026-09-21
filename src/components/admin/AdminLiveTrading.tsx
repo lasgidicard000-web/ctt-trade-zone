@@ -302,6 +302,61 @@ export const AdminLiveTrading = ({
     );
   }, [accounts]);
 
+  const pnlByUser = useMemo(() => {
+    const map: Record<string, PnlRow> = {};
+    pnl.forEach((p) => (map[p.user_id] = p));
+    return map;
+  }, [pnl]);
+
+  const pnlTotals = useMemo(
+    () =>
+      pnl.reduce(
+        (acc, p) => ({
+          profit: acc.profit + p.gross_profit,
+          loss: acc.loss + p.gross_loss,
+          net: acc.net + p.realized_pnl + p.unrealized_pnl,
+          fees: acc.fees + p.fees_total,
+        }),
+        { profit: 0, loss: 0, net: 0, fees: 0 },
+      ),
+    [pnl],
+  );
+
+  const visiblePnl = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return pnl;
+    return pnl.filter(
+      (p) =>
+        (p.display_name ?? "").toLowerCase().includes(q) || p.user_id.toLowerCase().includes(q),
+    );
+  }, [pnl, search]);
+
+  const toggleExpanded = async (userId: string) => {
+    if (expanded === userId) {
+      setExpanded(null);
+      return;
+    }
+    setExpanded(userId);
+    if (!memberTrades[userId]) {
+      const { data } = await db
+        .from("live_trades")
+        .select("id, symbol, side, qty, price, fee, pnl, created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      setMemberTrades((m) => ({
+        ...m,
+        [userId]: (data ?? []).map((t: any) => ({
+          ...t,
+          qty: num(t.qty),
+          price: num(t.price),
+          fee: num(t.fee),
+          pnl: num(t.pnl),
+        })),
+      }));
+    }
+  };
+
   const visibleAccounts = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return accounts;
