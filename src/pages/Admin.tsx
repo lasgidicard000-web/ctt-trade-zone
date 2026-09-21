@@ -92,6 +92,7 @@ const Admin = () => {
     reload: reloadMembers,
   } = useAdminMembers();
   const [merchantPending, setMerchantPending] = useState<number>(0);
+  const [livePending, setLivePending] = useState<number>(0);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
