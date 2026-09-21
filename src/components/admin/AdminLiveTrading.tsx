@@ -24,6 +24,9 @@ import {
 import { toast } from "sonner";
 import {
   Activity,
+  AlertTriangle,
+  BarChart3,
+  ChevronDown,
   ArrowDownToLine,
   Loader2,
   Lock,
@@ -77,6 +80,87 @@ interface WithdrawalRow {
   notes: string | null;
   created_at: string;
 }
+
+interface PnlRow {
+  user_id: string;
+  display_name: string | null;
+  funded_total: number;
+  realized_pnl: number;
+  unrealized_pnl: number;
+  fees_total: number;
+  gross_profit: number;
+  gross_loss: number;
+  withdrawn_total: number;
+  pending_withdrawal_total: number;
+  trades_count: number;
+  last_trade_at: string | null;
+}
+
+interface MemberTrade {
+  id: string;
+  symbol: string;
+  side: string;
+  qty: number;
+  price: number;
+  fee: number;
+  pnl: number;
+  created_at: string;
+}
+
+const netPosition = (p: PnlRow) => p.funded_total + p.realized_pnl + p.unrealized_pnl;
+
+const payoutExceedsEarnings = (p: PnlRow) =>
+  p.pending_withdrawal_total > 0 &&
+  p.pending_withdrawal_total > p.funded_total + p.realized_pnl - p.withdrawn_total;
+
+const verdictBadge = (p: PnlRow) => {
+  const net = p.realized_pnl + p.unrealized_pnl;
+  if (net > 0.005)
+    return (
+      <Badge variant="outline" className="border-green-500/20 bg-green-500/10 text-green-600">
+        In profit
+      </Badge>
+    );
+  if (net < -0.005)
+    return (
+      <Badge variant="outline" className="border-red-500/20 bg-red-500/10 text-red-600">
+        At a loss
+      </Badge>
+    );
+  return <Badge variant="outline">Break even</Badge>;
+};
+
+const MemberPnlSummary = ({ pnl }: { pnl?: PnlRow }) => {
+  if (!pnl) return null;
+  const flagged = payoutExceedsEarnings(pnl);
+  return (
+    <div className="mt-2 rounded-md border bg-muted/40 p-2 text-xs">
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        <span>
+          Realised{" "}
+          <span className={pnl.realized_pnl >= 0 ? "text-green-600" : "text-red-600"}>
+            {usd(pnl.realized_pnl)}
+          </span>
+        </span>
+        <span>
+          Unrealised{" "}
+          <span className={pnl.unrealized_pnl >= 0 ? "text-green-600" : "text-red-600"}>
+            {usd(pnl.unrealized_pnl)}
+          </span>
+        </span>
+        <span>Funded {usd(pnl.funded_total)}</span>
+        <span>Net position {usd(netPosition(pnl))}</span>
+        <span>Withdrawn {usd(pnl.withdrawn_total)}</span>
+      </div>
+      {flagged && (
+        <p className="mt-1 flex items-center gap-1 font-medium text-red-600">
+          <AlertTriangle className="h-3.5 w-3.5" />
+          Payout exceeds what this account has funded and earned.
+        </p>
+      )}
+    </div>
+  );
+};
 
 const FILTERS = ["all", "pending", "completed", "rejected"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -136,19 +220,24 @@ export const AdminLiveTrading = ({
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [selected, setSelected] = useState<LiveAccountRow | null>(null);
+  const [pnl, setPnl] = useState<PnlRow[]>([]);
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [memberTrades, setMemberTrades] = useState<Record<string, MemberTrade[]>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: setting }, { data: accs, error: accErr }, { data: wds }] = await Promise.all([
-      db.from("app_settings").select("value").eq("key", "live_trading_settings").maybeSingle(),
-      db.rpc("admin_list_live_accounts"),
-      db
-        .from("withdrawals")
-        .select("id, user_id, amount, fee, wallet_address, status, notes, created_at")
-        .like("notes", "Live trading%")
-        .order("created_at", { ascending: false })
-        .limit(150),
-    ]);
+    const [{ data: setting }, { data: accs, error: accErr }, { data: wds }, { data: pnlRows }] =
+      await Promise.all([
+        db.from("app_settings").select("value").eq("key", "live_trading_settings").maybeSingle(),
+        db.rpc("admin_list_live_accounts"),
+        db
+          .from("withdrawals")
+          .select("id, user_id, amount, fee, wallet_address, status, notes, created_at")
+          .like("notes", "Live trading%")
+          .order("created_at", { ascending: false })
+          .limit(150),
+        db.rpc("admin_live_pnl_summary"),
+      ]);
 
     if (setting?.value) {
       setSettings({ ...DEFAULTS, ...setting.value });
@@ -165,6 +254,20 @@ export const AdminLiveTrading = ({
         holdings_value: num(a.holdings_value),
         funded_total: num(a.funded_total),
         pending_withdrawals: num(a.pending_withdrawals),
+      })),
+    );
+    setPnl(
+      (pnlRows ?? []).map((p: any) => ({
+        ...p,
+        funded_total: num(p.funded_total),
+        realized_pnl: num(p.realized_pnl),
+        unrealized_pnl: num(p.unrealized_pnl),
+        fees_total: num(p.fees_total),
+        gross_profit: num(p.gross_profit),
+        gross_loss: num(p.gross_loss),
+        withdrawn_total: num(p.withdrawn_total),
+        pending_withdrawal_total: num(p.pending_withdrawal_total),
+        trades_count: num(p.trades_count),
       })),
     );
     setWithdrawals(
@@ -198,6 +301,61 @@ export const AdminLiveTrading = ({
       { balance: 0, holdings: 0, pnl: 0, funded: 0, openOrders: 0 },
     );
   }, [accounts]);
+
+  const pnlByUser = useMemo(() => {
+    const map: Record<string, PnlRow> = {};
+    pnl.forEach((p) => (map[p.user_id] = p));
+    return map;
+  }, [pnl]);
+
+  const pnlTotals = useMemo(
+    () =>
+      pnl.reduce(
+        (acc, p) => ({
+          profit: acc.profit + p.gross_profit,
+          loss: acc.loss + p.gross_loss,
+          net: acc.net + p.realized_pnl + p.unrealized_pnl,
+          fees: acc.fees + p.fees_total,
+        }),
+        { profit: 0, loss: 0, net: 0, fees: 0 },
+      ),
+    [pnl],
+  );
+
+  const visiblePnl = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return pnl;
+    return pnl.filter(
+      (p) =>
+        (p.display_name ?? "").toLowerCase().includes(q) || p.user_id.toLowerCase().includes(q),
+    );
+  }, [pnl, search]);
+
+  const toggleExpanded = async (userId: string) => {
+    if (expanded === userId) {
+      setExpanded(null);
+      return;
+    }
+    setExpanded(userId);
+    if (!memberTrades[userId]) {
+      const { data } = await db
+        .from("live_trades")
+        .select("id, symbol, side, qty, price, fee, pnl, created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      setMemberTrades((m) => ({
+        ...m,
+        [userId]: (data ?? []).map((t: any) => ({
+          ...t,
+          qty: num(t.qty),
+          price: num(t.price),
+          fee: num(t.fee),
+          pnl: num(t.pnl),
+        })),
+      }));
+    }
+  };
 
   const visibleAccounts = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -386,6 +544,131 @@ export const AdminLiveTrading = ({
         ))}
       </div>
 
+      {/* Profit & loss review */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            Profit &amp; loss review
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ["Total profit", usd(pnlTotals.profit), "text-green-600"],
+              ["Total loss", usd(pnlTotals.loss), "text-red-600"],
+              ["Net profit / loss", usd(pnlTotals.net), pnlTotals.net >= 0 ? "text-green-600" : "text-red-600"],
+              ["Fees collected", usd(pnlTotals.fees), ""],
+            ].map(([label, value, cls]) => (
+              <div key={label} className="rounded-lg border p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+                <p className={`mt-1 text-lg font-semibold ${cls}`}>{value}</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Check a member's profit and loss here before approving any balance or withdrawal.
+          </p>
+
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Member</TableHead>
+                  <TableHead>Funded</TableHead>
+                  <TableHead>Realised</TableHead>
+                  <TableHead>Unrealised</TableHead>
+                  <TableHead>Net position</TableHead>
+                  <TableHead>Withdrawn</TableHead>
+                  <TableHead>Pending</TableHead>
+                  <TableHead>Verdict</TableHead>
+                  <TableHead className="text-right">Trades</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {visiblePnl.map((p) => (
+                  <>
+                    <TableRow key={p.user_id}>
+                      <TableCell>
+                        <p className="font-medium">{p.display_name || "Unnamed member"}</p>
+                        {payoutExceedsEarnings(p) && (
+                          <p className="flex items-center gap-1 text-xs font-medium text-red-600">
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            Payout above earnings
+                          </p>
+                        )}
+                      </TableCell>
+                      <TableCell>{usd(p.funded_total)}</TableCell>
+                      <TableCell className={p.realized_pnl >= 0 ? "text-green-600" : "text-red-600"}>
+                        {usd(p.realized_pnl)}
+                      </TableCell>
+                      <TableCell
+                        className={p.unrealized_pnl >= 0 ? "text-green-600" : "text-red-600"}
+                      >
+                        {usd(p.unrealized_pnl)}
+                      </TableCell>
+                      <TableCell className="font-medium">{usd(netPosition(p))}</TableCell>
+                      <TableCell>{usd(p.withdrawn_total)}</TableCell>
+                      <TableCell>{usd(p.pending_withdrawal_total)}</TableCell>
+                      <TableCell>{verdictBadge(p)}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => toggleExpanded(p.user_id)}
+                        >
+                          {p.trades_count}
+                          <ChevronDown
+                            className={`ml-1 h-4 w-4 transition-transform ${
+                              expanded === p.user_id ? "rotate-180" : ""
+                            }`}
+                          />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    {expanded === p.user_id && (
+                      <TableRow key={`${p.user_id}-detail`}>
+                        <TableCell colSpan={9} className="bg-muted/30">
+                          {(memberTrades[p.user_id] ?? []).length === 0 ? (
+                            <p className="py-2 text-sm text-muted-foreground">No trades recorded.</p>
+                          ) : (
+                            <div className="space-y-1 py-1 text-xs">
+                              {(memberTrades[p.user_id] ?? []).map((t) => (
+                                <div key={t.id} className="flex flex-wrap gap-x-4">
+                                  <span className="font-medium uppercase">{t.side}</span>
+                                  <span>{t.symbol}</span>
+                                  <span>{t.qty}</span>
+                                  <span>@ {usd(t.price)}</span>
+                                  <span>fee {usd(t.fee)}</span>
+                                  <span className={t.pnl >= 0 ? "text-green-600" : "text-red-600"}>
+                                    {usd(t.pnl)}
+                                  </span>
+                                  <span className="text-muted-foreground">
+                                    {new Date(t.created_at).toLocaleString()}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
+                ))}
+                {!loading && visiblePnl.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
+                      No live trading profit or loss to review yet.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Activity monitor */}
       <Card>
         <CardHeader>
@@ -510,6 +793,7 @@ export const AdminLiveTrading = ({
                   </div>
                   {statusBadge(w.status)}
                 </div>
+                <MemberPnlSummary pnl={pnlByUser[w.user_id]} />
                 {w.status === "pending" && (
                   <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                     <Input
@@ -547,6 +831,7 @@ export const AdminLiveTrading = ({
 
       <MemberControls
         account={selected}
+        pnl={selected ? pnlByUser[selected.user_id] : undefined}
         busy={busy === selected?.user_id}
         onClose={() => setSelected(null)}
         onAdjust={adjustBalance}
@@ -559,6 +844,7 @@ export const AdminLiveTrading = ({
 
 const MemberControls = ({
   account,
+  pnl,
   busy,
   onClose,
   onAdjust,
@@ -566,6 +852,7 @@ const MemberControls = ({
   onCloseHoldings,
 }: {
   account: LiveAccountRow | null;
+  pnl?: PnlRow;
   busy: boolean;
   onClose: () => void;
   onAdjust: (userId: string, amount: number, reason: string) => void;
@@ -593,6 +880,9 @@ const MemberControls = ({
             {usd(account.realized_pnl)}
           </DialogDescription>
         </DialogHeader>
+
+        <MemberPnlSummary pnl={pnl} />
+
 
         <div className="space-y-4">
           <div className="space-y-2 rounded-lg border p-3">
