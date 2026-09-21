@@ -8,6 +8,8 @@ export interface LiveAccount {
   user_id: string;
   balance: number;
   realized_pnl: number;
+  frozen?: boolean;
+  frozen_reason?: string | null;
 }
 
 export interface LiveHolding {
@@ -242,6 +244,7 @@ export const useLiveTrading = () => {
   const openOrders = orders.filter((o) => o.status === "open");
 
   return {
+    settings,
     account,
     holdings,
     orders,
