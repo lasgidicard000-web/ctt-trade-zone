@@ -65,6 +65,11 @@ type PlanTemplate = {
   is_active: boolean;
   sort_order: number;
   description: string | null;
+  tagline: string | null;
+  about: string | null;
+  highlights: unknown;
+  show_on_homepage: boolean;
+  show_on_dashboard: boolean;
 };
 
 type UserInvestment = {
@@ -98,6 +103,11 @@ const emptyTemplate = {
   is_active: true,
   sort_order: "0",
   description: "",
+  tagline: "",
+  about: "",
+  highlights: "",
+  show_on_homepage: true,
+  show_on_dashboard: true,
 };
 
 export default function AdminPlans() {
