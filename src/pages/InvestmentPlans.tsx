@@ -1380,6 +1380,8 @@ const InvestmentPlans = () => {
                         src={planBadgeUrl(plan.id) as string}
                         alt={planBadgeAlt(plan.name)}
                         loading="lazy"
+                        width={1024}
+                        height={1024}
                         className="h-8 w-8 object-contain"
                       />
                     )}

@@ -429,6 +429,9 @@ const GeneralDashboard = () => {
                         <img
                           src={planBadgeUrl(r.inv.plan_id)!}
                           alt={`${r.inv.plan_name} badge`}
+                          loading="lazy"
+                          width={1024}
+                          height={1024}
                           className="h-7 w-7"
                         />
                       )}
