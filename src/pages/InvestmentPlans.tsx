@@ -902,6 +902,8 @@ const InvestmentPlans = () => {
                                 src={badge}
                                 alt={planBadgeAlt(plan.name)}
                                 loading="lazy"
+                                width={1024}
+                                height={1024}
                                 className="h-16 w-16 object-contain drop-shadow-[0_6px_18px_rgba(0,0,0,0.45)] group-hover:scale-110 transition-transform"
                               />
                             ) : (
@@ -1378,6 +1380,8 @@ const InvestmentPlans = () => {
                         src={planBadgeUrl(plan.id) as string}
                         alt={planBadgeAlt(plan.name)}
                         loading="lazy"
+                        width={1024}
+                        height={1024}
                         className="h-8 w-8 object-contain"
                       />
                     )}

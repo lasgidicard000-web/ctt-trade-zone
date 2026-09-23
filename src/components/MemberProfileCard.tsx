@@ -20,6 +20,8 @@ const planBadgeStyle = (planId: string) => {
       return "bg-cyan-400/20 text-cyan-300 border-cyan-400/30";
     case "general":
       return "bg-purple-400/20 text-purple-300 border-purple-400/30";
+    case "field":
+      return "bg-red-950/40 text-amber-300 border-amber-500/40";
     default:
       return "bg-primary/20 text-primary border-primary/30";
   }
@@ -213,6 +215,8 @@ export const MemberProfileCard = ({ userId }: { userId: string }) => {
                       src={planBadgeUrl(p.plan_id) as string}
                       alt={planBadgeAlt(p.plan_name)}
                       loading="lazy"
+                      width={1024}
+                      height={1024}
                       className="h-5 w-5 object-contain"
                     />
                   )}

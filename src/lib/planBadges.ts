@@ -3,6 +3,7 @@ import inspectorsBadge from "@/assets/plans/inspectors.png.asset.json";
 import superintendentBadge from "@/assets/plans/superintendent.png.asset.json";
 import commissionersBadge from "@/assets/plans/commissioners.png.asset.json";
 import generalBadge from "@/assets/plans/general.png.asset.json";
+import fieldMarshalBadge from "@/assets/plans/field-marshal.png";
 
 const BADGES: Record<string, string> = {
   recruit: recruitBadge.url,
@@ -10,7 +11,8 @@ const BADGES: Record<string, string> = {
   superintendent: superintendentBadge.url,
   commissioners: commissionersBadge.url,
   general: generalBadge.url,
-  field: generalBadge.url,
+  field: fieldMarshalBadge,
+  field_marshal: fieldMarshalBadge,
 };
 
 /** Returns the shield badge artwork for a plan, or null for unknown plans. */

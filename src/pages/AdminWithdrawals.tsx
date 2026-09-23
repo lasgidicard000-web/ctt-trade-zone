@@ -28,6 +28,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@supabase/supabase-js";
 import { format } from "date-fns";
+import { planBadgeAlt, planBadgeUrl } from "@/lib/planBadges";
 
 interface Withdrawal {
   id: string;
@@ -44,6 +45,25 @@ interface Withdrawal {
     display_name: string | null;
   };
 }
+
+const isFieldMarshalPayout = (withdrawal: Withdrawal) =>
+  withdrawal.notes?.startsWith("Field Marshal payout") ?? false;
+
+const FieldMarshalMark = ({ compact = false }: { compact?: boolean }) => (
+  <div className="flex items-center gap-2">
+    <img
+      src={planBadgeUrl("field") as string}
+      alt={planBadgeAlt("Field Marshal")}
+      loading="lazy"
+      width={1024}
+      height={1024}
+      className={compact ? "h-8 w-8 object-contain" : "h-11 w-11 object-contain"}
+    />
+    <Badge className="border-amber-500/40 bg-red-950/40 text-amber-300 hover:bg-red-950/40">
+      Field Marshal
+    </Badge>
+  </div>
+);
 
 const AdminWithdrawals = () => {
   const navigate = useNavigate();
@@ -339,7 +359,10 @@ const AdminWithdrawals = () => {
                   filteredWithdrawals.map((withdrawal) => (
                     <TableRow key={withdrawal.id}>
                       <TableCell className="font-medium">
-                        {withdrawal.profiles?.display_name || "Unknown User"}
+                        <div className="space-y-2">
+                          <span>{withdrawal.profiles?.display_name || "Unknown User"}</span>
+                          {isFieldMarshalPayout(withdrawal) && <FieldMarshalMark compact />}
+                        </div>
                       </TableCell>
                       <TableCell>${withdrawal.amount.toFixed(2)}</TableCell>
                       <TableCell className="text-red-500">-${withdrawal.fee.toFixed(2)}</TableCell>
@@ -411,6 +434,7 @@ const AdminWithdrawals = () => {
           </DialogHeader>
           {selectedWithdrawal && (
             <div className="space-y-4">
+              {isFieldMarshalPayout(selectedWithdrawal) && <FieldMarshalMark />}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">User</p>
@@ -468,6 +492,7 @@ const AdminWithdrawals = () => {
           </DialogHeader>
           {selectedWithdrawal && (
             <div className="space-y-4">
+              {isFieldMarshalPayout(selectedWithdrawal) && <FieldMarshalMark />}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">User</p>
