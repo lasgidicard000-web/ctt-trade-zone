@@ -10,6 +10,7 @@ const BADGES: Record<string, string> = {
   superintendent: superintendentBadge.url,
   commissioners: commissionersBadge.url,
   general: generalBadge.url,
+  field: generalBadge.url,
 };
 
 /** Returns the shield badge artwork for a plan, or null for unknown plans. */

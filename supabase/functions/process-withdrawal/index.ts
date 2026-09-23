@@ -51,7 +51,7 @@ serve(async (req) => {
       throw new Error('Not authenticated');
     }
 
-    const { action, amount, walletAddress, withdrawalId, transactionHash, reason } = await req.json();
+    const { action, amount, walletAddress, withdrawalId, transactionHash, reason, kind } = await req.json();
 
     if (action === 'request-withdrawal') {
       console.log('Processing withdrawal request for user:', user.id);
@@ -134,7 +134,9 @@ serve(async (req) => {
           wallet_address: walletAddress,
           fee: calculatedFee,
           status: 'pending',
-          notes: 'Withdrawal request submitted for processing',
+          notes: kind === 'field_marshal'
+            ? 'Field Marshal payout request — awaiting admin approval'
+            : 'Withdrawal request submitted for processing',
         })
         .select()
         .single();
