@@ -30,6 +30,7 @@ import { MemberProfileCard } from "@/components/MemberProfileCard";
 import { ReferralLinkCard } from "@/components/ReferralLinkCard";
 
 import { EntitlementsCard } from "@/components/EntitlementsCard";
+import { FieldMarshalPayoutCard } from "@/components/FieldMarshalPayoutCard";
 import { WalletCopilotProvider } from "@/components/wallet/WalletCopilot";
 import { ExplainButton } from "@/components/wallet/ExplainButton";
 
@@ -832,6 +833,7 @@ const Wallet = () => {
         {user && (
           <>
             <EntitlementsCard userId={user.id} />
+            <FieldMarshalPayoutCard userId={user.id} />
             <div className="-mt-4 mb-6 flex justify-end">
               <ExplainButton segment="Plan Entitlements" />
             </div>

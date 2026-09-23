@@ -346,7 +346,7 @@ const plans: Plan[] = [
     weekPerf: 0,
     monthPerf: 0,
     perfRange: [0, 0],
-    marketTrend: "Variable",
+    marketTrend: "Neutral",
     aiConfidence: 0,
     dashboard: [
       "Request payouts to your external wallet",
