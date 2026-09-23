@@ -284,6 +284,11 @@ export default function AdminPlans() {
       is_active: t.is_active,
       sort_order: String(t.sort_order),
       description: t.description ?? "",
+      tagline: t.tagline ?? "",
+      about: t.about ?? "",
+      highlights: Array.isArray(t.highlights) ? (t.highlights as string[]).join("\n") : "",
+      show_on_homepage: t.show_on_homepage ?? true,
+      show_on_dashboard: t.show_on_dashboard ?? true,
     });
     setTplDialogOpen(true);
   };
