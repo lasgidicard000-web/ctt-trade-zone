@@ -22,6 +22,20 @@
       "when": 1790015489049,
       "tag": "0002_admin_live_pnl_summary",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790200779081,
+      "tag": "0003_plan_template_marketing_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790200797595,
+      "tag": "0004_public_read_active_plan_templates",
+      "breakpoints": true
     }
   ]
 }

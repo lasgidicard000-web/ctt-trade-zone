@@ -1573,11 +1573,13 @@ export type Database = {
       }
       plan_templates: {
         Row: {
+          about: string | null
           coin: string
           created_at: string
           daily_roi: number
           description: string | null
           duration_days: number
+          highlights: Json
           id: string
           is_active: boolean
           name: string
@@ -1585,15 +1587,20 @@ export type Database = {
           principal_min: number
           roi_max: number
           roi_min: number
+          show_on_dashboard: boolean
+          show_on_homepage: boolean
           sort_order: number
+          tagline: string | null
           updated_at: string
         }
         Insert: {
+          about?: string | null
           coin?: string
           created_at?: string
           daily_roi?: number
           description?: string | null
           duration_days?: number
+          highlights?: Json
           id?: string
           is_active?: boolean
           name: string
@@ -1601,15 +1608,20 @@ export type Database = {
           principal_min?: number
           roi_max: number
           roi_min: number
+          show_on_dashboard?: boolean
+          show_on_homepage?: boolean
           sort_order?: number
+          tagline?: string | null
           updated_at?: string
         }
         Update: {
+          about?: string | null
           coin?: string
           created_at?: string
           daily_roi?: number
           description?: string | null
           duration_days?: number
+          highlights?: Json
           id?: string
           is_active?: boolean
           name?: string
@@ -1617,7 +1629,10 @@ export type Database = {
           principal_min?: number
           roi_max?: number
           roi_min?: number
+          show_on_dashboard?: boolean
+          show_on_homepage?: boolean
           sort_order?: number
+          tagline?: string | null
           updated_at?: string
         }
         Relationships: []
