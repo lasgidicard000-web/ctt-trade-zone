@@ -3,10 +3,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Crown, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useEntitlements } from "@/hooks/useEntitlements";
+import { planBadgeAlt, planBadgeUrl } from "@/lib/planBadges";
 
 export const FieldMarshalPayoutCard = ({ userId }: { userId: string }) => {
   const { entitlements } = useEntitlements(userId);
@@ -37,10 +38,20 @@ export const FieldMarshalPayoutCard = ({ userId }: { userId: string }) => {
   };
 
   return (
-    <Card className="mb-6 p-5 border-primary/30">
-      <div className="flex items-center gap-2 mb-1">
-        <Crown className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold">Field Marshal payout</h3>
+    <Card className="mb-6 overflow-hidden border-amber-500/30 bg-gradient-to-br from-red-950/30 to-amber-500/5 p-5">
+      <div className="mb-2 flex items-center gap-3">
+        <img
+          src={planBadgeUrl("field") as string}
+          alt={planBadgeAlt("Field Marshal")}
+          loading="lazy"
+          width={1024}
+          height={1024}
+          className="h-12 w-12 object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
+        />
+        <div>
+          <p className="text-[11px] font-semibold uppercase text-amber-300">Top-tier payout</p>
+          <h3 className="font-semibold">Field Marshal payout</h3>
+        </div>
       </div>
       <p className="text-xs text-muted-foreground mb-4">
         Request a payout from your available USDT balance to your external wallet. Every request is reviewed and approved by an admin. Returns are not guaranteed.

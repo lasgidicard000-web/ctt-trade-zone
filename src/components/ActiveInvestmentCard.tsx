@@ -46,6 +46,7 @@ const badgeStyle = (planId: string) => {
     case "superintendent": return "bg-yellow-500/20 text-yellow-500 border-yellow-500/30";
     case "commissioners": return "bg-cyan-400/20 text-cyan-300 border-cyan-400/30";
     case "general": return "bg-purple-400/20 text-purple-300 border-purple-400/30";
+    case "field": return "bg-red-950/40 text-amber-300 border-amber-500/40";
     default: return "bg-primary/20 text-primary border-primary/30";
   }
 };
@@ -57,6 +58,7 @@ const gradientFor = (planId: string) => {
     case "superintendent": return "from-yellow-500/20 to-yellow-700/10";
     case "commissioners": return "from-cyan-500/20 to-blue-600/10";
     case "general": return "from-purple-500/20 to-fuchsia-600/10";
+    case "field": return "from-red-950/40 to-amber-500/10";
     default: return "from-primary/20 to-primary/5";
   }
 };
@@ -231,6 +233,8 @@ export const ActiveInvestmentCard = ({ userId, onCashedOut }: { userId: string; 
                       src={planBadgeUrl(inv.plan_id) as string}
                       alt={planBadgeAlt(inv.plan_name)}
                       loading="lazy"
+                      width={1024}
+                      height={1024}
                       className="h-11 w-11 object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
                     />
                   ) : (
