@@ -666,7 +666,7 @@ export default function AdminPlans() {
 
       {/* Template dialog */}
       <Dialog open={tplDialogOpen} onOpenChange={setTplDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingTpl ? "Edit plan" : "New plan"}</DialogTitle>
             <DialogDescription>
