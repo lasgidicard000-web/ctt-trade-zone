@@ -777,6 +777,51 @@ export default function AdminPlans() {
                 rows={2}
               />
             </div>
+            <div className="rounded-lg border border-border p-3 space-y-3">
+              <p className="text-sm font-semibold">Plan details shown to members & visitors</p>
+              <div>
+                <Label>Tagline</Label>
+                <Input
+                  value={tplForm.tagline}
+                  onChange={(e) => setTplForm({ ...tplForm, tagline: e.target.value })}
+                  placeholder="Start your journey with confidence"
+                />
+              </div>
+              <div>
+                <Label>About this plan</Label>
+                <Textarea
+                  value={tplForm.about}
+                  onChange={(e) => setTplForm({ ...tplForm, about: e.target.value })}
+                  rows={4}
+                  placeholder="Explain who this plan suits, how it works, and what members get."
+                />
+              </div>
+              <div>
+                <Label>Key highlights (one per line)</Label>
+                <Textarea
+                  value={tplForm.highlights}
+                  onChange={(e) => setTplForm({ ...tplForm, highlights: e.target.value })}
+                  rows={4}
+                  placeholder={"Dedicated account manager\nWeekly performance report\nPriority withdrawals"}
+                />
+              </div>
+              <div className="flex flex-wrap gap-6">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={tplForm.show_on_homepage}
+                    onCheckedChange={(v) => setTplForm({ ...tplForm, show_on_homepage: v })}
+                  />
+                  <Label>Show on homepage</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={tplForm.show_on_dashboard}
+                    onCheckedChange={(v) => setTplForm({ ...tplForm, show_on_dashboard: v })}
+                  />
+                  <Label>Show on member dashboard</Label>
+                </div>
+              </div>
+            </div>
             <div className="flex items-center gap-2">
               <Switch
                 checked={tplForm.is_active}
