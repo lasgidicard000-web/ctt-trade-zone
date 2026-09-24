@@ -466,6 +466,13 @@ const GeneralDashboard = () => {
         </Card>
 
         <ActiveInvestmentCard userId={user.id} />
+
+        <PlanDetailsSection
+          surface="dashboard"
+          title="Plan Details & Benefits"
+          subtitle="What each plan includes"
+          className="px-0"
+        />
       </div>
     </div>
   );
