@@ -21,6 +21,7 @@ import { PurchasePlanDialog } from "@/components/PurchasePlanDialog";
 import { PortfolioBreakdown } from "@/components/PortfolioBreakdown";
 import { useDailyRoi } from "@/hooks/useDailyRoi";
 import { CommissionersTopUpBanner } from "@/components/CommissionersTopUpBanner";
+import { FieldMarshalUpgradeBanner } from "@/components/FieldMarshalUpgradeBanner";
 import { GeneralUpgradeBanner } from "@/components/GeneralUpgradeBanner";
 import { SpendCardMerchants } from "@/components/SpendCardMerchants";
 import { CttDebitCard } from "@/components/CttDebitCard";
@@ -94,6 +95,7 @@ const Wallet = () => {
   const [walletAddress, setWalletAddress] = useState('');
   const [withdrawalFee, setWithdrawalFee] = useState(0);
   const [purchasePlanOpen, setPurchasePlanOpen] = useState(false);
+  const [presetPlan, setPresetPlan] = useState<string | undefined>(undefined);
   const [activeInvestments, setActiveInvestments] = useState<Array<{ amount: number; daily_roi: number; started_at: string }>>([]);
   const [profitTick, setProfitTick] = useState(0);
   const { byInvestment: dailyRoiByInvestment } = useDailyRoi(user?.id);
@@ -702,11 +704,20 @@ const Wallet = () => {
         </div>
 
         {user && (
+          <FieldMarshalUpgradeBanner
+            userId={user.id}
+            portfolioUsd={totalPortfolioValue}
+            onTopUp={() => setAddFundsDialogOpen(true)}
+            onUpgrade={() => { setPresetPlan("field marshal"); setPurchasePlanOpen(true); }}
+          />
+        )}
+
+        {user && (
           <CommissionersTopUpBanner
             userId={user.id}
             portfolioUsd={totalPortfolioValue}
             onTopUp={() => setAddFundsDialogOpen(true)}
-            onActivate={() => setPurchasePlanOpen(true)}
+            onActivate={() => { setPresetPlan("commissioner"); setPurchasePlanOpen(true); }}
           />
         )}
 

@@ -41,6 +41,7 @@ interface Props {
   usdtBalance: number;
   btcPrice: number;
   onPurchased?: () => void;
+  defaultTemplateName?: string;
 }
 
 const planIdFromName = (name: string) => name.trim().split(/\s+/)[0].toLowerCase();
@@ -53,6 +54,7 @@ export const PurchasePlanDialog = ({
   usdtBalance,
   btcPrice,
   onPurchased,
+  defaultTemplateName,
 }: Props) => {
   const [templates, setTemplates] = useState<PlanTemplate[]>([]);
   const [templateId, setTemplateId] = useState<string>("");
@@ -68,9 +70,16 @@ export const PurchasePlanDialog = ({
         .select("*")
         .eq("is_active", true)
         .order("sort_order");
-      setTemplates((data as any) ?? []);
+      const list = ((data as any) ?? []) as PlanTemplate[];
+      setTemplates(list);
+      if (defaultTemplateName) {
+        const match = list.find((t) =>
+          t.name.toLowerCase().includes(defaultTemplateName.toLowerCase())
+        );
+        if (match) setTemplateId(match.id);
+      }
     })();
-  }, [open]);
+  }, [open, defaultTemplateName]);
 
   const selected = useMemo(
     () => templates.find((t) => t.id === templateId),
