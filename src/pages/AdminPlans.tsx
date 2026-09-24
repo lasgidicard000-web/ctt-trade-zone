@@ -330,6 +330,14 @@ export default function AdminPlans() {
       is_active: tplForm.is_active,
       sort_order: sort,
       description: tplForm.description.trim() || null,
+      tagline: tplForm.tagline.trim() || null,
+      about: tplForm.about.trim() || null,
+      highlights: tplForm.highlights
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean),
+      show_on_homepage: tplForm.show_on_homepage,
+      show_on_dashboard: tplForm.show_on_dashboard,
     };
     const { error } = editingTpl
       ? await supabase.from("plan_templates").update(payload).eq("id", editingTpl.id)
