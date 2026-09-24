@@ -31,6 +31,7 @@ import { ReferralLinkCard } from "@/components/ReferralLinkCard";
 
 import { EntitlementsCard } from "@/components/EntitlementsCard";
 import { FieldMarshalPayoutCard } from "@/components/FieldMarshalPayoutCard";
+import PlanDetailsSection from "@/components/PlanDetailsSection";
 import { WalletCopilotProvider } from "@/components/wallet/WalletCopilot";
 import { ExplainButton } from "@/components/wallet/ExplainButton";
 
@@ -847,6 +848,14 @@ const Wallet = () => {
             </div>
           </>
         )}
+
+        <PlanDetailsSection
+          surface="dashboard"
+          title="Plan Details & Benefits"
+          subtitle="What each plan includes"
+          className="px-0"
+        />
+
 
 
         {/* Wallet Status and Activation Requirements */}

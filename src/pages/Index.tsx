@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Gift, ArrowLeftRight, Wallet, Zap, Shield, TrendingUp, CreditCard, Calculator, Banknote } from "lucide-react";
 import GetTheAppSection from "@/components/GetTheAppSection";
+import PlanDetailsSection from "@/components/PlanDetailsSection";
 
 
 const Index = () => {
@@ -65,6 +66,14 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Plan details (admin editable) */}
+      <PlanDetailsSection
+        surface="homepage"
+        title="Our Investment Plans"
+        subtitle="Every plan below is kept up to date by our team"
+        className="border-b border-border"
+      />
 
       {/* Features Grid */}
       <section className="container mx-auto px-4 py-20">
