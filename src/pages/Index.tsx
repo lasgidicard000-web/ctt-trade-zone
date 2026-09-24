@@ -67,6 +67,14 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Plan details (admin editable) */}
+      <PlanDetailsSection
+        surface="homepage"
+        title="Our Investment Plans"
+        subtitle="Every plan below is kept up to date by our team"
+        className="border-b border-border"
+      />
+
       {/* Features Grid */}
       <section className="container mx-auto px-4 py-20">
         <div className="mb-12 text-center">
