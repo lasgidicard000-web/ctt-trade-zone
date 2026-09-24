@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { EntitlementsCard } from "@/components/EntitlementsCard";
 import { ActiveInvestmentCard } from "@/components/ActiveInvestmentCard";
+import PlanDetailsSection from "@/components/PlanDetailsSection";
 import { ReferralLinkCard } from "@/components/ReferralLinkCard";
 import { CttDebitCard } from "@/components/CttDebitCard";
 import { SpendCardMerchants } from "@/components/SpendCardMerchants";
