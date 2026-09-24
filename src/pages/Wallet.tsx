@@ -848,6 +848,14 @@ const Wallet = () => {
           </>
         )}
 
+        <PlanDetailsSection
+          surface="dashboard"
+          title="Plan Details & Benefits"
+          subtitle="What each plan includes"
+          className="px-0"
+        />
+
+
 
         {/* Wallet Status and Activation Requirements */}
         {user && (
