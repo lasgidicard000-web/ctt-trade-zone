@@ -16,6 +16,9 @@ interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   available: number;
+  minWithdrawal: number;
+  feePct: number;
+  feeMin: number;
   onWithdraw: (amount: number, address: string) => Promise<{ error?: string; result?: any }>;
 }
 
