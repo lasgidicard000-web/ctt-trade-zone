@@ -836,6 +836,7 @@ const Wallet = () => {
             usdtBalance={walletBalances.find((b) => b.coin_symbol === "USDT")?.balance || 0}
             btcPrice={coinPrices.find((c) => c.symbol === "BTC")?.price || 0}
             onPurchased={fetchData}
+            defaultTemplateName={presetPlan}
           />
         )}
 
