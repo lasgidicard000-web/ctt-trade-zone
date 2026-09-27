@@ -622,6 +622,7 @@ const LiveTrading = () => {
           network={card.network}
           perTxLimit={card.per_tx_limit}
           remainingToday={card.daily_limit - card.spent_today}
+          minFunding={settings.min_funding_usd}
           hasPin={card.has_pin}
           verifyPin={verifyPin}
           onFund={(amt) => fundFromCard(card.id, amt)}
@@ -632,6 +633,9 @@ const LiveTrading = () => {
         open={withdrawOpen}
         onOpenChange={setWithdrawOpen}
         available={balance}
+        minWithdrawal={settings.min_withdrawal_usd}
+        feePct={settings.withdrawal_fee_pct}
+        feeMin={settings.withdrawal_fee_min}
         onWithdraw={withdraw}
       />
     </main>
