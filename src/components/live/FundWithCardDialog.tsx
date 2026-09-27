@@ -20,6 +20,7 @@ interface Props {
   network: string;
   perTxLimit: number;
   remainingToday: number;
+  minFunding: number;
   hasPin: boolean;
   verifyPin: (pin: string) => Promise<{ error?: string }>;
   onFund: (amount: number) => Promise<{ error?: string; result?: any }>;
@@ -35,6 +36,7 @@ export const FundWithCardDialog = ({
   network,
   perTxLimit,
   remainingToday,
+  minFunding,
   hasPin,
   verifyPin,
   onFund,
@@ -45,8 +47,8 @@ export const FundWithCardDialog = ({
 
   const submit = async () => {
     const amt = Number(amount);
-    if (!amt || amt < 10) {
-      toast({ title: "Minimum funding is $10", variant: "destructive" });
+    if (!amt || amt < minFunding) {
+      toast({ title: `Minimum funding is $${minFunding}`, variant: "destructive" });
       return;
     }
     if (hasPin && pin.length < 4) {
@@ -106,14 +108,14 @@ export const FundWithCardDialog = ({
             <Input
               id="live-fund-amount"
               type="number"
-              min="10"
+              min={minFunding}
               step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
             />
             <p className="text-xs text-muted-foreground">
-              Min $10 · per-transaction limit {fmtUsd(perTxLimit)} · remaining today{" "}
+              Min ${minFunding} · per-transaction limit {fmtUsd(perTxLimit)} · remaining today{" "}
               {fmtUsd(Math.max(0, remainingToday))}
             </p>
           </div>
