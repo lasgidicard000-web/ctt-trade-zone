@@ -25,18 +25,18 @@ interface Props {
 const fmtUsd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
 
-export const LiveWithdrawDialog = ({ open, onOpenChange, available, onWithdraw }: Props) => {
+export const LiveWithdrawDialog = ({ open, onOpenChange, available, minWithdrawal, feePct, feeMin, onWithdraw }: Props) => {
   const [amount, setAmount] = useState("");
   const [address, setAddress] = useState("");
   const [busy, setBusy] = useState(false);
 
   const amt = Number(amount) || 0;
-  const fee = amt > 0 ? Math.max(Number((amt * 0.01).toFixed(2)), 1) : 0;
+  const fee = amt > 0 ? Math.max(Number((amt * (feePct / 100)).toFixed(2)), feeMin) : 0;
 
   const submit = async () => {
     const addr = address.trim();
-    if (amt < 10) {
-      toast({ title: "Minimum withdrawal is $10", variant: "destructive" });
+    if (amt < minWithdrawal) {
+      toast({ title: `Minimum withdrawal is $${minWithdrawal}`, variant: "destructive" });
       return;
     }
     if (amt > available) {
@@ -88,7 +88,7 @@ export const LiveWithdrawDialog = ({ open, onOpenChange, available, onWithdraw }
             <Input
               id="live-wd-amount"
               type="number"
-              min="10"
+              min={minWithdrawal}
               step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
@@ -117,7 +117,7 @@ export const LiveWithdrawDialog = ({ open, onOpenChange, available, onWithdraw }
           </div>
           <div className="rounded-lg border border-border p-3 text-xs">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Network fee (1%, min $1)</span>
+              <span className="text-muted-foreground">Network fee ({feePct}%, min ${feeMin})</span>
               <span className="font-mono">{fmtUsd(fee)}</span>
             </div>
             <div className="mt-1 flex justify-between font-medium">
