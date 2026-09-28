@@ -284,6 +284,49 @@ const LiveTrading = () => {
           </div>
         </Card>
 
+        {/* Where the equity comes from — trading results vs. funding/adjustments */}
+        {(() => {
+          const unrealized = holdings.reduce(
+            (s, h) => s + h.qty * ((priceMap.get(h.coin_symbol)?.price ?? h.avg_price) - h.avg_price),
+            0,
+          );
+          const tradingPnl = realized + unrealized;
+          const funded = funding
+            .filter((f) => f.status === "completed")
+            .reduce((s, f) => s + f.amount_usd, 0);
+          const withdrawn = withdrawals
+            .filter((w) => w.status !== "failed" && w.status !== "rejected")
+            .reduce((s, w) => s + w.amount + w.fee, 0);
+          const adjustments = equity - tradingPnl - funded + withdrawn;
+          const sign = (v: number) => (v >= 0 ? "+" : "");
+          return (
+            <Card className="mb-4 grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <div className="text-xs text-muted-foreground">Trading P&L (from trades only)</div>
+                <div className={`text-lg font-semibold tabular-nums ${tradingPnl >= 0 ? "text-primary" : "text-destructive"}`}>
+                  {sign(tradingPnl)}{fmtUsd(tradingPnl)}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Realised {sign(realized)}{fmtUsd(realized)} · Unrealised {sign(unrealized)}{fmtUsd(unrealized)}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Card funding</div>
+                <div className="text-lg font-semibold tabular-nums">{fmtUsd(funded)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Withdrawals (incl. fees)</div>
+                <div className="text-lg font-semibold tabular-nums">−{fmtUsd(withdrawn)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Admin adjustments & other</div>
+                <div className="text-lg font-semibold tabular-nums">{sign(adjustments)}{fmtUsd(adjustments)}</div>
+                <div className="text-xs text-muted-foreground">Not trading profit</div>
+              </div>
+            </Card>
+          );
+        })()}
+
         {/* Market header */}
         <Card className="mb-4 flex flex-wrap items-center gap-6 p-4">
           <Select value={symbol} onValueChange={setSymbol}>
