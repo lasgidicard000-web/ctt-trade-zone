@@ -36,6 +36,13 @@
       "when": 1790200797595,
       "tag": "0004_public_read_active_plan_templates",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791262399180,
+      "tag": "0005_restrict_plan_entitlements_read",
+      "breakpoints": true
     }
   ]
 }
