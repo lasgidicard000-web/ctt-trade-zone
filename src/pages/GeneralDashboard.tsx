@@ -16,6 +16,7 @@ import { ReferralLinkCard } from "@/components/ReferralLinkCard";
 import { CttDebitCard } from "@/components/CttDebitCard";
 import { SpendCardMerchants } from "@/components/SpendCardMerchants";
 import { useDailyRoi } from "@/hooks/useDailyRoi";
+import { GeneralFeeNotice } from "@/components/GeneralFeeNotice";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { planBadgeUrl } from "@/lib/planBadges";
 import {
@@ -467,6 +468,7 @@ const GeneralDashboard = () => {
         </Card>
 
         <ActiveInvestmentCard userId={user.id} />
+        <GeneralFeeNotice />
 
         <PlanDetailsSection
           surface="dashboard"

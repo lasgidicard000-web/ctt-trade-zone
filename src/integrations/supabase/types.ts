@@ -1571,6 +1571,66 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_fee_charges: {
+        Row: {
+          amount_usd: number
+          created_at: string
+          cycle_start: string
+          id: string
+          paid_at: string
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_usd: number
+          created_at?: string
+          cycle_start: string
+          id?: string
+          paid_at?: string
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_usd?: number
+          created_at?: string
+          cycle_start?: string
+          id?: string
+          paid_at?: string
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      plan_fee_inquiries: {
+        Row: {
+          admin_reply: string | null
+          created_at: string
+          id: string
+          message: string
+          replied_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          admin_reply?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          replied_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Update: {
+          admin_reply?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          replied_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       plan_templates: {
         Row: {
           about: string | null
@@ -2379,6 +2439,19 @@ export type Database = {
         Returns: Json
       }
       admin_get_card_pin_policy: { Args: never; Returns: Json }
+      admin_list_general_fee_members: {
+        Args: never
+        Returns: {
+          display_name: string
+          email: string
+          last_paid_at: string
+          paid_dates: string[]
+          status: string
+          times_paid: number
+          user_id: string
+          wallet_address: string
+        }[]
+      }
       admin_list_live_accounts: {
         Args: never
         Returns: {
@@ -2432,6 +2505,10 @@ export type Database = {
       }
       admin_set_card_pin_policy: {
         Args: { _global_pin?: string; _mode: string }
+        Returns: Json
+      }
+      admin_set_general_fee_settings: {
+        Args: { _settings: Json }
         Returns: Json
       }
       admin_set_live_freeze: {
@@ -2521,10 +2598,14 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      general_fee_cycle_start: { Args: never; Returns: string }
+      general_fee_settings: { Args: never; Returns: Json }
       get_card_details: {
         Args: { _card_id: string; _pin: string }
         Returns: Json
       }
+      get_general_fee_stats: { Args: never; Returns: Json }
+      get_general_fee_status: { Args: never; Returns: Json }
       get_investment_roi_summary: {
         Args: { _investment_id: string }
         Returns: {
@@ -2606,6 +2687,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_general_member: { Args: { _uid: string }; Returns: boolean }
       issue_virtual_card: { Args: never; Returns: Json }
       live_assert_enabled: { Args: never; Returns: undefined }
       live_cancel_order: { Args: { _order_id: string }; Returns: Json }
@@ -2682,6 +2764,7 @@ export type Database = {
         }
         Returns: number
       }
+      pay_general_plan_fee: { Args: { _agree: boolean }; Returns: Json }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {

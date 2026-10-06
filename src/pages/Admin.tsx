@@ -3,6 +3,7 @@ import { AdminOverview } from "@/components/admin/AdminOverview";
 import { AdminMembers, useAdminMembers } from "@/components/admin/AdminMembers";
 import AdminMerchantPayments from "@/components/admin/AdminMerchantPayments";
 import AdminBankWithdrawals from "@/components/admin/AdminBankWithdrawals";
+import AdminGeneralFee from "@/components/admin/AdminGeneralFee";
 import AdminLiveTrading from "@/components/admin/AdminLiveTrading";
 import AdminDepositManagement from "@/components/AdminDepositManagement";
 import AdminTransactions from "@/pages/AdminTransactions";
@@ -437,6 +438,7 @@ const Admin = () => {
             <TabsTrigger value="merchant">
               Merchant Payments{merchantPending > 0 ? ` (${merchantPending})` : ""}
             </TabsTrigger>
+            <TabsTrigger value="generalfee">General Plan Fee</TabsTrigger>
             <TabsTrigger value="prices">Coin Prices</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
             <TabsTrigger value="deposits">Deposits</TabsTrigger>
@@ -465,6 +467,10 @@ const Admin = () => {
             />
           </TabsContent>
 
+
+          <TabsContent value="generalfee" className="space-y-4">
+            <AdminGeneralFee />
+          </TabsContent>
 
           <TabsContent value="prices" className="space-y-4">
             <Card>
