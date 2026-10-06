@@ -181,6 +181,32 @@ export const useLiveTrading = () => {
     refresh();
   }, [refresh]);
 
+  const [live, setLive] = useState(false);
+  useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let cancelled = false;
+    const debounced = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => refresh(), 400);
+    };
+    supabase.auth.getUser().then(({ data }) => {
+      const uid = data.user?.id;
+      if (!uid || cancelled) return;
+      const filter = `user_id=eq.${uid}`;
+      channel = supabase.channel(`live-trading-${uid}`);
+      for (const table of ["live_trades", "live_holdings", "live_orders", "live_accounts"]) {
+        channel.on("postgres_changes" as any, { event: "*", schema: "public", table, filter }, debounced);
+      }
+      channel.subscribe((status) => setLive(status === "SUBSCRIBED"));
+    });
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [refresh]);
+
   useEffect(() => {
     const id = setInterval(() => tick(), 15000);
     return () => clearInterval(id);
@@ -253,6 +279,7 @@ export const useLiveTrading = () => {
     funding,
     withdrawals,
     loading,
+    live,
     refresh,
     tick,
     fundFromCard,
