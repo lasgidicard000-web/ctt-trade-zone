@@ -22,6 +22,7 @@ import { PortfolioBreakdown } from "@/components/PortfolioBreakdown";
 import { useDailyRoi } from "@/hooks/useDailyRoi";
 import { CommissionersTopUpBanner } from "@/components/CommissionersTopUpBanner";
 import { FieldMarshalUpgradeBanner } from "@/components/FieldMarshalUpgradeBanner";
+import { GeneralFeeNotice } from "@/components/GeneralFeeNotice";
 import { GeneralUpgradeBanner } from "@/components/GeneralUpgradeBanner";
 import { SpendCardMerchants } from "@/components/SpendCardMerchants";
 import { CttDebitCard } from "@/components/CttDebitCard";
@@ -702,6 +703,8 @@ const Wallet = () => {
             </Button>
           </div>
         </div>
+
+        {user && <GeneralFeeNotice />}
 
         {user && (
           <FieldMarshalUpgradeBanner

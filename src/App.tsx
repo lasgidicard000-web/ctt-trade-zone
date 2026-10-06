@@ -38,6 +38,7 @@ import AdminCloud from "./pages/AdminCloud";
 import Unsubscribe from "./pages/Unsubscribe";
 import ReplyToMessage from "./pages/ReplyToMessage";
 import Downloads from "./pages/Downloads";
+import GeneralFeeInquiries from "./pages/GeneralFeeInquiries";
 import DemoTrading from "./pages/DemoTrading";
 import TradingBots from "./pages/TradingBots";
 import LiveTrading from "./pages/LiveTrading";
@@ -98,6 +99,7 @@ const App = () => (
             <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/reply/:token" element={<ReplyToMessage />} />
             <Route path="/downloads" element={<Downloads />} />
+            <Route path="/general-fee" element={<GeneralFeeInquiries />} />
 
 
             <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
