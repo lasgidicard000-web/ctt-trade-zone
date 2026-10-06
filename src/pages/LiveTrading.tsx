@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useRealtimePrices } from "@/hooks/useRealtimePrices";
 import { useLiveTrading } from "@/hooks/useLiveTrading";
+import { computeTradePnl } from "@/lib/tradePnl";
 import { useVirtualCard } from "@/hooks/useVirtualCard";
 import OrderBook from "@/components/demo/OrderBook";
 import PairChart from "@/components/demo/PairChart";
@@ -49,6 +50,7 @@ const LiveTrading = () => {
     placeOrder,
     cancelOrder,
     withdraw,
+    live,
   } = useLiveTrading();
   const { card, reveal } = useVirtualCard(userId);
 
@@ -75,6 +77,12 @@ const LiveTrading = () => {
     prices.forEach((p) => m.set(p.symbol, { price: p.price, change: p.change_24h, name: p.name }));
     return m;
   }, [prices]);
+
+  const tradePnl = useMemo(() => {
+    const m = new Map<string, number>();
+    priceMap.forEach((v, k) => m.set(k, v.price));
+    return computeTradePnl(trades, m);
+  }, [trades, priceMap]);
 
   const marketInfo = priceMap.get(symbol);
   const lastPrice = marketInfo?.price ?? 0;
@@ -460,35 +468,59 @@ const LiveTrading = () => {
                 </TabsContent>
 
                 <TabsContent value="history" className="mt-4">
+                  <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className={`h-2 w-2 rounded-full ${live ? "bg-primary animate-pulse" : "bg-muted-foreground"}`} />
+                    {live ? "Live — P&L updates with the market" : "Connecting…"}
+                  </div>
                   {trades.length === 0 ? (
                     <p className="py-8 text-center text-sm text-muted-foreground">No trades yet.</p>
                   ) : (
                     <div className="max-h-80 space-y-1 overflow-y-auto">
-                      {trades.map((t) => (
-                        <div
-                          key={t.id}
-                          className="flex items-center justify-between gap-3 border-b border-border py-2 text-xs last:border-0"
-                        >
-                          <span className={t.side === "buy" ? "text-primary" : "text-destructive"}>
-                            {t.side.toUpperCase()}
-                          </span>
-                          <span className="font-medium">{t.symbol}/USDT</span>
-                          <span className="font-mono">{t.qty.toFixed(6)}</span>
-                          <span className="font-mono">{fmtUsd(t.price)}</span>
-                          <span className="font-mono text-muted-foreground">fee {fmtUsd(t.fee)}</span>
-                          <span
-                            className={`font-mono ${t.pnl >= 0 ? "text-primary" : "text-destructive"}`}
+                      {trades.map((t) => {
+                        const info = tradePnl.get(t.id);
+                        const market = priceMap.get(t.symbol)?.price;
+                        const val =
+                          info?.kind === "realised" || info?.kind === "unrealised" ? info.pnl : null;
+                        return (
+                          <div
+                            key={t.id}
+                            className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-2 text-xs last:border-0"
                           >
-                            {t.side === "buy" ? "—" : `${t.pnl >= 0 ? "+" : ""}${fmtUsd(t.pnl)}`}
-                          </span>
-                          <span className="text-muted-foreground">
-                            {new Date(t.created_at).toLocaleString([], { hour12: false })}
-                          </span>
-                        </div>
-                      ))}
+                            <span className={t.side === "buy" ? "text-primary" : "text-destructive"}>
+                              {t.side.toUpperCase()}
+                            </span>
+                            <span className="font-medium">{t.symbol}/USDT</span>
+                            <span className="font-mono">{t.qty.toFixed(6)}</span>
+                            <span className="font-mono">@ {fmtUsd(t.price)}</span>
+                            <span className="font-mono text-muted-foreground">
+                              mkt {market ? fmtUsd(market) : "—"}
+                            </span>
+                            <span className="font-mono text-muted-foreground">fee {fmtUsd(t.fee)}</span>
+                            <span className="flex items-center gap-1">
+                              {val !== null && (
+                                <span className={`font-mono ${val >= 0 ? "text-primary" : "text-destructive"}`}>
+                                  {val >= 0 ? "+" : ""}
+                                  {fmtUsd(val)}
+                                </span>
+                              )}
+                              <Badge variant="outline" className="text-[10px]">
+                                {info?.kind === "realised"
+                                  ? "Realised"
+                                  : info?.kind === "unrealised"
+                                    ? "Unrealised"
+                                    : "Closed"}
+                              </Badge>
+                            </span>
+                            <span className="text-muted-foreground">
+                              {new Date(t.created_at).toLocaleString([], { hour12: false })}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </TabsContent>
+
 
                 <TabsContent value="funding" className="mt-4">
                   {funding.length === 0 ? (

@@ -43,6 +43,13 @@
       "when": 1791262399180,
       "tag": "0005_restrict_plan_entitlements_read",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791262743702,
+      "tag": "0006_live_trading_realtime",
+      "breakpoints": true
     }
   ]
 }
