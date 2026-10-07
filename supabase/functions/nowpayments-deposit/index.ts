@@ -33,7 +33,9 @@ Deno.serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { action, amount, cryptoCurrency, paymentId } = await req.json();
+    const { action, amount, cryptoCurrency: rawCrypto, paymentId } = await req.json();
+    // NOWPayments requires network-specific tickers for stablecoins
+    const cryptoCurrency = rawCrypto === 'usdt' ? 'usdttrc20' : rawCrypto;
     console.log('NOWPayments request:', { action, amount, cryptoCurrency, paymentId, userId: user.id });
 
     if (action === 'create-payment') {
