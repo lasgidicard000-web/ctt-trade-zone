@@ -64,6 +64,13 @@
       "when": 1791364770646,
       "tag": "0008_fix_pay_general_plan_fee_ambiguous_price",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793308775018,
+      "tag": "0009_create_field_marshal_upgrades",
+      "breakpoints": true
     }
   ]
 }
