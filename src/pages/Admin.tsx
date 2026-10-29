@@ -439,6 +439,7 @@ const Admin = () => {
             <TabsTrigger value="merchant">
               Merchant Payments{merchantPending > 0 ? ` (${merchantPending})` : ""}
             </TabsTrigger>
+            <TabsTrigger value="fmupgrade">FM Upgrades</TabsTrigger>
             <TabsTrigger value="generalfee">General Plan Fee</TabsTrigger>
             <TabsTrigger value="prices">Coin Prices</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
