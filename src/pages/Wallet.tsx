@@ -33,6 +33,7 @@ import { ReferralLinkCard } from "@/components/ReferralLinkCard";
 
 import { EntitlementsCard } from "@/components/EntitlementsCard";
 import { FieldMarshalPayoutCard } from "@/components/FieldMarshalPayoutCard";
+import { PremiumAccessGate } from "@/components/PremiumAccessGate";
 import PlanDetailsSection from "@/components/PlanDetailsSection";
 import { WalletCopilotProvider } from "@/components/wallet/WalletCopilot";
 import { ExplainButton } from "@/components/wallet/ExplainButton";
@@ -849,7 +850,9 @@ const Wallet = () => {
         {user && (
           <>
             <EntitlementsCard userId={user.id} />
-            <FieldMarshalPayoutCard userId={user.id} />
+            <PremiumAccessGate userId={user.id}>
+              <FieldMarshalPayoutCard userId={user.id} />
+            </PremiumAccessGate>
             <div className="-mt-4 mb-6 flex justify-end">
               <ExplainButton segment="Plan Entitlements" />
             </div>
