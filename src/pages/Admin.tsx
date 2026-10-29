@@ -469,6 +469,17 @@ const Admin = () => {
             />
           </TabsContent>
 
+          <TabsContent value="fmupgrade" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Field Marshal Upgrades</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AdminFieldMarshalUpgrades />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
 
           <TabsContent value="generalfee" className="space-y-4">
             <AdminGeneralFee />
