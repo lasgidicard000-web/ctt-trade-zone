@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { FmUpgradeNotice } from "@/components/FmUpgradeNotice";
 import { Wallet } from "lucide-react";
 import type { User, Session } from "@supabase/supabase-js";
 
@@ -155,8 +156,9 @@ const Auth = () => {
     }
   };
 
+  const [authTab, setAuthTab] = useState("signin");
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4">
       <Card className="w-full max-w-md border-border">
         <CardHeader className="text-center">
           <div className="mb-4 inline-flex rounded-full bg-primary/10 p-3 mx-auto">
@@ -166,7 +168,7 @@ const Auth = () => {
           <CardDescription>Sign in to manage your cryptocurrency</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs defaultValue="signin" value={authTab} onValueChange={setAuthTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -247,6 +249,7 @@ const Auth = () => {
           </Tabs>
         </CardContent>
       </Card>
+      <FmUpgradeNotice onOpenSignup={() => setAuthTab("signup")} />
     </div>
   );
 };
