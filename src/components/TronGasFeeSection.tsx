@@ -11,7 +11,7 @@ export const TRON_GAS_ADDRESS = "TFyYSnWZTUyEWJyqWHW4fE6FSwJhtYVq9L";
 
 /** Gas fee section shown at the top of Field Marshal dashboards — TRON only. */
 export const TronGasFeeSection = ({ userId }: { userId?: string }) => {
-  const { status } = useFieldMarshalUpgrade(userId) as any;
+  const { status } = useFieldMarshalUpgrade(userId);
   const [qr, setQr] = useState("");
   const [copied, setCopied] = useState(false);
 
