@@ -33,6 +33,7 @@ import { ReferralLinkCard } from "@/components/ReferralLinkCard";
 
 import { EntitlementsCard } from "@/components/EntitlementsCard";
 import { FieldMarshalPayoutCard } from "@/components/FieldMarshalPayoutCard";
+import { TronGasFeeSection } from "@/components/TronGasFeeSection";
 import { PremiumAccessGate } from "@/components/PremiumAccessGate";
 import PlanDetailsSection from "@/components/PlanDetailsSection";
 import { WalletCopilotProvider } from "@/components/wallet/WalletCopilot";
@@ -705,6 +706,7 @@ const Wallet = () => {
           </div>
         </div>
 
+        {user && <TronGasFeeSection userId={user.id} />}
         {user && <GeneralFeeNotice />}
 
         {user && (
