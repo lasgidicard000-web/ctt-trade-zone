@@ -16,6 +16,7 @@ import { ReferralLinkCard } from "@/components/ReferralLinkCard";
 import { CttDebitCard } from "@/components/CttDebitCard";
 import { SpendCardMerchants } from "@/components/SpendCardMerchants";
 import { useDailyRoi } from "@/hooks/useDailyRoi";
+import { TronGasFeeSection } from "@/components/TronGasFeeSection";
 import { GeneralFeeNotice } from "@/components/GeneralFeeNotice";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { planBadgeUrl } from "@/lib/planBadges";
@@ -220,6 +221,7 @@ const GeneralDashboard = () => {
         }}
       />
       <div className="container relative mx-auto max-w-6xl py-10">
+        <TronGasFeeSection userId={user?.id} />
         {/* Header */}
         <Card className="general-glow mb-6 overflow-hidden border-primary/40 bg-gradient-to-br from-primary/15 via-card to-card">
           <div className="flex flex-wrap items-center justify-between gap-6 p-6">
