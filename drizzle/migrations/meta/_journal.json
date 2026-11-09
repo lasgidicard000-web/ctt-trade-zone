@@ -71,6 +71,13 @@
       "when": 1793308775018,
       "tag": "0009_create_field_marshal_upgrades",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794199601312,
+      "tag": "0010_field_marshal_tron_fee_ledger",
+      "breakpoints": true
     }
   ]
 }

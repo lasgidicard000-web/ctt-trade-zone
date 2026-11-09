@@ -978,6 +978,63 @@ export type Database = {
         }
         Relationships: []
       }
+      field_marshal_gas_balances: {
+        Row: {
+          balance_usd: number
+          created_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance_usd?: number
+          created_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance_usd?: number
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      field_marshal_gas_ledger: {
+        Row: {
+          amount_usd: number
+          created_at: string
+          entry_type: string
+          id: string
+          note: string | null
+          status: string
+          transaction_hash: string | null
+          user_id: string
+          withdrawal_id: string | null
+        }
+        Insert: {
+          amount_usd: number
+          created_at?: string
+          entry_type: string
+          id?: string
+          note?: string | null
+          status?: string
+          transaction_hash?: string | null
+          user_id: string
+          withdrawal_id?: string | null
+        }
+        Update: {
+          amount_usd?: number
+          created_at?: string
+          entry_type?: string
+          id?: string
+          note?: string | null
+          status?: string
+          transaction_hash?: string | null
+          user_id?: string
+          withdrawal_id?: string | null
+        }
+        Relationships: []
+      }
       field_marshal_upgrades: {
         Row: {
           admin_note: string | null
@@ -2472,6 +2529,15 @@ export type Database = {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: Json
       }
+      admin_credit_field_marshal_gas: {
+        Args: {
+          _amount_usd: number
+          _note?: string
+          _transaction_hash: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       admin_decide_bank_withdrawal: {
         Args: { _approve: boolean; _note?: string; _withdrawal_id: string }
         Returns: Json
@@ -2638,6 +2704,19 @@ export type Database = {
       email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
+        Returns: number
+      }
+      field_marshal_gas_balance: { Args: { _user_id: string }; Returns: number }
+      field_marshal_refund_gas_fee: {
+        Args: { _withdrawal_id: string }
+        Returns: number
+      }
+      field_marshal_reserve_gas_fee: {
+        Args: {
+          _user_id: string
+          _withdrawal_amount: number
+          _withdrawal_id: string
+        }
         Returns: number
       }
       general_fee_cycle_start: { Args: never; Returns: string }
@@ -2827,6 +2906,10 @@ export type Database = {
           _propagate: boolean
           _value: number
         }
+        Returns: Json
+      }
+      request_field_marshal_wallet_withdrawal: {
+        Args: { _address: string; _amount: number }
         Returns: Json
       }
       roll_investment_daily_roi: { Args: never; Returns: number }
