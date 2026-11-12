@@ -217,6 +217,7 @@ serve(async (req) => {
         .maybeSingle();
 
       const currentBalance = balance?.balance || 0;
+      await supabaseClient.rpc('field_marshal_refund_gas_fee', { _withdrawal_id: withdrawal.id }).then(() => {}, () => {});
       const refundAmount = parseFloat(withdrawal.amount.toString()) + parseFloat(withdrawal.fee.toString());
       const newBalance = parseFloat(currentBalance.toString()) + refundAmount;
 
@@ -363,6 +364,7 @@ serve(async (req) => {
         .maybeSingle();
 
       const currentBalance = balance?.balance || 0;
+      await supabaseClient.rpc('field_marshal_refund_gas_fee', { _withdrawal_id: withdrawal.id }).then(() => {}, () => {});
       const refundAmount = parseFloat(withdrawal.amount.toString()) + parseFloat(withdrawal.fee.toString());
       const newBalance = parseFloat(currentBalance.toString()) + refundAmount;
 
