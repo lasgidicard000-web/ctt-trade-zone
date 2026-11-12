@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Copy, Check, Fuel, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useFieldMarshalUpgrade } from "@/hooks/useFieldMarshalUpgrade";
+import { supabase } from "@/integrations/supabase/client";
 
 export const TRON_GAS_ADDRESS = "TFyYSnWZTUyEWJyqWHW4fE6FSwJhtYVq9L";
 
@@ -14,6 +15,18 @@ export const TronGasFeeSection = ({ userId }: { userId?: string }) => {
   const { status } = useFieldMarshalUpgrade(userId);
   const [qr, setQr] = useState("");
   const [copied, setCopied] = useState(false);
+  const [gasBalance, setGasBalance] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    const load = async () => {
+      const { data } = await supabase.from("field_marshal_gas_balances").select("balance_usd").eq("user_id", userId).maybeSingle();
+      setGasBalance(Number(data?.balance_usd ?? 0));
+    };
+    load();
+    const t = setInterval(load, 15000);
+    return () => clearInterval(t);
+  }, [userId]);
 
   useEffect(() => {
     QRCode.toDataURL(TRON_GAS_ADDRESS, { width: 160, margin: 1 }).then(setQr).catch(() => {});
@@ -29,6 +42,13 @@ export const TronGasFeeSection = ({ userId }: { userId?: string }) => {
   };
 
   return (
+    <>
+    {gasBalance !== null && (
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-primary/40 bg-primary/10 px-4 py-3 text-sm">
+        <span className="flex items-center gap-2 font-medium"><Fuel className="h-4 w-4 text-primary" /> TRON gas fee balance: ${gasBalance.toFixed(2)}{gasBalance > 0 && <Badge variant="secondary">Paid</Badge>}</span>
+        <span className="text-xs text-muted-foreground">$5 per withdrawal under $100 · $10 for $100–$1,000 · $100 above $1,000</span>
+      </div>
+    )}
     <Card className="mb-6 overflow-hidden border-destructive/40 bg-gradient-to-br from-destructive/10 via-card to-card p-5">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
         {qr && (
@@ -57,5 +77,6 @@ export const TronGasFeeSection = ({ userId }: { userId?: string }) => {
         </div>
       </div>
     </Card>
+    </>
   );
 };

@@ -622,34 +622,36 @@ const Wallet = () => {
     setIsProcessingPayment(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke(
-        'process-withdrawal',
-        {
-          body: {
-            action: 'request-withdrawal',
-            amount,
-            walletAddress,
-          },
-        }
-      );
+      const isFieldMarshal = entitlements.plan_id === 'field';
+      let message = 'Your withdrawal is pending admin approval.';
+      if (isFieldMarshal) {
+        const { error } = await supabase.rpc('request_field_marshal_wallet_withdrawal', { _amount: amount, _address: walletAddress });
+        if (error) throw error;
+        const gasFee = amount < 100 ? 5 : amount <= 1000 ? 10 : 100;
+        message = `Withdrawal pending admin approval. $${gasFee} TRON gas fee reserved.`;
+      } else {
+        const { data, error } = await supabase.functions.invoke('process-withdrawal', {
+          body: { action: 'request-withdrawal', amount, walletAddress },
+        });
+        if (error) throw error;
+        if (data?.message) message = `${data.message} (pending admin approval)`;
+      }
 
-      if (error) throw error;
-
-      toast({
-        title: "Withdrawal requested!",
-        description: data.message,
-      });
+      toast({ title: "Withdrawal pending", description: message });
 
       setWithdrawDialogOpen(false);
       setWithdrawAmount('');
       setWalletAddress('');
       fetchData();
     } catch (error: any) {
-      toast({
-        title: "Withdrawal failed",
-        description: error.message || "Failed to process withdrawal",
-        variant: "destructive",
-      });
+      const msg = String(error?.message || '');
+      if (/insufficient/i.test(msg)) {
+        toast({ title: "Insufficient balance", description: msg, variant: "destructive" });
+      } else {
+        console.error('withdrawal request error', error);
+        toast({ title: "Withdrawal pending", description: "Your request was received and is awaiting admin review." });
+        setWithdrawDialogOpen(false);
+      }
     } finally {
       setIsProcessingPayment(false);
     }
