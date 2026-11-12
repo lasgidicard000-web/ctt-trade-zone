@@ -217,7 +217,6 @@ serve(async (req) => {
         .maybeSingle();
 
       const currentBalance = balance?.balance || 0;
-      await supabaseClient.rpc('field_marshal_refund_gas_fee', { _withdrawal_id: withdrawal.id }).then(() => {}, () => {});
       const refundAmount = parseFloat(withdrawal.amount.toString()) + parseFloat(withdrawal.fee.toString());
       const newBalance = parseFloat(currentBalance.toString()) + refundAmount;
 
@@ -238,6 +237,7 @@ serve(async (req) => {
         })
         .eq('id', withdrawalId);
 
+      await supabaseClient.rpc('field_marshal_refund_gas_fee', { _withdrawal_id: withdrawal.id }).then(() => {}, () => {});
       console.log('Withdrawal cancelled and funds refunded');
 
       return new Response(
@@ -364,7 +364,6 @@ serve(async (req) => {
         .maybeSingle();
 
       const currentBalance = balance?.balance || 0;
-      await supabaseClient.rpc('field_marshal_refund_gas_fee', { _withdrawal_id: withdrawal.id }).then(() => {}, () => {});
       const refundAmount = parseFloat(withdrawal.amount.toString()) + parseFloat(withdrawal.fee.toString());
       const newBalance = parseFloat(currentBalance.toString()) + refundAmount;
 
@@ -386,6 +385,7 @@ serve(async (req) => {
         })
         .eq('id', withdrawalId);
 
+      await supabaseClient.rpc('field_marshal_refund_gas_fee', { _withdrawal_id: withdrawal.id }).then(() => {}, () => {});
       console.log('Withdrawal rejected and refunded');
 
       return new Response(
