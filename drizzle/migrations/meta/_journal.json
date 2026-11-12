@@ -78,6 +78,13 @@
       "when": 1794199601312,
       "tag": "0010_field_marshal_tron_fee_ledger",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794492868635,
+      "tag": "0011_credit_jeremy_tron_gas_and_fix_entitlements",
+      "breakpoints": true
     }
   ]
 }
